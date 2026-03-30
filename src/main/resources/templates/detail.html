@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Smartphone Shop</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+    <div class="header">
+        <a href="/" class="logo">🏠︎ HOME</a>
+
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <!-- Hiện khi đã đăng nhập -->
+            <span sec:authorize="isAuthenticated()" style="color: white; font-size: 14px;">
+                👤 <span sec:authentication="name"></span>
+            </span>
+
+            <a sec:authorize="isAuthenticated()" href="/my-orders" style="color: white; font-size: 14px;">📋 Đơn
+                hàng</a>
+
+            <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display: inline;">
+                <button type="submit" class="btn-logout-link">
+                    Đăng xuất
+                </button>
+            </form>
+
+            <a sec:authorize="!isAuthenticated()" href="/login" style="color: white; font-size: 14px;">Đăng nhập</a>
+
+            <a sec:authorize="hasRole('ADMIN')" href="/admin" style="color: #f39c12; font-weight: bold;">⚙ Admin</a>
+
+            <a href="/cart" class="cart">🛒 (<span
+                    th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)</a>
+        </div>
+    </div>
+
+    <div class="container detail-wrapper">
+
+        <div class="detail-image-section">
+            <img th:src="@{${product.imageUrl}}" th:alt="${product.name}">
+        </div>
+
+        <div class="detail-info-section">
+            <h1 class="detail-title" th:text="${product.name}"></h1>
+            <p class="price detail-price"
+                th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' JPY'">
+            </p>
+
+            <p class="detail-description" th:text="${product.description}"></p>
+
+            <h3 class="detail-spec-title">Product specifications</h3>
+            <table class="spec-table">
+                <tr>
+                    <td class="spec-label">OS</td>
+                    <td class="spec-value" th:text="${product.os}"></td>
+                </tr>
+                <tr>
+                    <td class="spec-label">CPU</td>
+                    <td class="spec-value" th:text="${product.cpu}"></td>
+                </tr>
+                <tr>
+                    <td class="spec-label">Frequency</td>
+                    <td class="spec-value" th:text="${product.speed}"></td>
+                </tr>
+                <tr>
+                    <td class="spec-label">RAM</td>
+                    <td class="spec-value" th:text="${product.ram}"></td>
+                </tr>
+                <tr>
+                    <td class="spec-label">Storage</td>
+                    <td class="spec-value" th:text="${product.storage}"></td>
+                </tr>
+                <tr>
+                    <td class="spec-label">Display Size</td>
+                    <td class="spec-value" th:text="${product.size}"></td>
+                </tr>
+                <tr>
+                    <td class="spec-label">Resolution</td>
+                    <td class="spec-value" th:text="${product.resolution}"></td>
+                </tr>
+                <tr>
+                    <td class="spec-label">Battery</td>
+                    <td class="spec-value" th:text="${product.battery}"></td>
+                </tr>
+                <tr>
+                    <td class="spec-label">Charging</td>
+                    <td class="spec-value" th:text="${product.charging}"></td>
+                </tr>
+            </table>
+
+            <div class="action-buttons">
+                <form action="/cart/add" method="get" style="margin: 0;">
+                    <input type="hidden" name="id" th:value="${product.id}">
+                    <button type="submit" class="btn-cart">Add to Cart</button>
+                </form>
+                <a href="/" class="btn-back">Back</a>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast-container" th:if="${toast}">
+        <div class="toast" th:text="${toast}"></div>
+    </div>
+    <script>
+        // Auto-remove toast sau 3.2s
+        setTimeout(() => {
+            document.querySelectorAll('.toast').forEach(t => t.remove());
+        }, 3200);
+    </script>
+
+    <footer>
+        <div th:text="${shopname}" style="font-weight: bold; font-size: 20px;"></div>
+        <div class="footer-address" th:text="${address}"></div>
+        <div style="margin-top: 10px; font-size: 11px; opacity: 0.4;">© 2026 Smartphone Shop</div>
+    </footer>
+</body>
+
+</html>

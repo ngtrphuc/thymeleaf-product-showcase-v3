@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Quản lý sản phẩm</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        /* copy sidebar style từ dashboard */
+        .admin-layout {
+            display: flex;
+            min-height: 100vh
+        }
+
+        .sidebar-admin {
+            width: 220px;
+            background: #111;
+            padding: 30px 0;
+            flex-shrink: 0
+        }
+
+        .sidebar-admin a {
+            display: block;
+            padding: 13px 24px;
+            color: #ccc;
+            font-size: 14px;
+            transition: .2s;
+            text-decoration: none
+        }
+
+        .sidebar-admin a:hover,
+        .sidebar-admin a.active {
+            background: #e84118;
+            color: white
+        }
+
+        .sidebar-admin .brand {
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            padding: 0 24px 20px;
+            border-bottom: 1px solid #333;
+            margin-bottom: 10px
+        }
+
+        .admin-content {
+            flex: 1;
+            padding: 30px;
+            background: #f5f6fa
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, .07)
+        }
+
+        .admin-table th {
+            background: #000;
+            color: white;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 13px
+        }
+
+        .admin-table td {
+            padding: 11px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+            vertical-align: middle
+        }
+
+        .btn-sm {
+            padding: 5px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            transition: .2s;
+            border: none;
+            cursor: pointer
+        }
+
+        .btn-edit {
+            background: #000;
+            color: white
+        }
+
+        .btn-edit:hover {
+            background: #333
+        }
+
+        .btn-del {
+            background: #e84118;
+            color: white
+        }
+
+        .btn-del:hover {
+            background: #c0392b
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <div class="sidebar-admin">
+            <div class="brand">⚙ Admin Panel</div>
+            <a href="/admin">📊 Dashboard</a>
+            <a href="/admin/products" class="active">📱 Sản phẩm</a>
+            <a href="/admin/orders">📦 Đơn hàng</a>
+            <a href="/">🏠 Về trang chủ</a>
+        </div>
+
+        <div class="admin-content">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+                <h2>Danh sách sản phẩm</h2>
+                <a href="/admin/products/new" class="btn-checkout" style="padding:10px 20px">+ Thêm mới</a>
+            </div>
+
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Ảnh</th>
+                        <th>Tên</th>
+                        <th>Giá (JPY)</th>
+                        <th>Tồn kho</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="p : ${products}">
+                        <td th:text="${p.id}"></td>
+                        <td><img th:src="@{${p.imageUrl}}" style="width:50px;height:50px;object-fit:contain"></td>
+                        <td th:text="${p.name}" style="font-weight:bold"></td>
+                        <td th:text="${#numbers.formatDecimal(p.price,0,'COMMA',0,'POINT')}"></td>
+                        <td th:text="${p.stock}"></td>
+                        <td style="display:flex;gap:8px">
+                            <a th:href="@{/admin/products/edit/{id}(id=${p.id})}" class="btn-sm btn-edit">Sửa</a>
+                            <!-- Thay thẻ <a> delete bằng form -->
+                        <td style="display:flex;gap:8px">
+                            <a th:href="@{/admin/products/edit/{id}(id=${p.id})}" class="btn-sm btn-edit">Sửa</a>
+                            <form th:action="@{/admin/products/delete/{id}(id=${p.id})}" method="post" style="margin:0">
+                                <button type="submit" class="btn-sm btn-del"
+                                    onclick="return confirm('Xóa sản phẩm này?')">Xóa</button>
+                            </form>
+                        </td>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- Toast notification -->
+    <div class="toast-container" th:if="${toast}">
+        <div class="toast" th:text="${toast}"></div>
+    </div>
+    <script>
+        // Auto-remove toast sau 3.2s
+        setTimeout(() => {
+            document.querySelectorAll('.toast').forEach(t => t.remove());
+        }, 3200);
+    </script>
+</body>
+
+</html>

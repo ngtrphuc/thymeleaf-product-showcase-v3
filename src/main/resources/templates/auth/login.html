@@ -1,0 +1,129 @@
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng nhập</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .auth-box {
+            max-width: 400px;
+            margin: 60px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: #000;
+            outline: none;
+        }
+
+        .btn-auth {
+            width: 100%;
+            background: #000;
+            color: white;
+            padding: 13px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-auth:hover {
+            background: #e84118;
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .alert-error {
+            background: #fff3f0;
+            color: #c0392b;
+            border: 1px solid #f5c6bc;
+        }
+
+        .alert-success {
+            background: #f0fff4;
+            color: #27ae60;
+            border: 1px solid #b2dfdb;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <a href="/" class="logo">🏠︎ HOME</a>
+    </div>
+
+    <div class="auth-box">
+        <h2 style="text-align:center; margin-bottom: 24px;">Đăng nhập</h2>
+
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+
+        <div th:if="${param.registered}" class="alert alert-success">
+            Đăng ký thành công! Hãy đăng nhập.
+        </div>
+
+        <form method="post" th:action="@{/login}">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="username" placeholder="you@email.com" required>
+            </div>
+            <div class="form-group">
+                <label>Mật khẩu</label>
+                <input type="password" name="password" placeholder="••••••" required>
+            </div>
+            <button type="submit" class="btn-auth">Đăng nhập</button>
+        </form>
+
+        <p style="text-align:center; margin-top: 20px; font-size: 14px;">
+            Chưa có tài khoản? <a href="/register" style="color: #e84118; font-weight: bold;">Đăng ký</a>
+        </p>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast-container" th:if="${toast}">
+        <div class="toast" th:text="${toast}"></div>
+    </div>
+    <script>
+        // Auto-remove toast sau 3.2s
+        setTimeout(() => {
+            document.querySelectorAll('.toast').forEach(t => t.remove());
+        }, 3200);
+    </script>
+
+    <footer>
+        <div style="font-weight: bold; font-size: 20px;">Smartphone Shop</div>
+    </footer>
+</body>
+
+</html>

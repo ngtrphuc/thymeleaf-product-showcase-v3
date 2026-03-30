@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Smartphone Shop</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+    <div class="header">
+        <a href="/" class="logo">🏠︎ HOME</a>
+    </div>
+
+    <div class="checkout-box">
+        <div style="font-size: 50px; margin-bottom: 10px;">📦</div>
+        <h2 style="margin-top: 0;">Review Your Order</h2>
+
+        <div class="summary-card">
+            <h3 style="font-size: 13px; color: #7f8c8d; margin-top: 0; text-transform: uppercase;">SHIPPING TO:</h3>
+            <p><strong>Name:</strong> <span th:text="${session.name}"></span></p>
+            <p><strong>Phone:</strong> <span th:text="${session.phone}"></span></p>
+            <p><strong>Address:</strong> <span th:text="${session.address}"></span></p>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+
+            <div class="summary-line">
+                <span>Total Items:</span>
+                <strong th:text="${count}">0</strong>
+            </div>
+            <div class="summary-line" style="margin-top: 15px;">
+                <span>Total Amount:</span>
+                <strong class="price"
+                    th:text="${totalAmount != null ? #numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT') + ' JPY' : '0 JPY'}">
+                </strong>
+            </div>
+        </div>
+
+        <a th:href="@{/cart/confirm}" class="btn-confirm"
+            style="display: block; width: 100%; margin-bottom: 12px; text-align: center; text-decoration: none;">Confirm
+            & Purchase</a>
+        <a th:href="@{/cart/shipping}" class="btn-edit-link"
+            style="display: block; width: 100%; text-align: center; text-decoration: none;">Edit Shipping Info</a>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast-container" th:if="${toast}">
+        <div class="toast" th:text="${toast}"></div>
+    </div>
+    <script>
+        // Auto-remove toast sau 3.2s
+        setTimeout(() => {
+            document.querySelectorAll('.toast').forEach(t => t.remove());
+        }, 3200);
+    </script>
+
+    <footer>
+        <div th:text="${shopname}" style="font-weight: bold; font-size: 20px;"></div>
+        <div class="footer-address" th:text="${address}"></div>
+        <div style="margin-top: 10px; font-size: 11px; opacity: 0.4;">© 2026 Smartphone Shop</div>
+    </footer>
+</body>
+
+</html>

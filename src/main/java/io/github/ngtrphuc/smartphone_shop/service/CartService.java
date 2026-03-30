@@ -1,0 +1,208 @@
+package io.github.ngtrphuc.smartphone_shop.service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
+import io.github.ngtrphuc.smartphone_shop.model.CartItem;
+import io.github.ngtrphuc.smartphone_shop.model.CartItemEntity;
+import io.github.ngtrphuc.smartphone_shop.model.Product;
+import io.github.ngtrphuc.smartphone_shop.repository.CartItemRepository;
+import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
+import jakarta.servlet.http.HttpSession;
+import jakarta.transaction.Transactional;
+
+@Service
+public class CartService {
+
+    private final CartItemRepository cartItemRepository;
+    private final ProductRepository productRepository;
+
+    public CartService(CartItemRepository cartItemRepository,
+                       ProductRepository productRepository) {
+        this.cartItemRepository = cartItemRepository;
+        this.productRepository = productRepository;
+    }
+
+    // ===== SESSION CART (guest) =====
+
+    @SuppressWarnings("unchecked")
+    public List<CartItem> getSessionCart(HttpSession session) {
+        Object obj = session.getAttribute("cart");
+        if (obj == null) {
+            List<CartItem> cart = new ArrayList<>();
+            session.setAttribute("cart", cart);
+            return cart;
+        }
+        return (List<CartItem>) obj;
+    }
+
+    public void syncCartCount(HttpSession session, String email) {
+        int count = isLoggedIn(email)
+                ? cartItemRepository.findByUserEmail(email)
+                        .stream().mapToInt(CartItemEntity::getQuantity).sum()
+                : getSessionCart(session).stream().mapToInt(CartItem::getQuantity).sum();
+        session.setAttribute("cartCount", count);
+    }
+
+    // ===== MERGE: session cart → DB khi login =====
+
+    @Transactional
+    public void mergeSessionCartToDb(HttpSession session, String email) {
+        List<CartItem> sessionCart = getSessionCart(session);
+        if (sessionCart.isEmpty()) return;
+
+        for (CartItem item : sessionCart) {
+            Optional<CartItemEntity> existing =
+                    cartItemRepository.findByUserEmailAndProductId(email, item.getId());
+            if (existing.isPresent()) {
+                // Cộng dồn quantity, không override
+                CartItemEntity e = existing.get();
+                Product p = productRepository.findById(item.getId()).orElse(null);
+                int maxStock = (p != null && p.getStock() != null) ? p.getStock() : 99;
+                e.setQuantity(Math.min(e.getQuantity() + item.getQuantity(), maxStock));
+                cartItemRepository.save(e);
+            } else {
+                cartItemRepository.save(
+                        new CartItemEntity(email, item.getId(), item.getQuantity()));
+            }
+        }
+
+        // Xóa session cart sau khi merge
+        session.removeAttribute("cart");
+        session.setAttribute("cartCount",
+                cartItemRepository.findByUserEmail(email)
+                        .stream().mapToInt(CartItemEntity::getQuantity).sum());
+    }
+
+    // ===== LOAD DB CART → List<CartItem> để dùng chung với template =====
+
+    public List<CartItem> getDbCart(String email) {
+        return cartItemRepository.findByUserEmail(email).stream()
+                .map(e -> {
+                    Product p = productRepository.findById(e.getProductId()).orElse(null);
+                    if (p == null) return null;
+                    return new CartItem(e.getProductId().longValue(), p.getName(), p.getPrice(), e.getQuantity());
+                })
+                .filter(item -> item != null)
+                .toList();
+    }
+
+    // ===== ADD =====
+
+    @Transactional
+    public void addItem(String email, HttpSession session, long productId) {
+        Product p = productRepository.findById(productId).orElse(null);
+        if (p == null) return;
+        int maxStock = (p.getStock() != null) ? p.getStock() : 0;
+        if (maxStock <= 0) return;
+
+        if (isLoggedIn(email)) {
+            Optional<CartItemEntity> existing =
+                    cartItemRepository.findByUserEmailAndProductId(email, productId);
+            if (existing.isPresent()) {
+                CartItemEntity e = existing.get();
+                if (e.getQuantity() < maxStock) {
+                    e.setQuantity(e.getQuantity() + 1);
+                    cartItemRepository.save(e);
+                }
+            } else {
+                cartItemRepository.save(new CartItemEntity(email, productId, 1));
+            }
+        } else {
+            List<CartItem> cart = getSessionCart(session);
+            CartItem found = cart.stream()
+                    .filter(i -> i.getId() != null && i.getId() == productId)
+                    .findFirst().orElse(null);
+            if (found != null) {
+                if (found.getQuantity() < maxStock) found.setQuantity(found.getQuantity() + 1);
+            } else {
+                cart.add(new CartItem(productId, p.getName(), p.getPrice(), 1));
+            }
+        }
+    }
+
+    // ===== INCREASE / DECREASE / REMOVE =====
+
+    @Transactional
+    public void increaseItem(String email, HttpSession session, long productId) {
+        Product p = productRepository.findById(productId).orElse(null);
+        int maxStock = (p != null && p.getStock() != null) ? p.getStock() : 99;
+
+        if (isLoggedIn(email)) {
+            cartItemRepository.findByUserEmailAndProductId(email, productId)
+                    .ifPresent(e -> {
+                        if (e.getQuantity() < maxStock) {
+                            e.setQuantity(e.getQuantity() + 1);
+                            cartItemRepository.save(e);
+                        }
+                    });
+        } else {
+            getSessionCart(session).stream()
+                    .filter(i -> i.getId() != null && i.getId() == productId)
+                    .findFirst()
+                    .ifPresent(i -> { if (i.getQuantity() < maxStock) i.setQuantity(i.getQuantity() + 1); });
+        }
+    }
+
+    @Transactional
+    public void decreaseItem(String email, HttpSession session, long productId) {
+        if (isLoggedIn(email)) {
+            cartItemRepository.findByUserEmailAndProductId(email, productId)
+                    .ifPresent(e -> {
+                        if (e.getQuantity() > 1) {
+                            e.setQuantity(e.getQuantity() - 1);
+                            cartItemRepository.save(e);
+                        } else {
+                            cartItemRepository.delete(e);
+                        }
+                    });
+        } else {
+            List<CartItem> cart = getSessionCart(session);
+            CartItem found = cart.stream()
+                    .filter(i -> i.getId() != null && i.getId() == productId)
+                    .findFirst().orElse(null);
+            if (found != null) {
+                if (found.getQuantity() > 1) found.setQuantity(found.getQuantity() - 1);
+                else cart.remove(found);
+            }
+        }
+    }
+
+    @Transactional
+    public void removeItem(String email, HttpSession session, long productId) {
+        if (isLoggedIn(email)) {
+            cartItemRepository.deleteByUserEmailAndProductId(email, productId);
+        } else {
+            getSessionCart(session).removeIf(i -> i.getId() != null && i.getId() == productId);
+        }
+    }
+
+    @Transactional
+    public void clearCart(String email, HttpSession session) {
+        if (isLoggedIn(email)) {
+            cartItemRepository.deleteByUserEmail(email);
+        } else {
+            session.removeAttribute("cart");
+        }
+        session.setAttribute("cartCount", 0);
+    }
+
+    // ===== HELPERS =====
+
+    public List<CartItem> getCart(String email, HttpSession session) {
+        return isLoggedIn(email) ? getDbCart(email) : getSessionCart(session);
+    }
+
+    public double calculateTotal(List<CartItem> cart) {
+        return cart.stream()
+                .mapToDouble(i -> Optional.ofNullable(i.getPrice()).orElse(0.0) * i.getQuantity())
+                .sum();
+    }
+
+    private boolean isLoggedIn(String email) {
+        return email != null && !email.equals("anonymousUser");
+    }
+}

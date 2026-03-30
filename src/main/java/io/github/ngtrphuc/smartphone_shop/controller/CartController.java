@@ -1,0 +1,138 @@
+package io.github.ngtrphuc.smartphone_shop.controller;
+
+import java.util.List;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import io.github.ngtrphuc.smartphone_shop.model.CartItem;
+import io.github.ngtrphuc.smartphone_shop.service.CartService;
+import jakarta.servlet.http.HttpSession;
+
+@Controller
+@RequestMapping("/cart")
+public class CartController {
+
+    private final CartService cartService;
+    private final io.github.ngtrphuc.smartphone_shop.service.OrderService orderService;
+
+    public CartController(CartService cartService,
+                          io.github.ngtrphuc.smartphone_shop.service.OrderService orderService) {
+        this.cartService = cartService;
+        this.orderService = orderService;
+    }
+
+    private String getEmail(Authentication auth) {
+        return (auth != null) ? auth.getName() : null;
+    }
+
+    private void addCommon(Model model) {
+        model.addAttribute("shopname", "Smartphone Shop");
+        model.addAttribute("address", "Asaka, Saitama, Japan");
+    }
+
+    @GetMapping
+    public String viewCart(Authentication auth, HttpSession session, Model model) {
+        String email = getEmail(auth);
+        List<CartItem> cart = cartService.getCart(email, session);
+        cartService.syncCartCount(session, email);
+        addCommon(model);
+        model.addAttribute("cart", cart);
+        model.addAttribute("totalAmount", cartService.calculateTotal(cart));
+        return "cart";
+    }
+
+    @GetMapping("/add")
+    public String add(@RequestParam long id, Authentication auth,
+                      HttpSession session, RedirectAttributes ra) {
+        cartService.addItem(getEmail(auth), session, id);
+        cartService.syncCartCount(session, getEmail(auth));
+        ra.addFlashAttribute("toast", "Đã thêm vào giỏ hàng! 🛒");
+        return "redirect:/product/" + id;
+    }
+
+    @GetMapping("/increase/{id}")
+    public String increase(@PathVariable long id, Authentication auth, HttpSession session) {
+        cartService.increaseItem(getEmail(auth), session, id);
+        cartService.syncCartCount(session, getEmail(auth));
+        return "redirect:/cart";
+    }
+
+    @GetMapping("/decrease/{id}")
+    public String decrease(@PathVariable long id, Authentication auth, HttpSession session) {
+        cartService.decreaseItem(getEmail(auth), session, id);
+        cartService.syncCartCount(session, getEmail(auth));
+        return "redirect:/cart";
+    }
+
+    @GetMapping("/remove/{id}")
+    public String remove(@PathVariable long id, Authentication auth, HttpSession session) {
+        cartService.removeItem(getEmail(auth), session, id);
+        cartService.syncCartCount(session, getEmail(auth));
+        return "redirect:/cart";
+    }
+
+    @GetMapping("/shipping")
+    public String shipping(Authentication auth, HttpSession session, Model model) {
+        if (cartService.getCart(getEmail(auth), session).isEmpty()) return "redirect:/cart";
+        addCommon(model);
+        return "shipping";
+    }
+
+    @PostMapping("/process-shipping")
+    public String processShipping(@RequestParam String customerName,
+                                   @RequestParam String phoneNumber,
+                                   @RequestParam String address,
+                                   HttpSession session) {
+        if (customerName.isBlank() || phoneNumber.isBlank() || address.isBlank())
+            return "redirect:/cart/shipping";
+        session.setAttribute("name", customerName);
+        session.setAttribute("phone", phoneNumber);
+        session.setAttribute("address", address);
+        return "redirect:/cart/checkout";
+    }
+
+    @GetMapping("/checkout")
+    public String checkout(Authentication auth, HttpSession session, Model model) {
+        String email = getEmail(auth);
+        List<CartItem> cart = cartService.getCart(email, session);
+        if (cart.isEmpty()) return "redirect:/cart";
+        addCommon(model);
+        model.addAttribute("cart", cart);
+        model.addAttribute("totalAmount", cartService.calculateTotal(cart));
+        model.addAttribute("count", cart.stream().mapToInt(CartItem::getQuantity).sum());
+        return "checkout";
+    }
+
+    @GetMapping("/confirm")
+    public String confirm(Authentication auth, HttpSession session, Model model) {
+        String email = getEmail(auth) != null ? getEmail(auth) : "guest@shop.com";
+        String name    = (String) session.getAttribute("name");
+        String phone   = (String) session.getAttribute("phone");
+        String address = (String) session.getAttribute("address");
+
+        List<CartItem> cart = cartService.getCart(
+                auth != null ? auth.getName() : null, session);
+
+        if (cart.isEmpty() || name == null || phone == null || address == null)
+            return "redirect:/cart/shipping";
+
+        orderService.createOrder(email, name, phone, address, cart,
+                cartService.calculateTotal(cart));
+
+        cartService.clearCart(auth != null ? auth.getName() : null, session);
+        session.removeAttribute("name");
+        session.removeAttribute("phone");
+        session.removeAttribute("address");
+
+        addCommon(model);
+        return "success";
+    }
+}
