@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Truy cập bị từ chối</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .error-box {
+            text-align: center;
+            margin: 100px auto;
+            max-width: 600px;
+            padding: 40px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .error-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<body style="background-color: #f4f4f4;">
+    <div class="error-box">
+        <div class="error-icon">🚫</div>
+        <h2 style="color: #e74c3c;">Access is restricted.</h2>
+        <p>You cannot access this page because you are logged in as an <strong>Administrator (Admin)</strong>.</p>
+
+        <div class="error-btn-group">
+            <a href="/" class="error-btn-home">
+                🏠︎ HOME
+            </a>
+
+            <a href="/admin" class="error-btn-admin">
+                ⚙ Admin Panel
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>

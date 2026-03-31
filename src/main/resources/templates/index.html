@@ -12,28 +12,29 @@
         <a href="/" class="logo">🏠︎ HOME</a>
 
         <div style="display: flex; align-items: center; gap: 15px;">
-            <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header">
-                🔑 Log In
-            </a>
 
-            <span sec:authorize="isAuthenticated()" style="display: flex; align-items: center; gap: 15px;">
-                <a th:href="@{/profile}" class="btn-header">
+            <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header">🔑 Log In</a>
+
+            <th:block sec:authorize="isAuthenticated()">
+
+                <a sec:authorize="hasRole('USER')" th:href="@{/profile}" class="btn-header">
                     👤 <span sec:authentication="name"></span>
                 </a>
 
-                <a href="/my-orders" class="btn-header">📋 Orders</a>
+                <a sec:authorize="hasRole('USER')" href="/my-orders" class="btn-header">📋 Orders</a>
+
+                <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header" style="color:#f39c12 !important;">⚙
+                    Admin</a>
 
                 <form th:action="@{/logout}" method="post" style="display:inline; margin:0;">
                     <button type="submit" class="btn-header">🚪 Log Out</button>
                 </form>
-            </span>
+            </th:block>
 
-            <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header" style="color:#f39c12 !important;">⚙
-                Admin</a>
-
-            <a href="/cart" class="btn-header">
+            <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header">
                 🛒 Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)
             </a>
+
         </div>
     </div>
 
@@ -225,13 +226,11 @@
     <footer>
         <div th:text="${shopname}" style="font-weight: bold; font-size: 20px;"></div>
         <div class="footer-address" th:text="${address}"></div>
-        <div style="margin-top: 10px; font-size: 11px; opacity: 0.4;">© 2026 Smartphone Shop</div>
     </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
-            // ===== SORT =====
             const trigger = document.getElementById('selectTrigger');
             const sortInput = document.getElementById('sortValue');
             const selectLabel = document.getElementById('selectLabel');
@@ -257,11 +256,9 @@
                 });
             }
 
-            // ===== TOAST =====
             setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 3200);
         });
 
-        // ===== FILTER (nằm ngoài DOMContentLoaded vì dùng qua onchange attribute) =====
         function syncAndSubmit(hiddenId, value) {
             console.log('syncAndSubmit called:', hiddenId, value);
             const el = document.getElementById(hiddenId);

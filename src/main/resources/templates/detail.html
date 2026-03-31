@@ -10,24 +10,30 @@
 <body>
     <div class="header">
         <a href="/" class="logo">🏠︎ HOME</a>
-        <div style="display: flex; align-items: center; gap: 15px;"> <a sec:authorize="isAuthenticated()"
-                href="/profile" class="btn-header">
-                👤 <span sec:authentication="name"></span>
-            </a>
-
-            <a sec:authorize="isAuthenticated()" href="/my-orders" class="btn-header">📋 Orders</a>
-
-            <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display:inline;">
-                <button type="submit" class="btn-header">🚪 Log Out</button>
-            </form>
+        <div style="display: flex; align-items: center; gap: 15px;">
 
             <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header">🔑 Log In</a>
 
-            <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header" style="color:#f39c12;">⚙ Admin</a>
+            <th:block sec:authorize="isAuthenticated()">
 
-            <a href="/cart" class="btn-header">
+                <a sec:authorize="hasRole('USER')" th:href="@{/profile}" class="btn-header">
+                    👤 <span sec:authentication="name"></span>
+                </a>
+
+                <a sec:authorize="hasRole('USER')" href="/my-orders" class="btn-header">📋 Orders</a>
+
+                <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header" style="color:#f39c12 !important;">⚙
+                    Admin</a>
+
+                <form th:action="@{/logout}" method="post" style="display:inline; margin:0;">
+                    <button type="submit" class="btn-header">🚪 Log Out</button>
+                </form>
+            </th:block>
+
+            <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header">
                 🛒 Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)
             </a>
+
         </div>
     </div>
 
@@ -86,10 +92,16 @@
             </table>
 
             <div class="action-buttons">
-                <form action="/cart/add" method="get" style="margin: 0;">
+                <form sec:authorize="!hasRole('ADMIN')" action="/cart/add" method="get" style="margin: 0;">
                     <input type="hidden" name="id" th:value="${product.id}">
                     <button type="submit" class="btn-cart">Add to Cart</button>
                 </form>
+
+                <a sec:authorize="hasRole('ADMIN')" th:href="@{'/admin/products/edit/' + ${product.id}}"
+                    class="btn-cart" style="background-color: #f39c12; text-decoration: none; text-align: center;">
+                    Edit Product
+                </a>
+
                 <a href="/" class="btn-back">Back</a>
             </div>
         </div>
@@ -108,7 +120,6 @@
     <footer>
         <div th:text="${shopname}" style="font-weight: bold; font-size: 20px;"></div>
         <div class="footer-address" th:text="${address}"></div>
-        <div style="margin-top: 10px; font-size: 11px; opacity: 0.4;">© 2026 Smartphone Shop</div>
     </footer>
 </body>
 

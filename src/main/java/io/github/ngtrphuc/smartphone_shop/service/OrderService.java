@@ -63,31 +63,55 @@ public class OrderService {
 
     public long getTotalItemsSold() {
         return orderRepository.findAll().stream()
+                .filter(o -> !"cancelled".equals(o.getStatus()))
                 .flatMap(o -> o.getItems().stream())
-                .mapToLong(item -> item.getQuantity())
+                .mapToLong(OrderItem::getQuantity)
                 .sum();
     }
 
-    public void updateStatus(Long orderId, String status) {
-        if (orderId != null) {
-            orderRepository.findById(orderId).ifPresent(o -> {
-                o.setStatus(status);
-                orderRepository.save(o);
-            });
+    @Transactional
+    public void updateStatus(Long orderId, String newStatus) {
+        if (orderId == null) {
+            return;
         }
+        orderRepository.findById(orderId).ifPresent(o -> {
+            String oldStatus = o.getStatus();
+
+            if ("cancelled".equals(oldStatus) && !"cancelled".equals(newStatus)) {
+                o.getItems().forEach(item
+                        -> productRepository.findById(item.getProductId()).ifPresent(p -> {
+                            int newStock = Math.max(0, p.getStock() - item.getQuantity());
+                            p.setStock(newStock);
+                            productRepository.save(p);
+                        })
+                );
+            }
+
+            if (!"cancelled".equals(oldStatus) && "cancelled".equals(newStatus)) {
+                o.getItems().forEach(item
+                        -> productRepository.findById(item.getProductId()).ifPresent(p -> {
+                            p.setStock(p.getStock() + item.getQuantity());
+                            productRepository.save(p);
+                        })
+                );
+            }
+
+            o.setStatus(newStatus);
+            orderRepository.save(o);
+        });
     }
+
     @Transactional
     public boolean cancelOrder(Long orderId, String userEmail) {
         return orderRepository.findById(orderId)
                 .filter(o -> o.getUserEmail().equals(userEmail))
                 .filter(o -> "pending".equals(o.getStatus()) || "processing".equals(o.getStatus()))
                 .map(o -> {
-
-                    o.getItems().forEach(item ->
-                        productRepository.findById(item.getProductId()).ifPresent(p -> {
-                            p.setStock(p.getStock() + item.getQuantity());
-                            productRepository.save(p);
-                        })
+                    o.getItems().forEach(item
+                            -> productRepository.findById(item.getProductId()).ifPresent(p -> {
+                                p.setStock(p.getStock() + item.getQuantity());
+                                productRepository.save(p);
+                            })
                     );
                     o.setStatus("cancelled");
                     orderRepository.save(o);

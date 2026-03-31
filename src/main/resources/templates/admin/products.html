@@ -318,6 +318,10 @@
         // Toast auto-remove
         setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 3200);
     </script>
+    <footer>
+        <div th:text="${shopname}" style="font-weight: bold; font-size: 20px;"></div>
+        <div class="footer-address" th:text="${address}"></div>
+    </footer>
 </body>
 
 </html>

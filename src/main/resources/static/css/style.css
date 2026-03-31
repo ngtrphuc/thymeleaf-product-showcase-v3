@@ -940,3 +940,50 @@ footer {
     color: #e84118 !important;
     background: transparent !important;
 }
+
+.error-btn-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-top: 30px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.error-btn-group > a {
+    width: 100%;
+    max-width: 300px;
+    padding: 15px 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;;
+    text-align: center;
+    border-radius: 8px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.error-btn-home {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+.error-btn-home:hover {
+    background-color: #000000 !important;
+    color: #e84118 !important;
+    transform: translateY(-2px);
+}
+
+.error-btn-admin {
+    background-color: #fc3b00 !important;
+    color: #ffffff !important;
+}
+
+.error-btn-admin:hover {
+    background-color: #e63600 !important;
+    color: #000000 !important;
+    transform: translateY(-2px);
+}

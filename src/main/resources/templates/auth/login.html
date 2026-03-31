@@ -111,7 +111,8 @@
         }, 3200);
     </script>
     <footer>
-        <div style="font-weight: bold; font-size: 20px;">Smartphone Shop</div>
+        <div th:text="${shopname}" style="font-weight: bold; font-size: 20px;"></div>
+        <div class="footer-address" th:text="${address}"></div>
     </footer>
 </body>
 </html>

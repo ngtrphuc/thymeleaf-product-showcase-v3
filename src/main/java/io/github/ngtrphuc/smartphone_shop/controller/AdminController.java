@@ -1,4 +1,5 @@
 package io.github.ngtrphuc.smartphone_shop.controller;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import io.github.ngtrphuc.smartphone_shop.model.Order;
 import io.github.ngtrphuc.smartphone_shop.model.Product;
 import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
 import io.github.ngtrphuc.smartphone_shop.service.OrderService;
+
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
@@ -27,15 +29,23 @@ public class AdminController {
     @GetMapping
     public String dashboard(Model model) {
         var allOrders = orderService.getAllOrders();
-        double totalRevenue = allOrders.stream().mapToDouble(Order::getTotalAmount).sum();
+        double totalRevenue = allOrders.stream()
+                .filter(o -> !"cancelled".equals(o.getStatus()))
+                .mapToDouble(Order::getTotalAmount).sum();
 
         model.addAttribute("totalProducts", productRepository.count());
         model.addAttribute("totalItemsSold", orderService.getTotalItemsSold());
         model.addAttribute("totalOrders", allOrders.size());
         model.addAttribute("totalRevenue", totalRevenue);
-        model.addAttribute("recentOrders", allOrders.stream().limit(5).toList());
+        model.addAttribute("recentOrders", allOrders.stream().limit(10).toList());
         model.addAttribute("shopname", "Smartphone Shop");
         return "admin/dashboard";
+    }
+
+    @GetMapping("/access-denied-admin")
+    public String accessDeniedAdmin(Model model) {
+        model.addAttribute("shopname", "Smartphone Shop");
+        return "error/access-denied-admin";
     }
 
     @GetMapping("/products")

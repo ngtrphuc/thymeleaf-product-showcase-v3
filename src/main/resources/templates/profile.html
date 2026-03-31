@@ -162,7 +162,7 @@
                 👤 <span sec:authentication="name"></span>
             </a>
 
-            <a sec:authorize="isAuthenticated()" href="/my-orders" class="btn-header">📋 Orders</a>
+            <a sec:authorize="hasRole('USER')" href="/my-orders" class="btn-header">📋 Orders</a>
 
             <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display:inline;">
                 <button type="submit" class="btn-header">🚪 Log Out</button>
@@ -172,7 +172,7 @@
 
             <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header" style="color:#f39c12;">⚙ Admin</a>
 
-            <a href="/cart" class="btn-header">
+            <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header">
                 🛒 Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)
             </a>
         </div>
@@ -263,9 +263,8 @@
     </script>
 
     <footer>
-        <div th:text="${shopname}" style="font-weight:bold; font-size:20px;"></div>
+        <div th:text="${shopname}" style="font-weight: bold; font-size: 20px;"></div>
         <div class="footer-address" th:text="${address}"></div>
-        <div style="margin-top:10px; font-size:11px; opacity:0.4;">© 2026 Smartphone Shop</div>
     </footer>
 </body>
 

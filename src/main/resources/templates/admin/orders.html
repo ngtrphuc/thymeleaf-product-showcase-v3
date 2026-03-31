@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <title>Order Management</title>
@@ -93,6 +94,15 @@
             font-size: 13px;
             cursor: pointer
         }
+
+        .cancelled-label {
+            padding: 6px 14px;
+            border-radius: 6px;
+            background: #fee2e2;
+            color: #991b1b;
+            font-size: 13px;
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -105,8 +115,10 @@
             <a href="/admin/orders" class="active">📦 Orders</a>
             <a href="/">🏠︎ Home</a>
         </div>
+
         <div class="admin-content">
             <h2 style="margin-bottom:20px">Total Orders</h2>
+
             <div th:each="order : ${orders}" class="order-row">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
                     <div>
@@ -120,19 +132,26 @@
                         👤 <span th:text="${order.customerName}"></span> |
                         📞 <span th:text="${order.phoneNumber}"></span>
                     </div>
-                    <form method="post" th:action="@{/admin/orders/{id}/status(id=${order.id})}">
+
+                    <!-- Cancelled: hiện label, không cho đổi -->
+                    <span th:if="${order.status == 'cancelled'}" class="cancelled-label">✕ Cancelled</span>
+
+                    <!-- Active: hiện dropdown, không có option cancelled -->
+                    <form th:unless="${order.status == 'cancelled'}" method="post"
+                        th:action="@{/admin/orders/{id}/status(id=${order.id})}">
                         <select name="status" class="status-sel" onchange="this.form.submit()">
                             <option value="pending" th:selected="${order.status == 'pending'}">Pending</option>
                             <option value="processing" th:selected="${order.status == 'processing'}">Processing</option>
                             <option value="shipped" th:selected="${order.status == 'shipped'}">Shipped</option>
                             <option value="delivered" th:selected="${order.status == 'delivered'}">Delivered</option>
-                            <option value="cancelled" th:selected="${order.status == 'cancelled'}">Cancelled</option>
                         </select>
                     </form>
                 </div>
+
                 <div style="margin-top:10px;font-size:13px;color:#777">
                     🏠︎ <span th:text="${order.shippingAddress}"></span>
                 </div>
+
                 <div style="margin-top:8px;border-top:1px solid #f0f0f0;padding-top:8px">
                     <div th:each="item : ${order.items}"
                         style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0">
@@ -141,6 +160,7 @@
                             th:text="${#numbers.formatDecimal(item.price * item.quantity,0,'COMMA',0,'POINT')} + ' JPY'"></span>
                     </div>
                 </div>
+
                 <div style="text-align:right;margin-top:8px;font-weight:bold;font-size:15px">
                     Total: <span style="color:#e84118"
                         th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' JPY'"></span>
@@ -148,13 +168,17 @@
             </div>
         </div>
     </div>
+
     <div class="toast-container" th:if="${toast}">
         <div class="toast" th:text="${toast}"></div>
     </div>
     <script>
-        setTimeout(() => {
-            document.querySelectorAll('.toast').forEach(t => t.remove());
-        }, 3200);
+        setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 3200);
     </script>
+    <footer>
+        <div th:text="${shopname}" style="font-weight: bold; font-size: 20px;"></div>
+        <div class="footer-address" th:text="${address}"></div>
+    </footer>
 </body>
+
 </html>
