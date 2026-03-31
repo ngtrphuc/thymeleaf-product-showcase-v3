@@ -21,13 +21,12 @@ public class CartService {
     private final ProductRepository productRepository;
 
     public CartService(CartItemRepository cartItemRepository,
-                       ProductRepository productRepository) {
+            ProductRepository productRepository) {
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
     }
 
     // ===== SESSION CART (guest) =====
-
     @SuppressWarnings("unchecked")
     public List<CartItem> getSessionCart(HttpSession session) {
         Object obj = session.getAttribute("cart");
@@ -40,23 +39,27 @@ public class CartService {
     }
 
     public void syncCartCount(HttpSession session, String email) {
-        int count = isLoggedIn(email)
-                ? cartItemRepository.findByUserEmail(email)
-                        .stream().mapToInt(CartItemEntity::getQuantity).sum()
-                : getSessionCart(session).stream().mapToInt(CartItem::getQuantity).sum();
+        int count;
+        if (isLoggedIn(email)) {
+            count = cartItemRepository.findByUserEmail(email)
+                    .stream().mapToInt(CartItemEntity::getQuantity).sum();
+        } else {
+            count = getSessionCart(session)
+                    .stream().mapToInt(CartItem::getQuantity).sum();
+        }
         session.setAttribute("cartCount", count);
     }
-
-    // ===== MERGE: session cart → DB khi login =====
 
     @Transactional
     public void mergeSessionCartToDb(HttpSession session, String email) {
         List<CartItem> sessionCart = getSessionCart(session);
-        if (sessionCart.isEmpty()) return;
+        if (sessionCart.isEmpty()) {
+            return;
+        }
 
         for (CartItem item : sessionCart) {
-            Optional<CartItemEntity> existing =
-                    cartItemRepository.findByUserEmailAndProductId(email, item.getId());
+            Optional<CartItemEntity> existing
+                    = cartItemRepository.findByUserEmailAndProductId(email, item.getId());
             if (existing.isPresent()) {
                 // Cộng dồn quantity, không override
                 CartItemEntity e = existing.get();
@@ -78,12 +81,13 @@ public class CartService {
     }
 
     // ===== LOAD DB CART → List<CartItem> để dùng chung với template =====
-
     public List<CartItem> getDbCart(String email) {
         return cartItemRepository.findByUserEmail(email).stream()
                 .map(e -> {
                     Product p = productRepository.findById(e.getProductId()).orElse(null);
-                    if (p == null) return null;
+                    if (p == null) {
+                        return null;
+                    }
                     return new CartItem(e.getProductId().longValue(), p.getName(), p.getPrice(), e.getQuantity());
                 })
                 .filter(item -> item != null)
@@ -91,17 +95,20 @@ public class CartService {
     }
 
     // ===== ADD =====
-
     @Transactional
     public void addItem(String email, HttpSession session, long productId) {
         Product p = productRepository.findById(productId).orElse(null);
-        if (p == null) return;
+        if (p == null) {
+            return;
+        }
         int maxStock = (p.getStock() != null) ? p.getStock() : 0;
-        if (maxStock <= 0) return;
+        if (maxStock <= 0) {
+            return;
+        }
 
         if (isLoggedIn(email)) {
-            Optional<CartItemEntity> existing =
-                    cartItemRepository.findByUserEmailAndProductId(email, productId);
+            Optional<CartItemEntity> existing
+                    = cartItemRepository.findByUserEmailAndProductId(email, productId);
             if (existing.isPresent()) {
                 CartItemEntity e = existing.get();
                 if (e.getQuantity() < maxStock) {
@@ -117,7 +124,9 @@ public class CartService {
                     .filter(i -> i.getId() != null && i.getId() == productId)
                     .findFirst().orElse(null);
             if (found != null) {
-                if (found.getQuantity() < maxStock) found.setQuantity(found.getQuantity() + 1);
+                if (found.getQuantity() < maxStock) {
+                    found.setQuantity(found.getQuantity() + 1);
+                }
             } else {
                 cart.add(new CartItem(productId, p.getName(), p.getPrice(), 1));
             }
@@ -125,7 +134,6 @@ public class CartService {
     }
 
     // ===== INCREASE / DECREASE / REMOVE =====
-
     @Transactional
     public void increaseItem(String email, HttpSession session, long productId) {
         Product p = productRepository.findById(productId).orElse(null);
@@ -143,7 +151,11 @@ public class CartService {
             getSessionCart(session).stream()
                     .filter(i -> i.getId() != null && i.getId() == productId)
                     .findFirst()
-                    .ifPresent(i -> { if (i.getQuantity() < maxStock) i.setQuantity(i.getQuantity() + 1); });
+                    .ifPresent(i -> {
+                        if (i.getQuantity() < maxStock) {
+                            i.setQuantity(i.getQuantity() + 1);
+                    
+                        }});
         }
     }
 
@@ -165,8 +177,11 @@ public class CartService {
                     .filter(i -> i.getId() != null && i.getId() == productId)
                     .findFirst().orElse(null);
             if (found != null) {
-                if (found.getQuantity() > 1) found.setQuantity(found.getQuantity() - 1);
-                else cart.remove(found);
+                if (found.getQuantity() > 1) {
+                    found.setQuantity(found.getQuantity() - 1); 
+                }else {
+                    cart.remove(found);
+                }
             }
         }
     }
@@ -191,7 +206,6 @@ public class CartService {
     }
 
     // ===== HELPERS =====
-
     public List<CartItem> getCart(String email, HttpSession session) {
         return isLoggedIn(email) ? getDbCart(email) : getSessionCart(session);
     }

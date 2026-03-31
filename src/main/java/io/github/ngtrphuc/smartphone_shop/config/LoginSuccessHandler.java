@@ -25,11 +25,12 @@ public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
-                                         HttpServletResponse response,
-                                         Authentication authentication) throws IOException, ServletException {
+            HttpServletResponse response,
+            Authentication authentication) throws IOException, ServletException {
         HttpSession session = request.getSession();
-        // Merge session cart → DB ngay sau khi login thành công
-        cartService.mergeSessionCartToDb(session, authentication.getName());
+        String email = authentication.getName();
+        cartService.mergeSessionCartToDb(session, email);
+        cartService.syncCartCount(session, email);
         super.onAuthenticationSuccess(request, response, authentication);
     }
 }
