@@ -95,11 +95,11 @@
 
         <form method="post" th:action="@{/login}">
             <div class="form-group">
-                <label>Email</label>
-                <input type="email" name="username" placeholder="you@email.com" required>
+                <label>✉️ Email</label>
+                <input type="email" name="username" placeholder="abc@gmail.com" required>
             </div>
             <div class="form-group">
-                <label>Mật khẩu</label>
+                <label>🔒 Mật khẩu</label>
                 <input type="password" name="password" placeholder="••••••" required>
             </div>
             <button type="submit" class="btn-auth">Đăng nhập</button>
@@ -110,12 +110,10 @@
         </p>
     </div>
 
-    <!-- Toast notification -->
     <div class="toast-container" th:if="${toast}">
         <div class="toast" th:text="${toast}"></div>
     </div>
     <script>
-        // Auto-remove toast sau 3.2s
         setTimeout(() => {
             document.querySelectorAll('.toast').forEach(t => t.remove());
         }, 3200);

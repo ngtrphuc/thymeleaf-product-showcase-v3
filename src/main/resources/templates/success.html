@@ -27,12 +27,10 @@
         };
     </script>
 
-    <!-- Toast notification -->
     <div class="toast-container" th:if="${toast}">
         <div class="toast" th:text="${toast}"></div>
     </div>
     <script>
-        // Auto-remove toast sau 3.2s
         setTimeout(() => {
             document.querySelectorAll('.toast').forEach(t => t.remove());
         }, 3200);

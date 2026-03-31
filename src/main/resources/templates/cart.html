@@ -9,23 +9,25 @@
 
 <body>
     <div class="header">
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span sec:authorize="isAuthenticated()" style="color: white; font-size: 14px;">
+        <a href="/" class="logo">🏠︎ HOME</a>
+        <div style="display: flex; align-items: center; gap: 15px;"> <a sec:authorize="isAuthenticated()"
+                href="/profile" class="btn-header">
                 👤 <span sec:authentication="name"></span>
-            </span>
+            </a>
 
             <a sec:authorize="isAuthenticated()" href="/my-orders" class="btn-header">📋 Orders</a>
 
-            <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display: inline;">
-                <button type="submit" class="btn-header">Log Out</button>
+            <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display:inline;">
+                <button type="submit" class="btn-header">🚪 Log Out</button>
             </form>
 
-            <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header">Log In</a>
+            <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header">🔑 Log In</a>
 
-            <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header" style="color: #f39c12;">⚙ Admin</a>
+            <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header" style="color:#f39c12;">⚙ Admin</a>
 
-            <a href="/cart" class="btn-header">🛒 (<span
-                    th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)</a>
+            <a href="/cart" class="btn-header">
+                🛒 Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)
+            </a>
         </div>
     </div>
 
@@ -85,12 +87,10 @@
         </div>
     </div>
 
-    <!-- Toast notification -->
     <div class="toast-container" th:if="${toast}">
         <div class="toast" th:text="${toast}"></div>
     </div>
     <script>
-        // Auto-remove toast sau 3.2s
         setTimeout(() => {
             document.querySelectorAll('.toast').forEach(t => t.remove());
         }, 3200);

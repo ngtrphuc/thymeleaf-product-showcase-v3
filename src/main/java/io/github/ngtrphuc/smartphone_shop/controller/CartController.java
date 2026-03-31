@@ -22,11 +22,14 @@ public class CartController {
 
     private final CartService cartService;
     private final io.github.ngtrphuc.smartphone_shop.service.OrderService orderService;
+    private final io.github.ngtrphuc.smartphone_shop.repository.UserRepository userRepository;
 
     public CartController(CartService cartService,
-                          io.github.ngtrphuc.smartphone_shop.service.OrderService orderService) {
+            io.github.ngtrphuc.smartphone_shop.service.OrderService orderService,
+            io.github.ngtrphuc.smartphone_shop.repository.UserRepository userRepository) {
         this.cartService = cartService;
         this.orderService = orderService;
+        this.userRepository = userRepository;
     }
 
     private String getEmail(Authentication auth) {
@@ -51,7 +54,7 @@ public class CartController {
 
     @GetMapping("/add")
     public String add(@RequestParam long id, Authentication auth,
-                      HttpSession session, RedirectAttributes ra) {
+            HttpSession session, RedirectAttributes ra) {
         cartService.addItem(getEmail(auth), session, id);
         cartService.syncCartCount(session, getEmail(auth));
         ra.addFlashAttribute("toast", "Đã thêm vào giỏ hàng! 🛒");
@@ -81,21 +84,35 @@ public class CartController {
 
     @GetMapping("/shipping")
     public String shipping(Authentication auth, HttpSession session, Model model) {
-        if (cartService.getCart(getEmail(auth), session).isEmpty()) return "redirect:/cart";
+        if (cartService.getCart(getEmail(auth), session).isEmpty()) {
+            return "redirect:/cart";
+        }
+        // Truyền user để pre-fill form
+        if (auth != null) {
+            userRepository.findByEmail(auth.getName()).ifPresent(u -> model.addAttribute("user", u));
+        }
         addCommon(model);
         return "shipping";
     }
 
     @PostMapping("/process-shipping")
     public String processShipping(@RequestParam String customerName,
-                                   @RequestParam String phoneNumber,
-                                   @RequestParam String address,
-                                   HttpSession session) {
-        if (customerName.isBlank() || phoneNumber.isBlank() || address.isBlank())
+            @RequestParam String phoneNumber,
+            @RequestParam(required = false) String addressOption,
+            @RequestParam(required = false) String savedAddress,
+            @RequestParam(required = false) String address,
+            HttpSession session) {
+        String finalAddress = "new".equals(addressOption) ? address
+                : (savedAddress != null && !savedAddress.isBlank() ? savedAddress : address);
+
+        if (customerName.isBlank() || phoneNumber.isBlank()
+                || finalAddress == null || finalAddress.isBlank()) {
             return "redirect:/cart/shipping";
+        }
+
         session.setAttribute("name", customerName);
         session.setAttribute("phone", phoneNumber);
-        session.setAttribute("address", address);
+        session.setAttribute("address", finalAddress);
         return "redirect:/cart/checkout";
     }
 
@@ -103,7 +120,9 @@ public class CartController {
     public String checkout(Authentication auth, HttpSession session, Model model) {
         String email = getEmail(auth);
         List<CartItem> cart = cartService.getCart(email, session);
-        if (cart.isEmpty()) return "redirect:/cart";
+        if (cart.isEmpty()) {
+            return "redirect:/cart";
+        }
         addCommon(model);
         model.addAttribute("cart", cart);
         model.addAttribute("totalAmount", cartService.calculateTotal(cart));
@@ -114,15 +133,16 @@ public class CartController {
     @GetMapping("/confirm")
     public String confirm(Authentication auth, HttpSession session, Model model) {
         String email = getEmail(auth) != null ? getEmail(auth) : "guest@shop.com";
-        String name    = (String) session.getAttribute("name");
-        String phone   = (String) session.getAttribute("phone");
+        String name = (String) session.getAttribute("name");
+        String phone = (String) session.getAttribute("phone");
         String address = (String) session.getAttribute("address");
 
         List<CartItem> cart = cartService.getCart(
                 auth != null ? auth.getName() : null, session);
 
-        if (cart.isEmpty() || name == null || phone == null || address == null)
+        if (cart.isEmpty() || name == null || phone == null || address == null) {
             return "redirect:/cart/shipping";
+        }
 
         orderService.createOrder(email, name, phone, address, cart,
                 cartService.calculateTotal(cart));

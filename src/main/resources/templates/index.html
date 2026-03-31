@@ -11,23 +11,29 @@
     <div class="header">
         <a href="/" class="logo">🏠︎ HOME</a>
 
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span sec:authorize="isAuthenticated()" style="color: white; font-size: 14px;">
-                👤 <span sec:authentication="name"></span>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header">
+                🔑 Log In
+            </a>
+
+            <span sec:authorize="isAuthenticated()" style="display: flex; align-items: center; gap: 15px;">
+                <a th:href="@{/profile}" class="btn-header">
+                    👤 <span sec:authentication="name"></span>
+                </a>
+
+                <a href="/my-orders" class="btn-header">📋 Orders</a>
+
+                <form th:action="@{/logout}" method="post" style="display:inline; margin:0;">
+                    <button type="submit" class="btn-header">🚪 Log Out</button>
+                </form>
             </span>
 
-            <a sec:authorize="isAuthenticated()" href="/my-orders" class="btn-header">📋 Orders</a>
+            <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header" style="color:#f39c12 !important;">⚙
+                Admin</a>
 
-            <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display: inline;">
-                <button type="submit" class="btn-header">Log Out</button>
-            </form>
-
-            <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header">Log In</a>
-
-            <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header" style="color: #f39c12;">⚙ Admin</a>
-
-            <a href="/cart" class="btn-header">🛒 Cart (<span
-                    th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)</a>
+            <a href="/cart" class="btn-header">
+                🛒 Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)
+            </a>
         </div>
     </div>
 
