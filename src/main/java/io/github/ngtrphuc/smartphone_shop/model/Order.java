@@ -1,9 +1,7 @@
 package io.github.ngtrphuc.smartphone_shop.model;
-
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,34 +10,26 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-
 @Entity
 @Table(name = "orders")
 public class Order {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @Column(nullable = false)
     private String userEmail;
-
     private String customerName;
     private String phoneNumber;
     private String shippingAddress;
-
     @Column(nullable = false)
     private Double totalAmount;
-
     @Column(nullable = false)
     private String status = "pending";
-
     @Column(nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
-
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
-
+    
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getUserEmail() { return userEmail; }

@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <meta charset="UTF-8">
-    <title>Sản phẩm</title>
+    <title>Product</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
         .admin-layout {
@@ -96,63 +95,55 @@
         <div class="sidebar-admin">
             <div class="brand">⚙ Admin Panel</div>
             <a href="/admin">📊 Dashboard</a>
-            <a href="/admin/products" class="active">📱 Sản phẩm</a>
-            <a href="/admin/orders">📦 Đơn hàng</a>
-            <a href="/">🏠 Về trang chủ</a>
+            <a href="/admin/products" class="active">📱 Product</a>
+            <a href="/admin/orders">📦 Orders</a>
+            <a href="/">🏠︎ Home</a>
         </div>
-
         <div class="admin-content">
-            <h2 style="margin-bottom:20px" th:text="${product.id != null} ? 'Sửa sản phẩm' : 'Thêm sản phẩm mới'"></h2>
-
+            <h2 style="margin-bottom:20px" th:text="${product.id != null} ? 'Edit product' : 'Add new product'"></h2>
             <div class="form-card">
                 <form method="post" th:action="@{/admin/products/save}">
                     <input type="hidden" name="id" th:value="${product.id}">
-
                     <div class="fg">
-                        <label>Tên sản phẩm</label>
+                        <label>Product name</label>
                         <input type="text" name="name" th:value="${product.name}" required>
                     </div>
-
                     <div class="row2">
                         <div class="fg">
-                            <label>Giá (JPY)</label>
+                            <label>Price(JPY)</label>
                             <input type="number" name="price" th:value="${product.price}" required>
                         </div>
                         <div class="fg">
-                            <label>Tồn kho</label>
+                            <label>Stock</label>
                             <input type="number" name="stock" th:value="${product.stock}" required>
                         </div>
                     </div>
-
                     <div class="fg">
-                        <label>URL ảnh</label>
+                        <label>URL image</label>
                         <input type="text" name="imageUrl" th:value="${product.imageUrl}" placeholder="/images/...">
                     </div>
-
                     <div class="row2">
                         <div class="fg"><label>OS</label><input type="text" name="os" th:value="${product.os}"></div>
                         <div class="fg"><label>RAM</label><input type="text" name="ram" th:value="${product.ram}"></div>
                         <div class="fg"><label>CPU</label><input type="text" name="cpu" th:value="${product.cpu}"></div>
-                        <div class="fg"><label>Tốc độ</label><input type="text" name="speed"
+                        <div class="fg"><label>Frequency</label><input type="text" name="speed"
                                 th:value="${product.speed}"></div>
-                        <div class="fg"><label>Bộ nhớ</label><input type="text" name="storage"
+                        <div class="fg"><label>Memory</label><input type="text" name="storage"
                                 th:value="${product.storage}"></div>
-                        <div class="fg"><label>Màn hình</label><input type="text" name="size"
+                        <div class="fg"><label>Screen size</label><input type="text" name="size"
                                 th:value="${product.size}"></div>
-                        <div class="fg"><label>Pin</label><input type="text" name="battery"
+                        <div class="fg"><label>Battery</label><input type="text" name="battery"
                                 th:value="${product.battery}"></div>
-                        <div class="fg"><label>Sạc</label><input type="text" name="charging"
+                        <div class="fg"><label>Charging power</label><input type="text" name="charging"
                                 th:value="${product.charging}"></div>
                     </div>
-
                     <div class="fg">
-                        <label>Mô tả</label>
+                        <label>Describe</label>
                         <textarea name="description" rows="3" th:text="${product.description}"></textarea>
                     </div>
-
                     <div style="display:flex;gap:12px;margin-top:8px">
-                        <button type="submit" class="btn-cart" style="width:160px">Lưu</button>
-                        <a href="/admin/products" class="btn-back">Hủy</a>
+                        <button type="submit" class="btn-cart" style="width:160px">Save</button>
+                        <a href="/admin/products" class="btn-back">Cancel</a>
                     </div>
                 </form>
             </div>
@@ -167,5 +158,4 @@
         }, 3200);
     </script>
 </body>
-
 </html>

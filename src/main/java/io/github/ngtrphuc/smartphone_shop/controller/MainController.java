@@ -1,9 +1,7 @@
 package io.github.ngtrphuc.smartphone_shop.controller;
-
 import java.util.List;
 import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -13,16 +11,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
-
 import io.github.ngtrphuc.smartphone_shop.model.Product;
 import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
-
 @Controller
 public class MainController {
-
     private static final int PAGE_SIZE = 8;
     private final ProductRepository productRepository;
-
     public MainController(ProductRepository productRepository) {
         this.productRepository = productRepository;
     }
@@ -41,7 +35,6 @@ public class MainController {
             @RequestParam(defaultValue = "0") int page,
             Model model) {
 
-        // Resolve price bounds từ priceRange shortcut
         Double resolvedPriceMin = priceMin;
         Double resolvedPriceMax = priceMax;
         if (priceRange != null) {
@@ -59,11 +52,8 @@ public class MainController {
         Page<Product> productPage = productRepository.findWithFilters(
                 blankToNull(keyword), resolvedPriceMin, resolvedPriceMax, pageable);
 
-        // Battery & screen size là String field → vẫn cần in-memory filter
-        // Trade-off chấp nhận được vì page size nhỏ (8 records)
         List<Product> products = applyStringFilters(
                 productPage.getContent(), batteryRange, batteryMin, batteryMax, screenSize);
-
         model.addAttribute("products", products);
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", productPage.getTotalPages());
@@ -91,8 +81,6 @@ public class MainController {
         return "detail";
     }
 
-    // ===== PRIVATE HELPERS =====
-
     private Pageable buildPageable(String sort, int page) {
         Sort s = switch (sort != null ? sort : "") {
             case "name_asc"   -> Sort.by("name").ascending();
@@ -106,7 +94,6 @@ public class MainController {
 
     private List<Product> applyStringFilters(List<Product> products,
             String batteryRange, Integer batteryMin, Integer batteryMax, String screenSize) {
-
         if (batteryRange != null && !batteryRange.isBlank()) {
             products = switch (batteryRange) {
                 case "under5000" -> products.stream().filter(p -> parseBattery(p.getBattery()) < 5000).collect(Collectors.toList());
@@ -131,7 +118,6 @@ public class MainController {
     private Double resolveMin(Double existing, Double fallback) { return existing != null ? existing : fallback; }
     private Double resolveMax(Double existing, Double fallback) { return existing != null ? existing : fallback; }
     private String blankToNull(String s) { return (s == null || s.isBlank()) ? null : s; }
-
     private int parseBattery(String battery) {
         if (battery == null) return 0;
         try { return Integer.parseInt(battery.replaceAll("[^0-9]", "")); }

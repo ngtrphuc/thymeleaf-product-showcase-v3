@@ -42,15 +42,16 @@
     </div>
 
     <div class="search-container">
-        <form method="get" action="/" id="searchForm">
+        <form method="get" action="/" id="mainForm">
             <input type="text" name="keyword" placeholder="Search smartphones..." th:value="${keyword}">
-            <input type="hidden" name="priceRange" th:value="${priceRange}">
-            <input type="hidden" name="priceMin" th:value="${priceMin}">
-            <input type="hidden" name="priceMax" th:value="${priceMax}">
-            <input type="hidden" name="batteryRange" th:value="${batteryRange}">
-            <input type="hidden" name="batteryMin" th:value="${batteryMin}">
-            <input type="hidden" name="batteryMax" th:value="${batteryMax}">
-            <input type="hidden" name="screenSize" th:value="${screenSize}">
+
+            <input type="hidden" name="priceRange" id="f_priceRange" th:value="${priceRange}">
+            <input type="hidden" name="priceMin" id="f_priceMin" th:value="${priceMin}">
+            <input type="hidden" name="priceMax" id="f_priceMax" th:value="${priceMax}">
+            <input type="hidden" name="batteryRange" id="f_batteryRange" th:value="${batteryRange}">
+            <input type="hidden" name="batteryMin" id="f_batteryMin" th:value="${batteryMin}">
+            <input type="hidden" name="batteryMax" id="f_batteryMax" th:value="${batteryMax}">
+            <input type="hidden" name="screenSize" id="f_screenSize" th:value="${screenSize}">
             <input type="hidden" name="sort" id="sortValue" th:value="${sort}">
 
             <div class="custom-select" id="customSelect">
@@ -64,7 +65,7 @@
                             <span th:case="*">Default</span>
                         </span>
                     </span>
-                    <span class="arrow">▾</span>
+                    <span class="arrow">▼</span>
                 </div>
                 <div class="custom-options" id="customOptions">
                     <div class="custom-option" data-value="">Default</div>
@@ -81,42 +82,40 @@
 
     <div class="main-layout">
 
-        <form method="get" action="/" class="sidebar">
-            <input type="hidden" name="keyword" th:value="${keyword}">
-            <input type="hidden" name="sort" th:value="${sort}">
-
+        <div class="sidebar">
             <div class="filter-section">
-                <h4 class="filter-title">💰 Price (JPY)</h4>
+                <h4 class="filter-title">🏷️ Price (JPY)</h4>
                 <div class="filter-group">
                     <p class="filter-sub">Quick select</p>
                     <label class="filter-label">
                         <input type="radio" name="priceRange" value=""
-                            th:checked="${priceRange == null or priceRange == ''}"> All
+                            th:checked="${priceRange == null or priceRange == ''}"
+                            onchange="syncAndSubmit('f_priceRange', '')"> All
                     </label>
                     <label class="filter-label">
-                        <input type="radio" name="priceRange" value="under150" th:checked="${priceRange == 'under150'}">
-                        Under 150,000
+                        <input type="radio" name="priceRange" value="under150" th:checked="${priceRange == 'under150'}"
+                            onchange="syncAndSubmit('f_priceRange', 'under150')"> Under 150,000
                     </label>
                     <label class="filter-label">
-                        <input type="radio" name="priceRange" value="150to200" th:checked="${priceRange == '150to200'}">
-                        150,000 – 200,000
+                        <input type="radio" name="priceRange" value="150to200" th:checked="${priceRange == '150to200'}"
+                            onchange="syncAndSubmit('f_priceRange', '150to200')"> 150,000 – 200,000
                     </label>
                     <label class="filter-label">
-                        <input type="radio" name="priceRange" value="200to250" th:checked="${priceRange == '200to250'}">
-                        200,000 – 250,000
+                        <input type="radio" name="priceRange" value="200to250" th:checked="${priceRange == '200to250'}"
+                            onchange="syncAndSubmit('f_priceRange', '200to250')"> 200,000 – 250,000
                     </label>
                     <label class="filter-label">
-                        <input type="radio" name="priceRange" value="over250" th:checked="${priceRange == 'over250'}">
-                        Over 250,000
+                        <input type="radio" name="priceRange" value="over250" th:checked="${priceRange == 'over250'}"
+                            onchange="syncAndSubmit('f_priceRange', 'over250')"> Over 250,000
                     </label>
                 </div>
                 <div class="filter-group">
                     <p class="filter-sub">Custom range</p>
                     <div class="filter-inputs">
-                        <input type="number" name="priceMin" placeholder="Min" th:value="${priceMin}"
+                        <input type="number" id="s_priceMin" placeholder="Min" th:value="${priceMin}"
                             class="filter-input">
                         <span>–</span>
-                        <input type="number" name="priceMax" placeholder="Max" th:value="${priceMax}"
+                        <input type="number" id="s_priceMax" placeholder="Max" th:value="${priceMax}"
                             class="filter-input">
                     </div>
                 </div>
@@ -128,62 +127,64 @@
                     <p class="filter-sub">Quick select</p>
                     <label class="filter-label">
                         <input type="radio" name="batteryRange" value=""
-                            th:checked="${batteryRange == null or batteryRange == ''}"> All
+                            th:checked="${batteryRange == null or batteryRange == ''}"
+                            onchange="syncAndSubmit('f_batteryRange', '')"> All
                     </label>
                     <label class="filter-label">
                         <input type="radio" name="batteryRange" value="under5000"
-                            th:checked="${batteryRange == 'under5000'}"> Under 5,000
+                            th:checked="${batteryRange == 'under5000'}"
+                            onchange="syncAndSubmit('f_batteryRange', 'under5000')"> Under 5,000
                     </label>
                     <label class="filter-label">
                         <input type="radio" name="batteryRange" value="over5000"
-                            th:checked="${batteryRange == 'over5000'}"> Over 5,000
+                            th:checked="${batteryRange == 'over5000'}"
+                            onchange="syncAndSubmit('f_batteryRange', 'over5000')"> Over 5,000
                     </label>
                 </div>
                 <div class="filter-group">
                     <p class="filter-sub">Custom range</p>
                     <div class="filter-inputs">
-                        <input type="number" name="batteryMin" placeholder="Min" th:value="${batteryMin}"
+                        <input type="number" id="s_batteryMin" placeholder="Min" th:value="${batteryMin}"
                             class="filter-input">
                         <span>–</span>
-                        <input type="number" name="batteryMax" placeholder="Max" th:value="${batteryMax}"
+                        <input type="number" id="s_batteryMax" placeholder="Max" th:value="${batteryMax}"
                             class="filter-input">
                     </div>
                 </div>
             </div>
 
-            <!-- Filter màn hình -->
             <div class="filter-section">
                 <h4 class="filter-title">📱 Screen Size</h4>
                 <div class="filter-group">
                     <p class="filter-sub">Quick select</p>
                     <label class="filter-label">
                         <input type="radio" name="screenSize" value=""
-                            th:checked="${screenSize == null or screenSize == ''}"> All
+                            th:checked="${screenSize == null or screenSize == ''}"
+                            onchange="syncAndSubmit('f_screenSize', '')"> All
                     </label>
                     <label class="filter-label">
-                        <input type="radio" name="screenSize" value="under6.5" th:checked="${screenSize == 'under6.5'}">
-                        Under 6.5"
+                        <input type="radio" name="screenSize" value="under6.5" th:checked="${screenSize == 'under6.5'}"
+                            onchange="syncAndSubmit('f_screenSize', 'under6.5')"> Under 6.5"
                     </label>
                     <label class="filter-label">
-                        <input type="radio" name="screenSize" value="6.5to6.8" th:checked="${screenSize == '6.5to6.8'}">
-                        6.5" – 6.8"
+                        <input type="radio" name="screenSize" value="6.5to6.8" th:checked="${screenSize == '6.5to6.8'}"
+                            onchange="syncAndSubmit('f_screenSize', '6.5to6.8')"> 6.5" – 6.8"
                     </label>
                     <label class="filter-label">
-                        <input type="radio" name="screenSize" value="over6.8" th:checked="${screenSize == 'over6.8'}">
-                        Over 6.8"
+                        <input type="radio" name="screenSize" value="over6.8" th:checked="${screenSize == 'over6.8'}"
+                            onchange="syncAndSubmit('f_screenSize', 'over6.8')"> Over 6.8"
                     </label>
                 </div>
             </div>
 
-            <button type="submit" class="btn-apply">Apply Filter</button>
+            <button type="button" class="btn-apply" onclick="applyFilters()">Apply Filter</button>
             <a href="/" class="btn-reset">Reset</a>
-        </form>
+        </div>
 
-        <!-- PRODUCT GRID -->
         <div class="container">
-            <div th:each="p : ${products}" th:classappend="${p.stock != null and p.stock <= 0} ? ' out-of-stock' : ''"
-                class="card card-wrapper">
-                <span th:if="${p.stock != null and p.stock <= 0}" class="badge-out-of-stock">Hết hàng</span>
+            <div th:each="p : ${products}" class="card card-wrapper"
+                th:classappend="${p.stock != null and p.stock <= 0} ? ' out-of-stock' : ''">
+                <span th:if="${p.stock != null and p.stock <= 0}" class="badge-out-of-stock">Out of Stock</span>
                 <a th:href="@{'/product/' + ${p.id}}" style="text-decoration: none; color: #000;">
                     <img th:src="@{${p.imageUrl}}" alt="phone">
                     <h3 th:text="${p.name}"></h3>
@@ -193,42 +194,33 @@
                     </span>
                 </a>
             </div>
-        </div>
 
-        <!-- PAGINATION -->
-        <div class="pagination" th:if="${totalPages > 1}" style="grid-column: 1/-1;">
-            <!-- Prev -->
-            <a th:if="${currentPage > 0}" th:href="@{/(page=${currentPage - 1}, keyword=${keyword}, sort=${sort}, 
-                    priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax},
-                    batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax},
-                    screenSize=${screenSize})}">‹</a>
+            <div class="pagination-wrapper" th:if="${totalPages != null and totalPages > 1}">
+                <a th:if="${currentPage > 0}" th:href="@{/(page=${currentPage - 1}, keyword=${keyword}, sort=${sort},
+                                priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax},
+                                batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax},
+                                screenSize=${screenSize})}">&#8249;</a>
 
-            <!-- Pages -->
-            <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
-                <span th:if="${i == currentPage}" class="active" th:text="${i + 1}"></span>
-                <a th:unless="${i == currentPage}" th:href="@{/(page=${i}, keyword=${keyword}, sort=${sort},
-                        priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax},
-                        batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax},
-                        screenSize=${screenSize})}" th:text="${i + 1}">
-                </a>
-            </th:block>
+                <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                    <span th:if="${i == currentPage}" class="active" th:text="${i + 1}"></span>
+                    <a th:unless="${i == currentPage}" th:href="@{/(page=${i}, keyword=${keyword}, sort=${sort},
+                                    priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax},
+                                    batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax},
+                                    screenSize=${screenSize})}" th:text="${i + 1}">
+                    </a>
+                </th:block>
 
-            <!-- Next -->
-            <a th:if="${currentPage < totalPages - 1}" th:href="@{/(page=${currentPage + 1}, keyword=${keyword}, sort=${sort},
-                    priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax},
-                    batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax},
-                    screenSize=${screenSize})}">›</a>
+                <a th:if="${currentPage < totalPages - 1}" th:href="@{/(page=${currentPage + 1}, keyword=${keyword}, sort=${sort},
+                                priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax},
+                                batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax},
+                                screenSize=${screenSize})}">&#8250;</a>
+            </div>
         </div>
     </div>
 
     <div class="toast-container" th:if="${toast}">
         <div class="toast" th:text="${toast}"></div>
     </div>
-    <script>
-        setTimeout(() => {
-            document.querySelectorAll('.toast').forEach(t => t.remove());
-        }, 3200);
-    </script>
 
     <footer>
         <div th:text="${shopname}" style="font-weight: bold; font-size: 20px;"></div>
@@ -237,29 +229,68 @@
     </footer>
 
     <script>
-        const trigger = document.getElementById('selectTrigger');
-        const sortValue = document.getElementById('sortValue');
-        const selectLabel = document.getElementById('selectLabel');
-        const customSelect = document.getElementById('customSelect');
+        document.addEventListener('DOMContentLoaded', () => {
 
-        trigger.addEventListener('click', () => {
-            customSelect.classList.toggle('open');
-        });
+            // ===== SORT =====
+            const trigger = document.getElementById('selectTrigger');
+            const sortInput = document.getElementById('sortValue');
+            const selectLabel = document.getElementById('selectLabel');
+            const customSelect = document.getElementById('customSelect');
 
-        document.querySelectorAll('.custom-option').forEach(option => {
-            option.addEventListener('click', () => {
-                selectLabel.textContent = option.textContent;
-                sortValue.value = option.dataset.value;
-                customSelect.classList.remove('open');
-                document.getElementById('searchForm').submit();
-            });
-        });
+            if (!trigger || !sortInput || !customSelect) {
+                console.error('SORT: Missing elements', { trigger, sortInput, customSelect });
+            } else {
+                trigger.addEventListener('click', () => customSelect.classList.toggle('open'));
 
-        document.addEventListener('click', (e) => {
-            if (!customSelect.contains(e.target)) {
-                customSelect.classList.remove('open');
+                document.querySelectorAll('.custom-option').forEach(option => {
+                    option.addEventListener('click', () => {
+                        console.log('Sort selected:', option.dataset.value);
+                        selectLabel.textContent = option.textContent.trim();
+                        sortInput.value = option.dataset.value;
+                        customSelect.classList.remove('open');
+                        document.getElementById('mainForm').submit();
+                    });
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!customSelect.contains(e.target)) customSelect.classList.remove('open');
+                });
             }
+
+            // ===== TOAST =====
+            setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 3200);
         });
+
+        // ===== FILTER (nằm ngoài DOMContentLoaded vì dùng qua onchange attribute) =====
+        function syncAndSubmit(hiddenId, value) {
+            console.log('syncAndSubmit called:', hiddenId, value);
+            const el = document.getElementById(hiddenId);
+            if (!el) { console.error('Hidden input not found:', hiddenId); return; }
+            el.value = value;
+            syncCustomRanges();
+            document.getElementById('mainForm').submit();
+        }
+
+        function applyFilters() {
+            console.log('applyFilters called');
+            syncCustomRanges();
+            document.getElementById('mainForm').submit();
+        }
+
+        function syncCustomRanges() {
+            const map = [
+                ['f_priceMin', 's_priceMin'],
+                ['f_priceMax', 's_priceMax'],
+                ['f_batteryMin', 's_batteryMin'],
+                ['f_batteryMax', 's_batteryMax'],
+            ];
+            map.forEach(([hiddenId, sourceId]) => {
+                const hidden = document.getElementById(hiddenId);
+                const source = document.getElementById(sourceId);
+                if (hidden && source) hidden.value = source.value;
+                else console.warn('syncCustomRanges: missing', hiddenId, 'or', sourceId);
+            });
+        }
     </script>
 </body>
 

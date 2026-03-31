@@ -18,7 +18,6 @@ a {
     transition: 0.3s;
 }
 
-/* ===== HEADER ===== */
 .header {
     display: flex;
     justify-content: space-between;
@@ -48,7 +47,6 @@ a {
     color: #e84118;
 }
 
-/* ===== FOOTER ===== */
 footer {
     background: #000;
     color: white;
@@ -57,14 +55,12 @@ footer {
     margin-top: auto;
 }
 
-/* ===== CONTAINER ===== */
 .container {
     max-width: 1200px;
     margin: 20px auto 40px;
     padding: 0 20px;
 }
 
-/* ===== SHOP TITLE ===== */
 .shop-title-container {
     text-align: center;
     padding: 30px 20px 10px;
@@ -78,7 +74,6 @@ footer {
     text-transform: uppercase;
 }
 
-/* ===== SEARCH ===== */
 .search-container {
     display: flex;
     justify-content: center;
@@ -121,11 +116,9 @@ footer {
     background: #e84118;
 }
 
-/* ===== PRODUCT CARDS (index) ===== */
 .container:has(.card) {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    /* mặc định 4 cột */
     gap: 25px;
 }
 
@@ -181,7 +174,6 @@ footer {
     font-size: 1.1rem;
 }
 
-/* ===== DETAIL PAGE ===== */
 .detail-wrapper {
     display: flex;
     gap: 60px;
@@ -304,7 +296,6 @@ footer {
     background: #333;
 }
 
-/* ===== CART PAGE ===== */
 .cart-table {
     width: 100%;
     border-collapse: collapse;
@@ -385,7 +376,6 @@ footer {
     background: #c0392b;
 }
 
-/* ===== CHECKOUT & SUCCESS ===== */
 .checkout-box,
 .success-card {
     max-width: 600px;
@@ -461,7 +451,6 @@ footer {
     background: #e84118;
 }
 
-/* ===== SHIPPING FORM ===== */
 .btn-submit {
     background: #000;
     color: white;
@@ -480,14 +469,12 @@ footer {
     background: #e84118;
 }
 
-/* ===== FOOTER ADDRESS ===== */
 .footer-address {
     opacity: 0.8;
     font-size: 14px;
     margin-top: 10px;
 }
 
-/* ===== DETAIL PAGE responsive ===== */
 @media (max-width: 768px) {
     .detail-wrapper {
         flex-direction: column;
@@ -505,7 +492,6 @@ footer {
     }
 }
 
-/* ===== CART TABLE responsive ===== */
 @media (max-width: 768px) {
     .cart-table thead {
         display: none;
@@ -544,7 +530,6 @@ footer {
     border-color: #000;
 }
 
-/* ===== CUSTOM DROPDOWN ===== */
 .custom-select {
     position: relative;
     min-width: 180px;
@@ -639,7 +624,6 @@ footer {
     color: #e84118;
 }
 
-/* ===== MAIN LAYOUT (sidebar + grid) ===== */
 .main-layout {
     display: flex;
     gap: 25px;
@@ -649,7 +633,6 @@ footer {
     align-items: flex-start;
 }
 
-/* ===== SIDEBAR ===== */
 .sidebar {
     flex: 0 0 220px;
     background: white;
@@ -765,7 +748,6 @@ footer {
     background: #f0f0f0;
 }
 
-/* Override container khi trong main-layout */
 .main-layout .container {
     flex: 1;
     margin: 0;
@@ -940,11 +922,8 @@ footer {
 
 .btn-header {
     background: transparent !important;
-    /* Không nền */
     border: none !important;
-    /* Không khung */
     color: white !important;
-    /* Chữ trắng */
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
@@ -957,9 +936,7 @@ footer {
     font-family: inherit;
 }
 
-/* Hiệu ứng giống nút HOME */
 .btn-header:hover {
     color: #e84118 !important;
-    /* Chỉ đổi sang màu đỏ cam khi hover */
     background: transparent !important;
 }

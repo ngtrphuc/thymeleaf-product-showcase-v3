@@ -1,5 +1,4 @@
 package io.github.ngtrphuc.smartphone_shop.controller;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,12 +8,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import io.github.ngtrphuc.smartphone_shop.model.Order;
 import io.github.ngtrphuc.smartphone_shop.model.Product;
 import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
 import io.github.ngtrphuc.smartphone_shop.service.OrderService;
-
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
@@ -30,10 +27,10 @@ public class AdminController {
     @GetMapping
     public String dashboard(Model model) {
         var allOrders = orderService.getAllOrders();
-        double totalRevenue = allOrders.stream()
-                .mapToDouble(Order::getTotalAmount).sum();
+        double totalRevenue = allOrders.stream().mapToDouble(Order::getTotalAmount).sum();
 
-        model.addAttribute("totalItemsSold", orderService.getTotalItemsSold()); // thêm mới
+        model.addAttribute("totalProducts", productRepository.count());
+        model.addAttribute("totalItemsSold", orderService.getTotalItemsSold());
         model.addAttribute("totalOrders", allOrders.size());
         model.addAttribute("totalRevenue", totalRevenue);
         model.addAttribute("recentOrders", allOrders.stream().limit(5).toList());
@@ -73,16 +70,15 @@ public class AdminController {
     public String saveProduct(@ModelAttribute Product product, RedirectAttributes ra) {
         boolean isNew = (product.getId() == null);
         productRepository.save(product);
-        ra.addFlashAttribute("toast", isNew ? "Thêm sản phẩm thành công!" : "Đã cập nhật sản phẩm.");
+        ra.addFlashAttribute("toast", isNew ? "Product added successfully!" : "Product updated successfully.");
         return "redirect:/admin/products";
     }
 
-    // ✅ POST thay vì GET — tránh bot/crawler xóa data
     @PostMapping("/products/delete/{id}")
     public String deleteProduct(@PathVariable Long id, RedirectAttributes ra) {
         if (id != null) {
             productRepository.deleteById(id);
-            ra.addFlashAttribute("toast", "Đã xóa sản phẩm.");
+            ra.addFlashAttribute("toast", "Product deleted successfully.");
         }
         return "redirect:/admin/products";
     }
@@ -98,7 +94,7 @@ public class AdminController {
     public String updateOrderStatus(@PathVariable Long id, @RequestParam String status,
             RedirectAttributes ra) {
         orderService.updateStatus(id, status);
-        ra.addFlashAttribute("toast", "Cập nhật trạng thái thành công.");
+        ra.addFlashAttribute("toast", "Status update successful.");
         return "redirect:/admin/orders";
     }
 }

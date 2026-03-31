@@ -181,7 +181,6 @@
     <div class="profile-layout">
         <h2 style="margin-bottom: 20px;">👤 My Profile</h2>
 
-        <!-- Thông tin tài khoản -->
         <div class="profile-card">
             <div class="section-title">Account Information</div>
             <form th:action="@{/profile/update}" method="post">
@@ -209,7 +208,6 @@
             </form>
         </div>
 
-        <!-- Đơn hàng đang xử lý -->
         <div class="profile-card">
             <div class="section-title">📦 Pending Orders</div>
             <div th:if="${#lists.isEmpty(pendingOrders)}" class="empty-msg">No pending orders.</div>
@@ -225,7 +223,6 @@
             </div>
         </div>
 
-        <!-- Đơn hàng đã nhận -->
         <div class="profile-card">
             <div class="section-title">✅ Delivered Orders</div>
             <div th:if="${#lists.isEmpty(deliveredOrders)}" class="empty-msg">No delivered orders yet.</div>
@@ -241,7 +238,6 @@
             </div>
         </div>
 
-        <!-- Giỏ hàng hiện tại -->
         <div class="profile-card">
             <div class="section-title">🛒 Items in Cart</div>
             <div th:if="${#lists.isEmpty(cartItems)}" class="empty-msg">Your cart is empty.</div>

@@ -1,7 +1,5 @@
 package io.github.ngtrphuc.smartphone_shop.controller;
-
 import java.util.List;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,19 +9,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import io.github.ngtrphuc.smartphone_shop.model.CartItem;
 import io.github.ngtrphuc.smartphone_shop.service.CartService;
 import jakarta.servlet.http.HttpSession;
-
 @Controller
 @RequestMapping("/cart")
 public class CartController {
-
     private final CartService cartService;
     private final io.github.ngtrphuc.smartphone_shop.service.OrderService orderService;
     private final io.github.ngtrphuc.smartphone_shop.repository.UserRepository userRepository;
-
     public CartController(CartService cartService,
             io.github.ngtrphuc.smartphone_shop.service.OrderService orderService,
             io.github.ngtrphuc.smartphone_shop.repository.UserRepository userRepository) {
@@ -57,7 +51,7 @@ public class CartController {
             HttpSession session, RedirectAttributes ra) {
         cartService.addItem(getEmail(auth), session, id);
         cartService.syncCartCount(session, getEmail(auth));
-        ra.addFlashAttribute("toast", "Đã thêm vào giỏ hàng! 🛒");
+        ra.addFlashAttribute("toast", "Added to cart! 🛒");
         return "redirect:/product/" + id;
     }
 
@@ -87,7 +81,6 @@ public class CartController {
         if (cartService.getCart(getEmail(auth), session).isEmpty()) {
             return "redirect:/cart";
         }
-        // Truyền user để pre-fill form
         if (auth != null) {
             userRepository.findByEmail(auth.getName()).ifPresent(u -> model.addAttribute("user", u));
         }
@@ -104,12 +97,10 @@ public class CartController {
             HttpSession session) {
         String finalAddress = "new".equals(addressOption) ? address
                 : (savedAddress != null && !savedAddress.isBlank() ? savedAddress : address);
-
         if (customerName.isBlank() || phoneNumber.isBlank()
                 || finalAddress == null || finalAddress.isBlank()) {
             return "redirect:/cart/shipping";
         }
-
         session.setAttribute("name", customerName);
         session.setAttribute("phone", phoneNumber);
         session.setAttribute("address", finalAddress);
@@ -136,22 +127,17 @@ public class CartController {
         String name = (String) session.getAttribute("name");
         String phone = (String) session.getAttribute("phone");
         String address = (String) session.getAttribute("address");
-
         List<CartItem> cart = cartService.getCart(
                 auth != null ? auth.getName() : null, session);
-
         if (cart.isEmpty() || name == null || phone == null || address == null) {
             return "redirect:/cart/shipping";
         }
-
         orderService.createOrder(email, name, phone, address, cart,
                 cartService.calculateTotal(cart));
-
         cartService.clearCart(auth != null ? auth.getName() : null, session);
         session.removeAttribute("name");
         session.removeAttribute("phone");
         session.removeAttribute("address");
-
         addCommon(model);
         return "success";
     }

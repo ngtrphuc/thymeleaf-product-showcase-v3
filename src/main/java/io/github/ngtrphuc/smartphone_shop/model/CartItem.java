@@ -1,15 +1,10 @@
 package io.github.ngtrphuc.smartphone_shop.model;
-
 public class CartItem {
-
     private Long id;
     private String name;
     private Double price;
     private int quantity;
-
     public CartItem() {}
-
-    // Chỉ giữ 1 constructor duy nhất với Long
     public CartItem(Long id, String name, Double price, int quantity) {
         this.id = id;
         this.name = name;

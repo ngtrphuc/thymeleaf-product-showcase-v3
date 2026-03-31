@@ -76,7 +76,6 @@
 
         <div th:if="${!#lists.isEmpty(cart)}" style="text-align: right; margin-top: 30px;">
             <p style="font-size: 24px; font-weight: bold;">Total:
-                <!-- ✅ Fix: total → totalAmount -->
                 <span th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')}"
                     style="color: #e84118;"></span> JPY
             </p>

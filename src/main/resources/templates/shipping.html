@@ -70,7 +70,7 @@
     <div class="header">
         <div style="display: flex; align-items: center; gap: 15px;">
             <a href="/cart" class="btn-header">
-                ← Back to Cart
+                ◀ Back to Cart
             </a>
         </div>
         <span style="color:white;">Checkout Step 1 of 2</span>
@@ -80,7 +80,6 @@
         <h2 style="text-align:center; margin-bottom:30px;">Shipping Details</h2>
 
         <form th:action="@{/cart/process-shipping}" method="post" style="text-align:center;">
-            <!-- Tên & SĐT luôn hiển thị -->
             <div class="form-group">
                 <label>Full Name</label>
                 <input type="text" name="customerName" th:value="${user != null ? user.fullName : ''}"
@@ -92,7 +91,6 @@
                     placeholder="e.g. 08012345678" required pattern="[0-9]{10,11}">
             </div>
 
-            <!-- Option chọn địa chỉ (chỉ hiện nếu user có địa chỉ lưu sẵn) -->
             <div th:if="${user != null and user.defaultAddress != null and !#strings.isEmpty(user.defaultAddress)}"
                 style="max-width:440px; margin:0 auto 20px;">
                 <p style="font-weight:bold; text-align:left; margin-bottom:12px;">Shipping Address</p>
@@ -110,18 +108,15 @@
                     <div style="font-weight:bold; font-size:14px;">Ship to a new address</div>
                 </label>
 
-                <!-- Hidden field cho saved address -->
                 <input type="hidden" name="savedAddress" th:value="${user.defaultAddress}">
             </div>
 
-            <!-- Nếu chưa có địa chỉ lưu → luôn hiển thị input -->
             <div th:if="${user == null or user.defaultAddress == null or #strings.isEmpty(user.defaultAddress)}"
                 class="form-group">
                 <label>Shipping Address</label>
                 <input type="text" name="address" placeholder="Street, City, Province..." required minlength="10">
             </div>
 
-            <!-- Input địa chỉ mới (ẩn/hiện theo radio) -->
             <div id="newAddressFields" class="form-group">
                 <label>New Shipping Address</label>
                 <input type="text" id="newAddressInput" name="address" placeholder="Street, City, Province..."

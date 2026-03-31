@@ -1,7 +1,5 @@
 package io.github.ngtrphuc.smartphone_shop.controller;
-
 import java.util.List;
-
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -11,7 +9,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
 import io.github.ngtrphuc.smartphone_shop.model.CartItem;
 import io.github.ngtrphuc.smartphone_shop.model.Order;
 import io.github.ngtrphuc.smartphone_shop.model.User;
@@ -19,16 +16,13 @@ import io.github.ngtrphuc.smartphone_shop.repository.UserRepository;
 import io.github.ngtrphuc.smartphone_shop.service.CartService;
 import io.github.ngtrphuc.smartphone_shop.service.OrderService;
 import jakarta.servlet.http.HttpSession;
-
 @Controller
 @RequestMapping("/profile")
 public class ProfileController {
-
     private final UserRepository userRepository;
     private final OrderService orderService;
     private final CartService cartService;
     private final PasswordEncoder passwordEncoder;
-
     public ProfileController(UserRepository userRepository, OrderService orderService,
                              CartService cartService, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
@@ -41,15 +35,12 @@ public class ProfileController {
     public String profile(Authentication auth, HttpSession session, Model model) {
         String email = auth.getName();
         User user = userRepository.findByEmail(email).orElseThrow();
-
         List<Order> allOrders = orderService.getOrdersByUser(email);
         List<Order> deliveredOrders = allOrders.stream()
                 .filter(o -> "delivered".equals(o.getStatus())).toList();
         List<Order> pendingOrders = allOrders.stream()
                 .filter(o -> !"delivered".equals(o.getStatus()) && !"cancelled".equals(o.getStatus())).toList();
-
         List<CartItem> cartItems = cartService.getCart(email, session);
-
         model.addAttribute("user", user);
         model.addAttribute("deliveredOrders", deliveredOrders);
         model.addAttribute("pendingOrders", pendingOrders);

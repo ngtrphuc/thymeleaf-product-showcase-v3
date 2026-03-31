@@ -1,4 +1,3 @@
-// src/main/java/.../service/OrderService.java
 package io.github.ngtrphuc.smartphone_shop.service;
 
 import java.util.List;
@@ -10,6 +9,7 @@ import io.github.ngtrphuc.smartphone_shop.model.Order;
 import io.github.ngtrphuc.smartphone_shop.model.OrderItem;
 import io.github.ngtrphuc.smartphone_shop.repository.OrderRepository;
 import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
+import jakarta.transaction.Transactional;
 
 @Service
 public class OrderService {
@@ -41,7 +41,6 @@ public class OrderService {
             oi.setQuantity(item.getQuantity());
             order.getItems().add(oi);
 
-            // ✅ Trừ stock sau khi đặt hàng — thiếu cái này là bug nghiêm trọng
             Long productId = item.getId();
             if (productId != null) {
                 productRepository.findById(productId).ifPresent(p -> {
@@ -76,5 +75,24 @@ public class OrderService {
                 orderRepository.save(o);
             });
         }
+    }
+    @Transactional
+    public boolean cancelOrder(Long orderId, String userEmail) {
+        return orderRepository.findById(orderId)
+                .filter(o -> o.getUserEmail().equals(userEmail))
+                .filter(o -> "pending".equals(o.getStatus()) || "processing".equals(o.getStatus()))
+                .map(o -> {
+
+                    o.getItems().forEach(item ->
+                        productRepository.findById(item.getProductId()).ifPresent(p -> {
+                            p.setStock(p.getStock() + item.getQuantity());
+                            productRepository.save(p);
+                        })
+                    );
+                    o.setStatus("cancelled");
+                    orderRepository.save(o);
+                    return true;
+                })
+                .orElse(false);
     }
 }

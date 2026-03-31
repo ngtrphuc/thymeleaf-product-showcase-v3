@@ -1,9 +1,8 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <meta charset="UTF-8">
-    <title>Quản lý đơn hàng</title>
+    <title>Order Management</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
         .admin-layout {
@@ -102,18 +101,16 @@
         <div class="sidebar-admin">
             <div class="brand">⚙ Admin Panel</div>
             <a href="/admin">📊 Dashboard</a>
-            <a href="/admin/products">📱 Sản phẩm</a>
-            <a href="/admin/orders" class="active">📦 Đơn hàng</a>
-            <a href="/">🏠 Về trang chủ</a>
+            <a href="/admin/products">📱 Product</a>
+            <a href="/admin/orders" class="active">📦 Orders</a>
+            <a href="/">🏠︎ Home</a>
         </div>
-
         <div class="admin-content">
-            <h2 style="margin-bottom:20px">Tất cả đơn hàng</h2>
-
+            <h2 style="margin-bottom:20px">Total Orders</h2>
             <div th:each="order : ${orders}" class="order-row">
                 <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
                     <div>
-                        <strong th:text="'Đơn #' + ${order.id}"></strong>
+                        <strong th:text="'Order No. ' + ${order.id}"></strong>
                         <span style="color:#999;font-size:13px;margin-left:10px"
                             th:text="${#temporals.format(order.createdAt,'dd/MM/yyyy HH:mm')}"></span>
                         <span class="badge" style="margin-left:10px" th:classappend="'badge-' + ${order.status}"
@@ -123,7 +120,6 @@
                         👤 <span th:text="${order.customerName}"></span> |
                         📞 <span th:text="${order.phoneNumber}"></span>
                     </div>
-                    <!-- Đổi trạng thái -->
                     <form method="post" th:action="@{/admin/orders/{id}/status(id=${order.id})}">
                         <select name="status" class="status-sel" onchange="this.form.submit()">
                             <option value="pending" th:selected="${order.status == 'pending'}">Pending</option>
@@ -134,11 +130,9 @@
                         </select>
                     </form>
                 </div>
-
                 <div style="margin-top:10px;font-size:13px;color:#777">
-                    🏠 <span th:text="${order.shippingAddress}"></span>
+                    🏠︎ <span th:text="${order.shippingAddress}"></span>
                 </div>
-
                 <div style="margin-top:8px;border-top:1px solid #f0f0f0;padding-top:8px">
                     <div th:each="item : ${order.items}"
                         style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0">
@@ -147,9 +141,8 @@
                             th:text="${#numbers.formatDecimal(item.price * item.quantity,0,'COMMA',0,'POINT')} + ' JPY'"></span>
                     </div>
                 </div>
-
                 <div style="text-align:right;margin-top:8px;font-weight:bold;font-size:15px">
-                    Tổng: <span style="color:#e84118"
+                    Total: <span style="color:#e84118"
                         th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' JPY'"></span>
                 </div>
             </div>
@@ -164,5 +157,4 @@
         }, 3200);
     </script>
 </body>
-
 </html>

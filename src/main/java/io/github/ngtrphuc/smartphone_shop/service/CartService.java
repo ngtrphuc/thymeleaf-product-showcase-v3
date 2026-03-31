@@ -1,11 +1,8 @@
 package io.github.ngtrphuc.smartphone_shop.service;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 import org.springframework.stereotype.Service;
-
 import io.github.ngtrphuc.smartphone_shop.model.CartItem;
 import io.github.ngtrphuc.smartphone_shop.model.CartItemEntity;
 import io.github.ngtrphuc.smartphone_shop.model.Product;
@@ -13,20 +10,16 @@ import io.github.ngtrphuc.smartphone_shop.repository.CartItemRepository;
 import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
-
 @Service
 public class CartService {
-
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
-
     public CartService(CartItemRepository cartItemRepository,
             ProductRepository productRepository) {
         this.cartItemRepository = cartItemRepository;
         this.productRepository = productRepository;
     }
 
-    // ===== SESSION CART (guest) =====
     @SuppressWarnings("unchecked")
     public List<CartItem> getSessionCart(HttpSession session) {
         Object obj = session.getAttribute("cart");
@@ -56,12 +49,10 @@ public class CartService {
         if (sessionCart.isEmpty()) {
             return;
         }
-
         for (CartItem item : sessionCart) {
             Optional<CartItemEntity> existing
                     = cartItemRepository.findByUserEmailAndProductId(email, item.getId());
             if (existing.isPresent()) {
-                // Cộng dồn quantity, không override
                 CartItemEntity e = existing.get();
                 Product p = productRepository.findById(item.getId()).orElse(null);
                 int maxStock = (p != null && p.getStock() != null) ? p.getStock() : 99;
@@ -72,15 +63,12 @@ public class CartService {
                         new CartItemEntity(email, item.getId(), item.getQuantity()));
             }
         }
-
-        // Xóa session cart sau khi merge
         session.removeAttribute("cart");
         session.setAttribute("cartCount",
                 cartItemRepository.findByUserEmail(email)
                         .stream().mapToInt(CartItemEntity::getQuantity).sum());
     }
 
-    // ===== LOAD DB CART → List<CartItem> để dùng chung với template =====
     public List<CartItem> getDbCart(String email) {
         return cartItemRepository.findByUserEmail(email).stream()
                 .map(e -> {
@@ -94,7 +82,6 @@ public class CartService {
                 .toList();
     }
 
-    // ===== ADD =====
     @Transactional
     public void addItem(String email, HttpSession session, long productId) {
         Product p = productRepository.findById(productId).orElse(null);
@@ -105,7 +92,6 @@ public class CartService {
         if (maxStock <= 0) {
             return;
         }
-
         if (isLoggedIn(email)) {
             Optional<CartItemEntity> existing
                     = cartItemRepository.findByUserEmailAndProductId(email, productId);
@@ -133,12 +119,10 @@ public class CartService {
         }
     }
 
-    // ===== INCREASE / DECREASE / REMOVE =====
     @Transactional
     public void increaseItem(String email, HttpSession session, long productId) {
         Product p = productRepository.findById(productId).orElse(null);
         int maxStock = (p != null && p.getStock() != null) ? p.getStock() : 99;
-
         if (isLoggedIn(email)) {
             cartItemRepository.findByUserEmailAndProductId(email, productId)
                     .ifPresent(e -> {
@@ -154,7 +138,6 @@ public class CartService {
                     .ifPresent(i -> {
                         if (i.getQuantity() < maxStock) {
                             i.setQuantity(i.getQuantity() + 1);
-                    
                         }});
         }
     }
@@ -205,7 +188,6 @@ public class CartService {
         session.setAttribute("cartCount", 0);
     }
 
-    // ===== HELPERS =====
     public List<CartItem> getCart(String email, HttpSession session) {
         return isLoggedIn(email) ? getDbCart(email) : getSessionCart(session);
     }

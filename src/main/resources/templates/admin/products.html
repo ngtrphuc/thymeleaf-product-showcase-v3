@@ -3,10 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Quản lý sản phẩm</title>
+    <title>Product Management</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
-        /* copy sidebar style từ dashboard */
         .admin-layout {
             display: flex;
             min-height: 100vh
@@ -85,7 +84,9 @@
 
         .btn-edit {
             background: #000;
-            color: white
+            color: white;
+            text-decoration: none;
+            display: inline-block
         }
 
         .btn-edit:hover {
@@ -100,6 +101,114 @@
         .btn-del:hover {
             background: #c0392b
         }
+
+        /* ===== CUSTOM CONFIRM MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 380px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            animation: modalIn 0.2s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                transform: scale(0.85);
+                opacity: 0
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1
+            }
+        }
+
+        .modal-icon {
+            font-size: 48px;
+            margin-bottom: 12px
+        }
+
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #000
+        }
+
+        .modal-desc {
+            font-size: 14px;
+            color: #777;
+            margin-bottom: 24px;
+            line-height: 1.5
+        }
+
+        .modal-product-name {
+            font-weight: bold;
+            color: #e84118;
+            background: #fff3f0;
+            padding: 8px 16px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-size: 14px;
+            max-width: 100%;
+            word-break: break-word;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center
+        }
+
+        .btn-modal-cancel {
+            padding: 10px 24px;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            background: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .btn-modal-cancel:hover {
+            border-color: #000;
+            background: #f5f5f5
+        }
+
+        .btn-modal-confirm {
+            padding: 10px 24px;
+            border-radius: 10px;
+            border: none;
+            background: #e84118;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .btn-modal-confirm:hover {
+            background: #c0392b
+        }
     </style>
 </head>
 
@@ -108,25 +217,25 @@
         <div class="sidebar-admin">
             <div class="brand">⚙ Admin Panel</div>
             <a href="/admin">📊 Dashboard</a>
-            <a href="/admin/products" class="active">📱 Sản phẩm</a>
-            <a href="/admin/orders">📦 Đơn hàng</a>
-            <a href="/">🏠 Về trang chủ</a>
+            <a href="/admin/products" class="active">📱 Products</a>
+            <a href="/admin/orders">📦 Orders</a>
+            <a href="/">🏠︎ Home</a>
         </div>
 
         <div class="admin-content">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-                <h2>Danh sách sản phẩm</h2>
-                <a href="/admin/products/new" class="btn-checkout" style="padding:10px 20px">+ Thêm mới</a>
+                <h2>Product List</h2>
+                <a href="/admin/products/new" class="btn-checkout" style="padding:10px 20px">+ Add New</a>
             </div>
 
             <table class="admin-table">
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Ảnh</th>
-                        <th>Tên</th>
-                        <th>Giá (JPY)</th>
-                        <th>Tồn kho</th>
+                        <th>Image</th>
+                        <th>Name</th>
+                        <th>Price (JPY)</th>
+                        <th>Stock</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -137,29 +246,77 @@
                         <td th:text="${p.name}" style="font-weight:bold"></td>
                         <td th:text="${#numbers.formatDecimal(p.price,0,'COMMA',0,'POINT')}"></td>
                         <td th:text="${p.stock}"></td>
-                        <td style="display:flex;gap:8px">
-                            <a th:href="@{/admin/products/edit/{id}(id=${p.id})}" class="btn-sm btn-edit">Sửa</a>
-                            <!-- Thay thẻ <a> delete bằng form -->
-                        <td style="display:flex;gap:8px">
-                            <a th:href="@{/admin/products/edit/{id}(id=${p.id})}" class="btn-sm btn-edit">Sửa</a>
-                            <form th:action="@{/admin/products/delete/{id}(id=${p.id})}" method="post" style="margin:0">
-                                <button type="submit" class="btn-sm btn-del"
-                                    onclick="return confirm('Xóa sản phẩm này?')">Xóa</button>
-                            </form>
-                        </td>
+                        <td style="display:flex;gap:8px;align-items:center">
+                            <a th:href="@{/admin/products/edit/{id}(id=${p.id})}" class="btn-sm btn-edit">Edit</a>
+                            <!-- ✅ Không dùng form submit trực tiếp — gọi modal thay thế -->
+                            <button type="button" class="btn-sm btn-del"
+                                th:attr="onclick='openDeleteModal(' + ${p.id} + ', \'' + ${p.name} + '\')'">
+                                Delete
+                            </button>
                         </td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
+
+    <!-- ===== DELETE CONFIRM MODAL ===== -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-box">
+            <div class="modal-icon">🗑️</div>
+            <div class="modal-title">Delete Product?</div>
+            <div class="modal-desc">This action cannot be undone. You are about to delete:</div>
+            <div class="modal-product-name" id="modalProductName"></div>
+            <div class="modal-actions">
+                <button class="btn-modal-cancel" onclick="closeDeleteModal()">Cancel</button>
+                <button class="btn-modal-confirm" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form ẩn để submit DELETE — tránh hardcode action URL trong JS -->
+    <form id="deleteForm" method="post" style="display:none">
+        <!-- action sẽ được set bằng JS -->
+    </form>
+
+    <!-- Toast -->
     <div class="toast-container" th:if="${toast}">
         <div class="toast" th:text="${toast}"></div>
     </div>
+
     <script>
-        setTimeout(() => {
-            document.querySelectorAll('.toast').forEach(t => t.remove());
-        }, 3200);
+        let pendingDeleteId = null;
+
+        function openDeleteModal(productId, productName) {
+            pendingDeleteId = productId;
+            document.getElementById('modalProductName').textContent = productName;
+            document.getElementById('deleteModal').classList.add('active');
+        }
+
+        function closeDeleteModal() {
+            pendingDeleteId = null;
+            document.getElementById('deleteModal').classList.remove('active');
+        }
+
+        function confirmDelete() {
+            if (!pendingDeleteId) return;
+            const form = document.getElementById('deleteForm');
+            form.action = '/admin/products/delete/' + pendingDeleteId;
+            form.submit();
+        }
+
+        // Click overlay để đóng modal
+        document.getElementById('deleteModal').addEventListener('click', function (e) {
+            if (e.target === this) closeDeleteModal();
+        });
+
+        // ESC để đóng modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeDeleteModal();
+        });
+
+        // Toast auto-remove
+        setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 3200);
     </script>
 </body>
 

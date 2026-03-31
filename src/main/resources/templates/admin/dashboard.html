@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <meta charset="UTF-8">
     <title>Admin Dashboard</title>
@@ -105,45 +104,40 @@
 
 <body>
     <div class="admin-layout">
-        <!-- Sidebar -->
         <div class="sidebar-admin">
             <div class="brand">⚙ Admin Panel</div>
             <a href="/admin" class="active">📊 Dashboard</a>
-            <a href="/admin/products">📱 Sản phẩm</a>
-            <a href="/admin/orders">📦 Đơn hàng</a>
-            <a href="/" style="margin-top: auto; border-top: 1px solid #333; margin-top: 20px;">🏠 Về trang chủ</a>
+            <a href="/admin/products">📱 Product</a>
+            <a href="/admin/orders">📦 Orders</a>
+            <a href="/" style="margin-top: auto; border-top: 1px solid #333; margin-top: 20px;">🏠︎ Home</a>
         </div>
-
-        <!-- Content -->
         <div class="admin-content">
-            <h2 style="margin-bottom: 24px;">Tổng quan</h2>
-
+            <h2 style="margin-bottom: 24px;">Overview</h2>
             <div class="stat-grid" style="grid-template-columns: repeat(3, 1fr);">
                 <div class="stat-card">
-                    <div class="stat-label">Tổng đơn hàng</div>
+                    <div class="stat-label">Total Orders</div>
                     <div class="stat-value" th:text="${totalOrders}">0</div>
                 </div>
                 <div class="stat-card red">
-                    <div class="stat-label">Doanh thu</div>
+                    <div class="stat-label">Total Revenue</div>
                     <div class="stat-value"
                         th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + ' ¥'">
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Sản phẩm đã bán</div>
+                    <div class="stat-label">Products Sold</div>
                     <div class="stat-value" th:text="${totalItemsSold}">0</div>
                 </div>
             </div>
-
-            <h3 style="margin-bottom: 16px;">Đơn hàng gần đây</h3>
+            <h3 style="margin-bottom: 16px;">Recent Orders</h3>
             <table class="recent-table">
                 <thead>
                     <tr>
                         <th>#</th>
-                        <th>Khách hàng</th>
-                        <th>Tổng tiền</th>
-                        <th>Trạng thái</th>
-                        <th>Ngày đặt</th>
+                        <th>Customer</th>
+                        <th>Total Amount</th>
+                        <th>Status</th>
+                        <th>Order Date</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -168,5 +162,4 @@
         </div>
     </div>
 </body>
-
 </html>

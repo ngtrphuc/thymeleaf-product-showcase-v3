@@ -1,22 +1,16 @@
 package io.github.ngtrphuc.smartphone_shop.config;
-
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
 import io.github.ngtrphuc.smartphone_shop.model.Product;
 import io.github.ngtrphuc.smartphone_shop.model.User;
 import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
 import io.github.ngtrphuc.smartphone_shop.repository.UserRepository;
-
 @Configuration
 public class DataInitializer {
-
     private final ProductRepository repository;
     private final UserRepository userRepository;
-
-    // ✅ KHÔNG inject PasswordEncoder ở đây nữa — tránh circular dependency
     public DataInitializer(ProductRepository repository,
                            UserRepository userRepository) {
         this.repository = repository;
@@ -25,12 +19,9 @@ public class DataInitializer {
 
     @Bean
     public CommandLineRunner initDatabase(PasswordEncoder passwordEncoder) {
-        // ✅ Nhận PasswordEncoder qua parameter của @Bean method
         return args -> {
             if (repository.count() > 0) {
                 System.out.println(">> Database already initialized, skipping.");
-
-                // ✅ Vẫn tạo admin nếu chưa có, dù products đã tồn tại
                 if (!userRepository.existsByEmail("admin@shop.com")) {
                     User admin = new User();
                     admin.setEmail("admin@shop.com");

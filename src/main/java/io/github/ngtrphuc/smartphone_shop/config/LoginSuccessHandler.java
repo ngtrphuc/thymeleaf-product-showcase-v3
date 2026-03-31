@@ -8,7 +8,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-
 @Component
 public class LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
     private final CartService cartService;
