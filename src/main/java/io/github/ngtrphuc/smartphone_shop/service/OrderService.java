@@ -82,7 +82,6 @@ public class OrderService {
         orderRepository.findById(orderId).ifPresent(o -> {
             String oldStatus = o.getStatus();
 
-            // cancelled → active: order active lại → deduct stock
             if ("cancelled".equals(oldStatus) && !"cancelled".equals(newStatus)) {
                 o.getItems().forEach(item ->
                     productRepository.findById(item.getProductId()).ifPresent(p -> {
@@ -93,7 +92,6 @@ public class OrderService {
                 );
             }
 
-            // active → cancelled: restore stock
             if (!"cancelled".equals(oldStatus) && "cancelled".equals(newStatus)) {
                 o.getItems().forEach(item ->
                     productRepository.findById(item.getProductId()).ifPresent(p -> {
