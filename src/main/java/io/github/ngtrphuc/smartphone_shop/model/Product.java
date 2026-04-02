@@ -1,10 +1,12 @@
 package io.github.ngtrphuc.smartphone_shop.model;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+
 @Entity
 @Table(name = "products")
 public class Product {
@@ -16,7 +18,8 @@ public class Product {
     private String imageUrl;
     private Integer stock;
     private String os;
-    private String Chipset;
+    @Column(name = "Chipset")
+    private String chipset;
     private String speed;
     private String ram;
     private String storage;
@@ -26,7 +29,9 @@ public class Product {
     private String charging;
     @Column(length = 1000)
     private String description;
+
     public Product() {}
+
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getName() { return name; }
@@ -39,8 +44,8 @@ public class Product {
     public void setStock(Integer stock) { this.stock = stock; }
     public String getOs() { return os; }
     public void setOs(String os) { this.os = os; }
-    public String getChipset() { return Chipset; }
-    public void setChipset(String Chipset) { this.Chipset = Chipset; }
+    public String getChipset() { return chipset; }
+    public void setChipset(String chipset) { this.chipset = chipset; }
     public String getSpeed() { return speed; }
     public void setSpeed(String speed) { this.speed = speed; }
     public String getRam() { return ram; }

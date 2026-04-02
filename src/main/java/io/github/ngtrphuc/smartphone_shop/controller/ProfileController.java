@@ -1,7 +1,8 @@
 package io.github.ngtrphuc.smartphone_shop.controller;
+
 import java.util.List;
+
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import io.github.ngtrphuc.smartphone_shop.model.CartItem;
 import io.github.ngtrphuc.smartphone_shop.model.Order;
 import io.github.ngtrphuc.smartphone_shop.model.User;
@@ -16,19 +18,20 @@ import io.github.ngtrphuc.smartphone_shop.repository.UserRepository;
 import io.github.ngtrphuc.smartphone_shop.service.CartService;
 import io.github.ngtrphuc.smartphone_shop.service.OrderService;
 import jakarta.servlet.http.HttpSession;
+
 @Controller
 @RequestMapping("/profile")
 public class ProfileController {
+
     private final UserRepository userRepository;
     private final OrderService orderService;
     private final CartService cartService;
-    private final PasswordEncoder passwordEncoder;
+
     public ProfileController(UserRepository userRepository, OrderService orderService,
-                             CartService cartService, PasswordEncoder passwordEncoder) {
+            CartService cartService) {
         this.userRepository = userRepository;
         this.orderService = orderService;
         this.cartService = cartService;
-        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping
@@ -39,25 +42,23 @@ public class ProfileController {
         List<Order> deliveredOrders = allOrders.stream()
                 .filter(o -> "delivered".equals(o.getStatus())).toList();
         List<Order> pendingOrders = allOrders.stream()
-                .filter(o -> !"delivered".equals(o.getStatus()) && !"cancelled".equals(o.getStatus())).toList();
+                .filter(o -> !"delivered".equals(o.getStatus())
+                && !"cancelled".equals(o.getStatus())).toList();
         List<CartItem> cartItems = cartService.getCart(email, session);
         model.addAttribute("user", user);
         model.addAttribute("deliveredOrders", deliveredOrders);
         model.addAttribute("pendingOrders", pendingOrders);
         model.addAttribute("cartItems", cartItems);
-        model.addAttribute("shopname", "Smartphone Shop");
-        model.addAttribute("address", "Asaka, Saitama, Japan");
         return "profile";
     }
 
     @PostMapping("/update")
     public String updateProfile(Authentication auth,
-                                @RequestParam String fullName,
-                                @RequestParam String phoneNumber,
-                                @RequestParam String defaultAddress,
-                                RedirectAttributes ra) {
-        String email = auth.getName();
-        userRepository.findByEmail(email).ifPresent(user -> {
+            @RequestParam String fullName,
+            @RequestParam String phoneNumber,
+            @RequestParam String defaultAddress,
+            RedirectAttributes ra) {
+        userRepository.findByEmail(auth.getName()).ifPresent(user -> {
             user.setFullName(fullName);
             user.setPhoneNumber(phoneNumber);
             user.setDefaultAddress(defaultAddress);

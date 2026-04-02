@@ -1,4 +1,8 @@
 package io.github.ngtrphuc.smartphone_shop.controller;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +20,9 @@ import io.github.ngtrphuc.smartphone_shop.service.OrderService;
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
+
+    private static final int ADMIN_PAGE_SIZE = 20;
+
     private final ProductRepository productRepository;
     private final OrderService orderService;
 
@@ -31,37 +38,42 @@ public class AdminController {
         model.addAttribute("totalOrders", orderService.getAllOrders().size());
         model.addAttribute("totalRevenue", orderService.getTotalRevenue());
         model.addAttribute("recentOrders", orderService.getRecentOrders(10));
-        model.addAttribute("shopname", "Smartphone Shop");
         return "admin/dashboard";
     }
 
     @GetMapping("/access-denied-admin")
-    public String accessDeniedAdmin(Model model) {
-        model.addAttribute("shopname", "Smartphone Shop");
+    public String accessDeniedAdmin() {
         return "error/access-denied-admin";
     }
 
     @GetMapping("/products")
-    public String products(Model model) {
-        model.addAttribute("products", productRepository.findAll());
-        model.addAttribute("shopname", "Smartphone Shop");
+    public String products(
+            @RequestParam(defaultValue = "0") int page,
+            Model model) {
+        Page<Product> productPage = productRepository.findAll(
+                PageRequest.of(page, ADMIN_PAGE_SIZE, Sort.by("id").ascending()));
+        model.addAttribute("products", productPage.getContent());
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", productPage.getTotalPages());
         return "admin/products";
     }
 
     @GetMapping("/products/new")
     public String newProductForm(Model model) {
         model.addAttribute("product", new Product());
-        model.addAttribute("shopname", "Smartphone Shop");
         return "admin/product-form";
     }
 
     @GetMapping("/products/edit/{id}")
     public String editProductForm(@PathVariable Long id, Model model) {
-        if (id == null) return "redirect:/admin/products";
+        if (id == null) {
+            return "redirect:/admin/products";
+        }
         Product p = productRepository.findById(id).orElse(null);
-        if (p == null) return "redirect:/admin/products";
+        if (p == null) {
+            return "redirect:/admin/products";
+        }
         model.addAttribute("product", p);
-        model.addAttribute("shopname", "Smartphone Shop");
         return "admin/product-form";
     }
 
@@ -85,7 +97,6 @@ public class AdminController {
     @GetMapping("/orders")
     public String orders(Model model) {
         model.addAttribute("orders", orderService.getAllOrders());
-        model.addAttribute("shopname", "Smartphone Shop");
         return "admin/orders";
     }
 

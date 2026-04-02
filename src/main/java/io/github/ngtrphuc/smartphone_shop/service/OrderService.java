@@ -1,4 +1,5 @@
 package io.github.ngtrphuc.smartphone_shop.service;
+
 import java.util.List;
 
 import org.springframework.data.domain.PageRequest;
@@ -13,6 +14,7 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class OrderService {
+
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
 
@@ -80,16 +82,18 @@ public class OrderService {
         orderRepository.findById(orderId).ifPresent(o -> {
             String oldStatus = o.getStatus();
 
+            // cancelled → active: order active lại → deduct stock
             if ("cancelled".equals(oldStatus) && !"cancelled".equals(newStatus)) {
                 o.getItems().forEach(item ->
                     productRepository.findById(item.getProductId()).ifPresent(p -> {
-                        int deduct = Math.min(item.getQuantity(), p.getStock());
-                        p.setStock(p.getStock() - deduct);
+                        int newStock = Math.max(0, p.getStock() - item.getQuantity());
+                        p.setStock(newStock);
                         productRepository.save(p);
                     })
                 );
             }
 
+            // active → cancelled: restore stock
             if (!"cancelled".equals(oldStatus) && "cancelled".equals(newStatus)) {
                 o.getItems().forEach(item ->
                     productRepository.findById(item.getProductId()).ifPresent(p -> {

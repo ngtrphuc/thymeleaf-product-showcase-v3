@@ -1,4 +1,5 @@
 package io.github.ngtrphuc.smartphone_shop.controller;
+
 import java.util.List;
 
 import org.springframework.security.core.Authentication;
@@ -12,19 +13,21 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import io.github.ngtrphuc.smartphone_shop.model.CartItem;
+import io.github.ngtrphuc.smartphone_shop.repository.UserRepository;
 import io.github.ngtrphuc.smartphone_shop.service.CartService;
+import io.github.ngtrphuc.smartphone_shop.service.OrderService;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/cart")
 public class CartController {
-    private final CartService cartService;
-    private final io.github.ngtrphuc.smartphone_shop.service.OrderService orderService;
-    private final io.github.ngtrphuc.smartphone_shop.repository.UserRepository userRepository;
 
-    public CartController(CartService cartService,
-            io.github.ngtrphuc.smartphone_shop.service.OrderService orderService,
-            io.github.ngtrphuc.smartphone_shop.repository.UserRepository userRepository) {
+    private final CartService cartService;
+    private final OrderService orderService;
+    private final UserRepository userRepository;
+
+    public CartController(CartService cartService, OrderService orderService,
+            UserRepository userRepository) {
         this.cartService = cartService;
         this.orderService = orderService;
         this.userRepository = userRepository;
@@ -34,17 +37,11 @@ public class CartController {
         return (auth != null) ? auth.getName() : null;
     }
 
-    private void addCommon(Model model) {
-        model.addAttribute("shopname", "Smartphone Shop");
-        model.addAttribute("address", "Asaka, Saitama, Japan");
-    }
-
     @GetMapping
     public String viewCart(Authentication auth, HttpSession session, Model model) {
         String email = getEmail(auth);
         List<CartItem> cart = cartService.getCart(email, session);
         cartService.syncCartCount(session, email);
-        addCommon(model);
         model.addAttribute("cart", cart);
         model.addAttribute("totalAmount", cartService.calculateTotal(cart));
         return "cart";
@@ -88,7 +85,6 @@ public class CartController {
         if (auth != null) {
             userRepository.findByEmail(auth.getName()).ifPresent(u -> model.addAttribute("user", u));
         }
-        addCommon(model);
         return "shipping";
     }
 
@@ -116,7 +112,6 @@ public class CartController {
         String email = getEmail(auth);
         List<CartItem> cart = cartService.getCart(email, session);
         if (cart.isEmpty()) return "redirect:/cart";
-        addCommon(model);
         model.addAttribute("cart", cart);
         model.addAttribute("totalAmount", cartService.calculateTotal(cart));
         model.addAttribute("count", cart.stream().mapToInt(CartItem::getQuantity).sum());
@@ -125,18 +120,18 @@ public class CartController {
 
     @PostMapping("/confirm")
     public String confirm(Authentication auth, HttpSession session, RedirectAttributes ra) {
-        String name = (String) session.getAttribute("name");
-        String phone = (String) session.getAttribute("phone");
+        String name    = (String) session.getAttribute("name");
+        String phone   = (String) session.getAttribute("phone");
         String address = (String) session.getAttribute("address");
-        List<CartItem> cart = cartService.getCart(getEmail(auth), session);
+        String email   = getEmail(auth);
+        List<CartItem> cart = cartService.getCart(email, session);
 
         if (cart.isEmpty() || name == null || phone == null || address == null) {
             return "redirect:/cart/shipping";
         }
 
-        String email = getEmail(auth) != null ? getEmail(auth) : "guest@shop.com";
         orderService.createOrder(email, name, phone, address, cart, cartService.calculateTotal(cart));
-        cartService.clearCart(getEmail(auth), session);
+        cartService.clearCart(email, session);
         session.removeAttribute("name");
         session.removeAttribute("phone");
         session.removeAttribute("address");
@@ -146,8 +141,7 @@ public class CartController {
     }
 
     @GetMapping("/success")
-    public String success(Model model) {
-        addCommon(model);
+    public String success() {
         return "success";
     }
 }

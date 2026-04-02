@@ -9,7 +9,7 @@
 
 <body>
     <div class="header">
-        <a href="/" class="logo">🏠︎ HOME</a>
+        <a href="/" class="home-animated">🏠︎ HOME</a>
         <div style="display:flex;align-items:center;gap:10px;">
             <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header">🔑 Log In</a>
             <th:block sec:authorize="isAuthenticated()">

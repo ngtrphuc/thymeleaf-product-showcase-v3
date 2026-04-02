@@ -1,4 +1,5 @@
 package io.github.ngtrphuc.smartphone_shop.service;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class CartService {
+
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
 
@@ -52,11 +54,13 @@ public class CartService {
     @Transactional
     public void mergeSessionCartToDb(HttpSession session, String email) {
         List<CartItem> sessionCart = getSessionCart(session);
-        if (sessionCart.isEmpty()) return;
+        if (sessionCart.isEmpty()) {
+            return;
+        }
 
         for (CartItem item : sessionCart) {
-            Optional<CartItemEntity> existing =
-                    cartItemRepository.findByUserEmailAndProductId(email, item.getId());
+            Optional<CartItemEntity> existing
+                    = cartItemRepository.findByUserEmailAndProductId(email, item.getId());
             if (existing.isPresent()) {
                 CartItemEntity e = existing.get();
                 Product p = productRepository.findById(item.getId()).orElse(null);
@@ -75,32 +79,41 @@ public class CartService {
 
     public List<CartItem> getDbCart(String email) {
         List<CartItemEntity> entities = cartItemRepository.findByUserEmail(email);
-        if (entities.isEmpty()) return List.of();
+        if (entities.isEmpty()) {
+            return List.of();
+        }
 
         List<Long> productIds = entities.stream().map(CartItemEntity::getProductId).toList();
         Map<Long, Product> productMap = productRepository.findAllByIdIn(productIds)
                 .stream().collect(Collectors.toMap(Product::getId, p -> p));
 
-        return entities.stream()
+        List<CartItem> result = entities.stream()
                 .map(e -> {
                     Product p = productMap.get(e.getProductId());
-                    if (p == null) return null;
+                    if (p == null) {
+                        return null;
+                    }
                     return new CartItem(e.getProductId(), p.getName(), p.getPrice(), e.getQuantity());
                 })
                 .filter(Objects::nonNull)
-                .toList();
+                .collect(Collectors.toList());
+        return result;
     }
 
     @Transactional
     public void addItem(String email, HttpSession session, long productId) {
         Product p = productRepository.findById(productId).orElse(null);
-        if (p == null) return;
+        if (p == null) {
+            return;
+        }
         int maxStock = (p.getStock() != null) ? p.getStock() : 0;
-        if (maxStock <= 0) return;
+        if (maxStock <= 0) {
+            return;
+        }
 
         if (isLoggedIn(email)) {
-            Optional<CartItemEntity> existing =
-                    cartItemRepository.findByUserEmailAndProductId(email, productId);
+            Optional<CartItemEntity> existing
+                    = cartItemRepository.findByUserEmailAndProductId(email, productId);
             if (existing.isPresent()) {
                 CartItemEntity e = existing.get();
                 if (e.getQuantity() < maxStock) {
@@ -116,7 +129,9 @@ public class CartService {
                     .filter(i -> i.getId() != null && i.getId() == productId)
                     .findFirst().orElse(null);
             if (found != null) {
-                if (found.getQuantity() < maxStock) found.setQuantity(found.getQuantity() + 1);
+                if (found.getQuantity() < maxStock) {
+                    found.setQuantity(found.getQuantity() + 1);
+                }
             } else {
                 cart.add(new CartItem(productId, p.getName(), p.getPrice(), 1));
             }
@@ -138,7 +153,11 @@ public class CartService {
             getSessionCart(session).stream()
                     .filter(i -> i.getId() != null && i.getId() == productId)
                     .findFirst()
-                    .ifPresent(i -> { if (i.getQuantity() < maxStock) i.setQuantity(i.getQuantity() + 1); });
+                    .ifPresent(i -> {
+                        if (i.getQuantity() < maxStock) {
+                            i.setQuantity(i.getQuantity() + 1);
+                    
+                        }});
         }
     }
 
@@ -159,8 +178,11 @@ public class CartService {
                     .filter(i -> i.getId() != null && i.getId() == productId)
                     .findFirst().orElse(null);
             if (found != null) {
-                if (found.getQuantity() > 1) found.setQuantity(found.getQuantity() - 1);
-                else cart.remove(found);
+                if (found.getQuantity() > 1) {
+                    found.setQuantity(found.getQuantity() - 1); 
+                }else {
+                    cart.remove(found);
+                }
             }
         }
     }

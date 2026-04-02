@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+
 import io.github.ngtrphuc.smartphone_shop.service.CustomUserDetailsService;
 
 @Configuration(proxyBeanMethods = false)
@@ -20,7 +21,7 @@ public class SecurityConfig {
     private final LoginSuccessHandler loginSuccessHandler;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
-                         LoginSuccessHandler loginSuccessHandler) {
+                          LoginSuccessHandler loginSuccessHandler) {
         this.userDetailsService = userDetailsService;
         this.loginSuccessHandler = loginSuccessHandler;
     }
@@ -32,29 +33,32 @@ public class SecurityConfig {
 
     @Bean
     public DaoAuthenticationProvider authProvider(PasswordEncoder passwordEncoder) {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(passwordEncoder);
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setPasswordEncoder(passwordEncoder);
         provider.setUserDetailsService(userDetailsService);
         return provider;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
-                                         DaoAuthenticationProvider authProvider) throws Exception {
+                                           DaoAuthenticationProvider authProvider) throws Exception {
         http
                 .authenticationProvider(authProvider)
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.sameOrigin())
-                        .contentSecurityPolicy(csp -> csp
-                                .policyDirectives("default-src 'self'; "
-                                        + "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
-                                        + "style-src 'self' 'unsafe-inline'"))
+                        .contentSecurityPolicy(csp -> csp.policyDirectives(
+                                "default-src 'self'; " +
+                                "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; " +
+                                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+                                "font-src 'self' https://fonts.gstatic.com; " +
+                                "img-src 'self' data: https:;"
+                        ))
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/css/**", "/images/**", "/js/**", "/actuator/health").permitAll()
                         .requestMatchers("/", "/product/**", "/register", "/login", "/admin/access-denied-admin").permitAll()
                         .requestMatchers("/cart/**", "/profile/**", "/my-orders/**").hasRole("USER")
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
