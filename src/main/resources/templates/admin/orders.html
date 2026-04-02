@@ -5,105 +5,6 @@
     <meta charset="UTF-8">
     <title>Order Management</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <style>
-        .admin-layout {
-            display: flex;
-            min-height: 100vh
-        }
-
-        .sidebar-admin {
-            width: 220px;
-            background: #111;
-            padding: 30px 0;
-            flex-shrink: 0
-        }
-
-        .sidebar-admin a {
-            display: block;
-            padding: 13px 24px;
-            color: #ccc;
-            font-size: 14px;
-            text-decoration: none
-        }
-
-        .sidebar-admin a:hover,
-        .sidebar-admin a.active {
-            background: #e84118;
-            color: white
-        }
-
-        .sidebar-admin .brand {
-            color: white;
-            font-weight: bold;
-            font-size: 16px;
-            padding: 0 24px 20px;
-            border-bottom: 1px solid #333;
-            margin-bottom: 10px
-        }
-
-        .admin-content {
-            flex: 1;
-            padding: 30px;
-            background: #f5f6fa
-        }
-
-        .order-row {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 12px;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, .06)
-        }
-
-        .badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold
-        }
-
-        .badge-pending {
-            background: #fef9c3;
-            color: #854d0e
-        }
-
-        .badge-processing {
-            background: #dbeafe;
-            color: #1e40af
-        }
-
-        .badge-shipped {
-            background: #dcfce7;
-            color: #166534
-        }
-
-        .badge-delivered {
-            background: #d1fae5;
-            color: #065f46
-        }
-
-        .badge-cancelled {
-            background: #fee2e2;
-            color: #991b1b
-        }
-
-        select.status-sel {
-            padding: 6px 10px;
-            border-radius: 6px;
-            border: 1.5px solid #ddd;
-            font-size: 13px;
-            cursor: pointer
-        }
-
-        .cancelled-label {
-            padding: 6px 14px;
-            border-radius: 6px;
-            background: #fee2e2;
-            color: #991b1b;
-            font-size: 13px;
-            font-weight: bold;
-        }
-    </style>
 </head>
 
 <body>
@@ -111,59 +12,75 @@
         <div class="sidebar-admin">
             <div class="brand">⚙ Admin Panel</div>
             <a href="/admin">📊 Dashboard</a>
-            <a href="/admin/products">📱 Product</a>
-            <a href="/admin/orders" class="active">📦 Orders</a>
-            <a href="/">🏠︎ Home</a>
+            <a href="/admin/products">📱 Products</a>
+            <a href="/admin/orders" class="active"> 📦 Orders</a>
+            <a href="/" style="margin-top:auto;border-top:1px solid var(--glass-border);padding-top:16px;">🏠︎ HOME</a>
         </div>
 
         <div class="admin-content">
-            <h2 style="margin-bottom:20px">Total Orders</h2>
+            <div style="margin-bottom:28px;">
+                <h2 style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;margin-bottom:4px;">Order
+                    Management</h2>
+                <p style="color:var(--text-muted);font-size:13px;">Review and update customer order status.</p>
+            </div>
 
-            <div th:each="order : ${orders}" class="order-row">
-                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+            <div th:if="${orders == null or #lists.isEmpty(orders)}"
+                style="text-align:center; padding:50px; background:var(--glass-bg); border-radius:16px; border:1px solid var(--glass-border);">
+                <p style="color:var(--text-muted);">No orders found in database.</p>
+            </div>
+
+            <div th:each="order : ${orders}" class="order-row"
+                style="background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:16px; padding:20px; margin-bottom:16px;">
+
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
                     <div>
-                        <strong th:text="'Order No. ' + ${order.id}"></strong>
-                        <span style="color:#999;font-size:13px;margin-left:10px"
+                        <span style="color:var(--accent); font-weight:700; font-family:'Syne',sans-serif;"
+                            th:text="'#' + ${order.id}"></span>
+                        <span style="color:var(--text-muted); font-size:12px; margin-left:10px;"
                             th:text="${#temporals.format(order.createdAt,'dd/MM/yyyy HH:mm')}"></span>
-                        <span class="badge" style="margin-left:10px" th:classappend="'badge-' + ${order.status}"
-                            th:text="${order.status}"></span>
-                    </div>
-                    <div style="font-size:14px;color:#555">
-                        👤 <span th:text="${order.customerName}"></span> |
-                        📞 <span th:text="${order.phoneNumber}"></span>
+                        <div style="margin-top:5px; font-weight:600;" th:text="${order.customerName}"></div>
+                        <div style="color:var(--text-muted); font-size:13px;">📞 <span
+                                th:text="${order.phoneNumber}"></span></div>
                     </div>
 
-                    <!-- Cancelled: hiện label, không cho đổi -->
-                    <span th:if="${order.status == 'cancelled'}" class="cancelled-label">✕ Cancelled</span>
+                    <div style="text-align:right;">
+                        <div th:if="${order.status == 'cancelled'}" class="badge-cancelled"
+                            style="padding:6px 12px; border-radius:8px; background:rgba(255,71,87,0.1); color:#ff4757; font-weight:700; font-size:12px;">
+                            ✕ CANCELLED
+                        </div>
 
-                    <!-- Active: hiện dropdown, không có option cancelled -->
-                    <form th:unless="${order.status == 'cancelled'}" method="post"
-                        th:action="@{/admin/orders/{id}/status(id=${order.id})}">
-                        <select name="status" class="status-sel" onchange="this.form.submit()">
-                            <option value="pending" th:selected="${order.status == 'pending'}">Pending</option>
-                            <option value="processing" th:selected="${order.status == 'processing'}">Processing</option>
-                            <option value="shipped" th:selected="${order.status == 'shipped'}">Shipped</option>
-                            <option value="delivered" th:selected="${order.status == 'delivered'}">Delivered</option>
-                        </select>
-                    </form>
+                        <form th:unless="${order.status == 'cancelled'}" method="post"
+                            th:action="@{/admin/orders/{id}/status(id=${order.id})}">
+                            <select name="status" class="status-sel" onchange="this.form.submit()"
+                                style="background:#1a1a1a; color:white; border:1px solid var(--glass-border); padding:6px 12px; border-radius:8px; cursor:pointer;">
+                                <option value="pending" th:selected="${order.status == 'pending'}">Pending</option>
+                                <option value="processing" th:selected="${order.status == 'processing'}">Processing
+                                </option>
+                                <option value="shipped" th:selected="${order.status == 'shipped'}">Shipped</option>
+                                <option value="delivered" th:selected="${order.status == 'delivered'}">Delivered
+                                </option>
+                            </select>
+                        </form>
+                    </div>
                 </div>
 
-                <div style="margin-top:10px;font-size:13px;color:#777">
-                    🏠︎ <span th:text="${order.shippingAddress}"></span>
-                </div>
-
-                <div style="margin-top:8px;border-top:1px solid #f0f0f0;padding-top:8px">
+                <div style="background:rgba(255,255,255,0.03); border-radius:12px; padding:15px;">
                     <div th:each="item : ${order.items}"
-                        style="display:flex;justify-content:space-between;font-size:13px;padding:3px 0">
+                        style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
                         <span th:text="${item.productName} + ' × ' + ${item.quantity}"></span>
-                        <span style="color:#e84118;font-weight:bold"
+                        <span style="font-family:'Syne',sans-serif; color:var(--accent);"
                             th:text="${#numbers.formatDecimal(item.price * item.quantity,0,'COMMA',0,'POINT')} + ' JPY'"></span>
                     </div>
+                    <div
+                        style="border-top:1px solid rgba(255,255,255,0.05); margin-top:10px; padding-top:10px; text-align:right;">
+                        <span style="color:var(--text-muted); font-size:12px;">Total Amount:</span>
+                        <div style="font-size:18px; font-weight:800; color:var(--accent); font-family:'Syne',sans-serif;"
+                            th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' JPY'"></div>
+                    </div>
                 </div>
 
-                <div style="text-align:right;margin-top:8px;font-weight:bold;font-size:15px">
-                    Total: <span style="color:#e84118"
-                        th:text="${#numbers.formatDecimal(order.totalAmount,0,'COMMA',0,'POINT')} + ' JPY'"></span>
+                <div style="margin-top:10px; font-size:12px; color:var(--text-muted);">
+                    📍 <span th:text="${order.shippingAddress}"></span>
                 </div>
             </div>
         </div>
@@ -175,10 +92,6 @@
     <script>
         setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 3200);
     </script>
-    <footer>
-        <div th:text="${shopname}" style="font-weight: bold; font-size: 20px;"></div>
-        <div class="footer-address" th:text="${address}"></div>
-    </footer>
 </body>
 
 </html>

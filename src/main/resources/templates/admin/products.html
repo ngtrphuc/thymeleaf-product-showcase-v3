@@ -1,217 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <meta charset="UTF-8">
     <title>Product Management</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <style>
-        .admin-layout {
-            display: flex;
-            min-height: 100vh
-        }
-
-        .sidebar-admin {
-            width: 220px;
-            background: #111;
-            padding: 30px 0;
-            flex-shrink: 0
-        }
-
-        .sidebar-admin a {
-            display: block;
-            padding: 13px 24px;
-            color: #ccc;
-            font-size: 14px;
-            transition: .2s;
-            text-decoration: none
-        }
-
-        .sidebar-admin a:hover,
-        .sidebar-admin a.active {
-            background: #e84118;
-            color: white
-        }
-
-        .sidebar-admin .brand {
-            color: white;
-            font-weight: bold;
-            font-size: 16px;
-            padding: 0 24px 20px;
-            border-bottom: 1px solid #333;
-            margin-bottom: 10px
-        }
-
-        .admin-content {
-            flex: 1;
-            padding: 30px;
-            background: #f5f6fa
-        }
-
-        .admin-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 3px 12px rgba(0, 0, 0, .07)
-        }
-
-        .admin-table th {
-            background: #000;
-            color: white;
-            padding: 12px 16px;
-            text-align: left;
-            font-size: 13px
-        }
-
-        .admin-table td {
-            padding: 11px 16px;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 14px;
-            vertical-align: middle
-        }
-
-        .btn-sm {
-            padding: 5px 14px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: bold;
-            transition: .2s;
-            border: none;
-            cursor: pointer
-        }
-
-        .btn-edit {
-            background: #000;
-            color: white;
-            text-decoration: none;
-            display: inline-block
-        }
-
-        .btn-edit:hover {
-            background: #333
-        }
-
-        .btn-del {
-            background: #e84118;
-            color: white
-        }
-
-        .btn-del:hover {
-            background: #c0392b
-        }
-
-        /* ===== CUSTOM CONFIRM MODAL ===== */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
-        .modal-box {
-            background: white;
-            border-radius: 16px;
-            padding: 32px;
-            max-width: 380px;
-            width: 90%;
-            text-align: center;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-            animation: modalIn 0.2s ease;
-        }
-
-        @keyframes modalIn {
-            from {
-                transform: scale(0.85);
-                opacity: 0
-            }
-
-            to {
-                transform: scale(1);
-                opacity: 1
-            }
-        }
-
-        .modal-icon {
-            font-size: 48px;
-            margin-bottom: 12px
-        }
-
-        .modal-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: #000
-        }
-
-        .modal-desc {
-            font-size: 14px;
-            color: #777;
-            margin-bottom: 24px;
-            line-height: 1.5
-        }
-
-        .modal-product-name {
-            font-weight: bold;
-            color: #e84118;
-            background: #fff3f0;
-            padding: 8px 16px;
-            border-radius: 8px;
-            display: inline-block;
-            margin-bottom: 20px;
-            font-size: 14px;
-            max-width: 100%;
-            word-break: break-word;
-        }
-
-        .modal-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: center
-        }
-
-        .btn-modal-cancel {
-            padding: 10px 24px;
-            border-radius: 10px;
-            border: 2px solid #ddd;
-            background: white;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 14px;
-            transition: 0.2s;
-        }
-
-        .btn-modal-cancel:hover {
-            border-color: #000;
-            background: #f5f5f5
-        }
-
-        .btn-modal-confirm {
-            padding: 10px 24px;
-            border-radius: 10px;
-            border: none;
-            background: #e84118;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            font-size: 14px;
-            transition: 0.2s;
-        }
-
-        .btn-modal-confirm:hover {
-            background: #c0392b
-        }
-    </style>
 </head>
-
 <body>
     <div class="admin-layout">
         <div class="sidebar-admin">
@@ -219,13 +12,13 @@
             <a href="/admin">📊 Dashboard</a>
             <a href="/admin/products" class="active">📱 Products</a>
             <a href="/admin/orders">📦 Orders</a>
-            <a href="/">🏠︎ Home</a>
+            <a href="/" style="margin-top:auto;border-top:1px solid var(--glass-border);padding-top:16px;">🏠︎ HOME</a>
         </div>
 
         <div class="admin-content">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
-                <h2>Product List</h2>
-                <a href="/admin/products/new" class="btn-checkout" style="padding:10px 20px">+ Add New</a>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;">
+                <h2 style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;">Product List</h2>
+                <a href="/admin/products/new" class="btn-checkout" style="padding:9px 18px;font-size:13px;">+ Add New</a>
             </div>
 
             <table class="admin-table">
@@ -241,18 +34,17 @@
                 </thead>
                 <tbody>
                     <tr th:each="p : ${products}">
-                        <td th:text="${p.id}"></td>
-                        <td><img th:src="@{${p.imageUrl}}" style="width:50px;height:50px;object-fit:contain"></td>
-                        <td th:text="${p.name}" style="font-weight:bold"></td>
-                        <td th:text="${#numbers.formatDecimal(p.price,0,'COMMA',0,'POINT')}"></td>
-                        <td th:text="${p.stock}"></td>
-                        <td style="display:flex;gap:8px;align-items:center">
+                        <td style="color:var(--text-muted);font-size:12px;" th:text="${p.id}"></td>
+                        <td><img th:src="@{${p.imageUrl}}" style="width:46px;height:46px;object-fit:contain;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.4));"></td>
+                        <td style="font-weight:600;" th:text="${p.name}"></td>
+                        <td style="font-family:'Syne',sans-serif;font-weight:700;color:var(--accent);" th:text="${#numbers.formatDecimal(p.price,0,'COMMA',0,'POINT')}"></td>
+                        <td>
+                            <span th:if="${p.stock != null and p.stock > 0}" style="color:#00e676;font-weight:600;" th:text="${p.stock}"></span>
+                            <span th:if="${p.stock == null or p.stock <= 0}" style="color:var(--accent3);font-weight:600;">Out</span>
+                        </td>
+                        <td style="display:flex;gap:8px;align-items:center;">
                             <a th:href="@{/admin/products/edit/{id}(id=${p.id})}" class="btn-sm btn-edit">Edit</a>
-                            <!-- ✅ Không dùng form submit trực tiếp — gọi modal thay thế -->
-                            <button type="button" class="btn-sm btn-del"
-                                th:attr="onclick='openDeleteModal(' + ${p.id} + ', \'' + ${p.name} + '\')'">
-                                Delete
-                            </button>
+                            <button type="button" class="btn-sm btn-del" th:attr="onclick='openDeleteModal(' + ${p.id} + ', \'' + ${p.name} + '\')'">Delete</button>
                         </td>
                     </tr>
                 </tbody>
@@ -260,7 +52,6 @@
         </div>
     </div>
 
-    <!-- ===== DELETE CONFIRM MODAL ===== -->
     <div class="modal-overlay" id="deleteModal">
         <div class="modal-box">
             <div class="modal-icon">🗑️</div>
@@ -274,54 +65,36 @@
         </div>
     </div>
 
-    <!-- Form ẩn để submit DELETE — tránh hardcode action URL trong JS -->
-    <form id="deleteForm" method="post" style="display:none">
-        <!-- action sẽ được set bằng JS -->
+    <form id="deleteForm" method="post" style="display:none;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
     </form>
 
-    <!-- Toast -->
     <div class="toast-container" th:if="${toast}">
         <div class="toast" th:text="${toast}"></div>
     </div>
 
     <script>
         let pendingDeleteId = null;
-
         function openDeleteModal(productId, productName) {
             pendingDeleteId = productId;
             document.getElementById('modalProductName').textContent = productName;
             document.getElementById('deleteModal').classList.add('active');
         }
-
         function closeDeleteModal() {
             pendingDeleteId = null;
             document.getElementById('deleteModal').classList.remove('active');
         }
-
         function confirmDelete() {
             if (!pendingDeleteId) return;
             const form = document.getElementById('deleteForm');
             form.action = '/admin/products/delete/' + pendingDeleteId;
             form.submit();
         }
-
-        // Click overlay để đóng modal
         document.getElementById('deleteModal').addEventListener('click', function (e) {
             if (e.target === this) closeDeleteModal();
         });
-
-        // ESC để đóng modal
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') closeDeleteModal();
-        });
-
-        // Toast auto-remove
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDeleteModal(); });
         setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 3200);
     </script>
-    <footer>
-        <div th:text="${shopname}" style="font-weight: bold; font-size: 20px;"></div>
-        <div class="footer-address" th:text="${address}"></div>
-    </footer>
 </body>
-
 </html>

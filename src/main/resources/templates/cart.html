@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
     <meta charset="UTF-8">
@@ -10,35 +10,29 @@
 <body>
     <div class="header">
         <a href="/" class="logo">🏠︎ HOME</a>
-        <div style="display: flex; align-items: center; gap: 15px;">
-
+        <div style="display:flex;align-items:center;gap:10px;">
             <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header">🔑 Log In</a>
-
             <th:block sec:authorize="isAuthenticated()">
-
                 <a sec:authorize="hasRole('USER')" th:href="@{/profile}" class="btn-header">
                     👤 <span sec:authentication="name"></span>
                 </a>
-
                 <a sec:authorize="hasRole('USER')" href="/my-orders" class="btn-header">📋 Orders</a>
-
-                <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header" style="color:#f39c12 !important;">⚙
-                    Admin</a>
-
-                <form th:action="@{/logout}" method="post" style="display:inline; margin:0;">
-                    <button type="submit" class="btn-header">🚪 Log Out</button>
+                <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header"
+                    style="color:#00d4ff !important;border-color:rgba(0,212,255,0.25) !important;">⚙ Admin</a>
+                <form th:action="@{/logout}" method="post" style="display:inline;margin:0;">
+                    <button type="submit" class="btn-logout-link">🚪 Log Out</button>
                 </form>
             </th:block>
-
-            <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header">
+            <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header"
+                style="color:#00d4ff !important;border-color:rgba(0,212,255,0.25) !important;">
                 🛒 Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)
             </a>
-
         </div>
     </div>
 
     <div class="container">
-        <h2 style="padding-bottom: 10px;">Your Shopping Cart</h2>
+        <h2 style="padding-bottom:16px; font-family:'Syne',sans-serif; font-weight:700; text-align: center;">Your
+            Shopping Cart</h2>
 
         <table class="cart-table" th:if="${!#lists.isEmpty(cart)}">
             <thead>
@@ -52,40 +46,35 @@
             </thead>
             <tbody>
                 <tr th:each="item : ${cart}">
-                    <td th:text="${item.name}" style="font-weight: bold;"></td>
-                    <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + ' JPY'"></td>
+                    <td th:text="${item.name}" style="font-weight:600;"></td>
+                    <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + ' JPY'"
+                        style="color:var(--text-muted);"></td>
                     <td>
                         <a th:href="@{/cart/decrease/{id}(id=${item.id})}" class="qty-btn">−</a>
-                        <span th:text="${item.quantity}" style="margin: 0 10px;"></span>
+                        <span th:text="${item.quantity}" style="margin:0 10px;font-weight:600;"></span>
                         <a th:href="@{/cart/increase/{id}(id=${item.id})}" class="qty-btn">+</a>
                     </td>
                     <td th:text="${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' JPY'"
-                        style="color: #e84118; font-weight: bold;"></td>
+                        style="color:var(--accent);font-weight:700;font-family:'Syne',sans-serif;"></td>
                     <td><a th:href="@{/cart/remove/{id}(id=${item.id})}" class="btn-remove">✕</a></td>
                 </tr>
             </tbody>
         </table>
 
-        <div th:if="${#lists.isEmpty(cart)}" style="
-            text-align: center;
-            padding: 80px 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        ">
-            <div style="font-size: 60px;">🛒</div>
-            <h3 style="font-size: 1.4rem; color: #555; font-weight: 500;">Your bag is empty!</h3>
-            <p style="color: #999; font-size: 0.95rem;">Looks like you haven't added anything yet.</p>
-            <a href="/" class="btn-checkout" style="display: inline-block; padding: 14px 40px;">GO SHOPPING</a>
+        <div th:if="${#lists.isEmpty(cart)}"
+            style="text-align:center;padding:80px 20px;display:flex;flex-direction:column;align-items:center;gap:20px;">
+            <div style="font-size:60px;opacity:0.4;">🛒</div>
+            <h3 style="font-size:1.3rem;color:var(--text-muted);font-weight:500;">Your bag is empty!</h3>
+            <p style="color:var(--text-muted);font-size:14px;">Looks like you haven't added anything yet.</p>
+            <a href="/" class="btn-checkout" style="padding:12px 36px;">GO SHOPPING</a>
         </div>
 
-        <div th:if="${!#lists.isEmpty(cart)}" style="text-align: right; margin-top: 30px;">
-            <p style="font-size: 24px; font-weight: bold;">Total:
-                <span th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')}"
-                    style="color: #e84118;"></span> JPY
+        <div th:if="${!#lists.isEmpty(cart)}" style="text-align:right;margin-top:28px;">
+            <p style="font-size:22px;font-weight:700;font-family:'Syne',sans-serif;margin-bottom:16px;">
+                Total: <span th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')}"
+                    style="color:var(--accent);"></span> JPY
             </p>
-            <div class="action-buttons" style="display: flex; justify-content: flex-end; gap: 10px;">
+            <div style="display:flex;justify-content:flex-end;gap:10px;">
                 <a href="/" class="btn-back">KEEP SHOPPING</a>
                 <a href="/cart/shipping" class="btn-checkout">BUY NOW</a>
             </div>
@@ -96,13 +85,12 @@
         <div class="toast" th:text="${toast}"></div>
     </div>
     <script>
-        setTimeout(() => {
-            document.querySelectorAll('.toast').forEach(t => t.remove());
-        }, 3200);
+        setTimeout(() => { document.querySelectorAll('.toast').forEach(t => t.remove()); }, 3200);
     </script>
 
     <footer>
-        <div th:text="${shopname}" style="font-weight: bold; font-size: 20px;"></div>
+        <div th:text="${shopname}"
+            style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;letter-spacing:2px;"></div>
         <div class="footer-address" th:text="${address}"></div>
     </footer>
 </body>

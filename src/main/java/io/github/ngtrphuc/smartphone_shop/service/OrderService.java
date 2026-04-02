@@ -1,7 +1,7 @@
 package io.github.ngtrphuc.smartphone_shop.service;
-
 import java.util.List;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import io.github.ngtrphuc.smartphone_shop.model.CartItem;
@@ -13,7 +13,6 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class OrderService {
-
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
 
@@ -61,38 +60,42 @@ public class OrderService {
         return orderRepository.findAllByOrderByCreatedAtDesc();
     }
 
+    public List<Order> getRecentOrders(int limit) {
+        return orderRepository.findRecentOrders(PageRequest.of(0, limit));
+    }
+
+    public double getTotalRevenue() {
+        Double result = orderRepository.sumRevenueExcludingCancelled();
+        return result != null ? result : 0.0;
+    }
+
     public long getTotalItemsSold() {
-        return orderRepository.findAll().stream()
-                .filter(o -> !"cancelled".equals(o.getStatus()))
-                .flatMap(o -> o.getItems().stream())
-                .mapToLong(OrderItem::getQuantity)
-                .sum();
+        Long result = orderRepository.sumItemsSoldExcludingCancelled();
+        return result != null ? result : 0L;
     }
 
     @Transactional
     public void updateStatus(Long orderId, String newStatus) {
-        if (orderId == null) {
-            return;
-        }
+        if (orderId == null) return;
         orderRepository.findById(orderId).ifPresent(o -> {
             String oldStatus = o.getStatus();
 
             if ("cancelled".equals(oldStatus) && !"cancelled".equals(newStatus)) {
-                o.getItems().forEach(item
-                        -> productRepository.findById(item.getProductId()).ifPresent(p -> {
-                            int newStock = Math.max(0, p.getStock() - item.getQuantity());
-                            p.setStock(newStock);
-                            productRepository.save(p);
-                        })
+                o.getItems().forEach(item ->
+                    productRepository.findById(item.getProductId()).ifPresent(p -> {
+                        int deduct = Math.min(item.getQuantity(), p.getStock());
+                        p.setStock(p.getStock() - deduct);
+                        productRepository.save(p);
+                    })
                 );
             }
 
             if (!"cancelled".equals(oldStatus) && "cancelled".equals(newStatus)) {
-                o.getItems().forEach(item
-                        -> productRepository.findById(item.getProductId()).ifPresent(p -> {
-                            p.setStock(p.getStock() + item.getQuantity());
-                            productRepository.save(p);
-                        })
+                o.getItems().forEach(item ->
+                    productRepository.findById(item.getProductId()).ifPresent(p -> {
+                        p.setStock(p.getStock() + item.getQuantity());
+                        productRepository.save(p);
+                    })
                 );
             }
 
@@ -107,11 +110,11 @@ public class OrderService {
                 .filter(o -> o.getUserEmail().equals(userEmail))
                 .filter(o -> "pending".equals(o.getStatus()) || "processing".equals(o.getStatus()))
                 .map(o -> {
-                    o.getItems().forEach(item
-                            -> productRepository.findById(item.getProductId()).ifPresent(p -> {
-                                p.setStock(p.getStock() + item.getQuantity());
-                                productRepository.save(p);
-                            })
+                    o.getItems().forEach(item ->
+                        productRepository.findById(item.getProductId()).ifPresent(p -> {
+                            p.setStock(p.getStock() + item.getQuantity());
+                            productRepository.save(p);
+                        })
                     );
                     o.setStatus("cancelled");
                     orderRepository.save(o);

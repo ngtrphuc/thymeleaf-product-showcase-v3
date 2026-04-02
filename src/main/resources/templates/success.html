@@ -1,45 +1,38 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <meta charset="UTF-8">
     <title>Smartphone Shop</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
-
 <body>
+    <div class="header">
+        <a href="/" class="logo">🏠︎ HOME</a>
+    </div>
+
     <div class="success-card">
         <div class="checkmark-circle">✓</div>
-        <h1>Thank You!</h1>
-        <p>Your order has been placed successfully. We will process it and contact you shortly.</p>
-        <a href="/" class="btn-home" style="display: block;">Back to Shop</a>
+        <h1 style="font-family:'Syne',sans-serif;font-weight:800;margin-bottom:12px;">Thank You!</h1>
+        <p style="color:var(--text-muted);font-size:14px;line-height:1.7;margin-bottom:28px;">Your order has been placed successfully.<br>We will process it and contact you shortly.</p>
+        <a href="/" class="btn-home" style="display:inline-block;">Back to Shop</a>
     </div>
+
     <script>
         window.onload = function () {
             var duration = 3 * 1000;
             var end = Date.now() + duration;
             (function frame() {
-                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#2ecc71', '#00a8ff', '#f1c40f'] });
-                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#2ecc71', '#00a8ff', '#f1c40f'] });
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#00d4ff', '#7c4dff', '#00e676'] });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#00d4ff', '#7c4dff', '#00e676'] });
                 if (Date.now() < end) { requestAnimationFrame(frame); }
             }());
         };
     </script>
 
-    <div class="toast-container" th:if="${toast}">
-        <div class="toast" th:text="${toast}"></div>
-    </div>
-    <script>
-        setTimeout(() => {
-            document.querySelectorAll('.toast').forEach(t => t.remove());
-        }, 3200);
-    </script>
-
     <footer>
-        <div th:text="${shopname}" style="font-weight: bold; font-size: 20px;"></div>
+        <div th:text="${shopname}" style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;letter-spacing:2px;"></div>
         <div class="footer-address" th:text="${address}"></div>
     </footer>
 </body>
-
 </html>

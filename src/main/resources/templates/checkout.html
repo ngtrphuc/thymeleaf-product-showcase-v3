@@ -36,9 +36,12 @@
             </div>
         </div>
 
-        <a th:href="@{/cart/confirm}" class="btn-confirm"
-            style="display: block; width: 100%; margin-bottom: 12px; text-align: center; text-decoration: none;">Confirm
-            & Purchase</a>
+        <form th:action="@{/cart/confirm}" method="post" style="margin: 0;">
+            <button type="submit" class="btn-confirm"
+                style="display: block; width: 100%; margin-bottom: 12px; cursor: pointer; border: none; font-size: 15px;">
+                Confirm &amp; Purchase
+            </button>
+        </form>
         <a th:href="@{/cart/shipping}" class="btn-edit-link"
             style="display: block; width: 100%; text-align: center; text-decoration: none;">Edit Shipping Info</a>
     </div>

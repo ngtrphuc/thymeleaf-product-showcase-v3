@@ -16,7 +16,7 @@ public class Product {
     private String imageUrl;
     private Integer stock;
     private String os;
-    private String cpu;
+    private String Chipset;
     private String speed;
     private String ram;
     private String storage;
@@ -39,8 +39,8 @@ public class Product {
     public void setStock(Integer stock) { this.stock = stock; }
     public String getOs() { return os; }
     public void setOs(String os) { this.os = os; }
-    public String getCpu() { return cpu; }
-    public void setCpu(String cpu) { this.cpu = cpu; }
+    public String getChipset() { return Chipset; }
+    public void setChipset(String Chipset) { this.Chipset = Chipset; }
     public String getSpeed() { return speed; }
     public void setSpeed(String speed) { this.speed = speed; }
     public String getRam() { return ram; }

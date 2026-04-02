@@ -4,78 +4,18 @@
     <meta charset="UTF-8">
     <title>Register</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <style>
-        .auth-box {
-            max-width: 400px;
-            margin: 60px auto;
-            background: white;
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .form-group {
-            margin-bottom: 18px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 11px 14px;
-            border: 1.5px solid #ddd;
-            border-radius: 8px;
-            font-size: 15px;
-            box-sizing: border-box;
-            transition: 0.3s;
-        }
-
-        .form-group input:focus {
-            border-color: #000;
-            outline: none;
-        }
-
-        .btn-auth {
-            width: 100%;
-            background: #000;
-            color: white;
-            padding: 13px;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 15px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .btn-auth:hover {
-            background: #e84118;
-        }
-
-        .alert-error {
-            background: #fff3f0;
-            color: #c0392b;
-            border: 1px solid #f5c6bc;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            font-size: 14px;
-        }
-    </style>
 </head>
-
 <body>
     <div class="header">
         <a href="/" class="logo">🏠︎ HOME</a>
     </div>
+
     <div class="auth-box">
-        <h2 style="text-align:center; margin-bottom: 24px;">Register</h2>
-        <div th:if="${error}" class="alert-error" th:text="${error}"></div>
+        <h2 style="text-align:center;margin-bottom:6px;font-family:'Syne',sans-serif;font-weight:800;">Create Account</h2>
+        <p style="text-align:center;color:var(--text-muted);font-size:13px;margin-bottom:28px;">Join Smartphone Shop today</p>
+
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
         <form method="post" th:action="@{/register}">
             <div class="form-group">
                 <label>Full Name</label>
@@ -91,20 +31,14 @@
             </div>
             <button type="submit" class="btn-auth">Create Account</button>
         </form>
-        <p style="text-align:center; margin-top: 20px; font-size: 14px;">
-            Already have an account? <a href="/login" style="color: #e84118; font-weight: bold;">Log In</a>
+
+        <p style="text-align:center;margin-top:20px;font-size:13px;color:var(--text-muted);">
+            Already have an account? <a href="/login" style="color:var(--accent);font-weight:700;">Log In</a>
         </p>
     </div>
-    <div class="toast-container" th:if="${toast}">
-        <div class="toast" th:text="${toast}"></div>
-    </div>
-    <script>
-        setTimeout(() => {
-            document.querySelectorAll('.toast').forEach(t => t.remove());
-        }, 3200);
-    </script>
+
     <footer>
-        <div th:text="${shopname}" style="font-weight: bold; font-size: 20px;"></div>
+        <div th:text="${shopname}" style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;letter-spacing:2px;"></div>
         <div class="footer-address" th:text="${address}"></div>
     </footer>
 </body>

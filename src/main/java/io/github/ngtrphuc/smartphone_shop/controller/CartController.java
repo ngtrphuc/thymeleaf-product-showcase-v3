@@ -1,5 +1,6 @@
 package io.github.ngtrphuc.smartphone_shop.controller;
 import java.util.List;
+
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -9,15 +10,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import io.github.ngtrphuc.smartphone_shop.model.CartItem;
 import io.github.ngtrphuc.smartphone_shop.service.CartService;
 import jakarta.servlet.http.HttpSession;
+
 @Controller
 @RequestMapping("/cart")
 public class CartController {
     private final CartService cartService;
     private final io.github.ngtrphuc.smartphone_shop.service.OrderService orderService;
     private final io.github.ngtrphuc.smartphone_shop.repository.UserRepository userRepository;
+
     public CartController(CartService cartService,
             io.github.ngtrphuc.smartphone_shop.service.OrderService orderService,
             io.github.ngtrphuc.smartphone_shop.repository.UserRepository userRepository) {
@@ -111,9 +115,7 @@ public class CartController {
     public String checkout(Authentication auth, HttpSession session, Model model) {
         String email = getEmail(auth);
         List<CartItem> cart = cartService.getCart(email, session);
-        if (cart.isEmpty()) {
-            return "redirect:/cart";
-        }
+        if (cart.isEmpty()) return "redirect:/cart";
         addCommon(model);
         model.addAttribute("cart", cart);
         model.addAttribute("totalAmount", cartService.calculateTotal(cart));
@@ -121,23 +123,30 @@ public class CartController {
         return "checkout";
     }
 
-    @GetMapping("/confirm")
-    public String confirm(Authentication auth, HttpSession session, Model model) {
-        String email = getEmail(auth) != null ? getEmail(auth) : "guest@shop.com";
+    @PostMapping("/confirm")
+    public String confirm(Authentication auth, HttpSession session, RedirectAttributes ra) {
         String name = (String) session.getAttribute("name");
         String phone = (String) session.getAttribute("phone");
         String address = (String) session.getAttribute("address");
-        List<CartItem> cart = cartService.getCart(
-                auth != null ? auth.getName() : null, session);
+        List<CartItem> cart = cartService.getCart(getEmail(auth), session);
+
         if (cart.isEmpty() || name == null || phone == null || address == null) {
             return "redirect:/cart/shipping";
         }
-        orderService.createOrder(email, name, phone, address, cart,
-                cartService.calculateTotal(cart));
-        cartService.clearCart(auth != null ? auth.getName() : null, session);
+
+        String email = getEmail(auth) != null ? getEmail(auth) : "guest@shop.com";
+        orderService.createOrder(email, name, phone, address, cart, cartService.calculateTotal(cart));
+        cartService.clearCart(getEmail(auth), session);
         session.removeAttribute("name");
         session.removeAttribute("phone");
         session.removeAttribute("address");
+
+        ra.addFlashAttribute("orderSuccess", true);
+        return "redirect:/cart/success";
+    }
+
+    @GetMapping("/success")
+    public String success(Model model) {
         addCommon(model);
         return "success";
     }

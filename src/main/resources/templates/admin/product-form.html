@@ -1,93 +1,10 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <title>Product</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    <style>
-        .admin-layout {
-            display: flex;
-            min-height: 100vh
-        }
-
-        .sidebar-admin {
-            width: 220px;
-            background: #111;
-            padding: 30px 0;
-            flex-shrink: 0
-        }
-
-        .sidebar-admin a {
-            display: block;
-            padding: 13px 24px;
-            color: #ccc;
-            font-size: 14px;
-            text-decoration: none
-        }
-
-        .sidebar-admin a:hover {
-            background: #e84118;
-            color: white
-        }
-
-        .sidebar-admin .brand {
-            color: white;
-            font-weight: bold;
-            font-size: 16px;
-            padding: 0 24px 20px;
-            border-bottom: 1px solid #333;
-            margin-bottom: 10px
-        }
-
-        .admin-content {
-            flex: 1;
-            padding: 30px;
-            background: #f5f6fa
-        }
-
-        .form-card {
-            background: white;
-            border-radius: 14px;
-            padding: 30px;
-            max-width: 700px;
-            box-shadow: 0 3px 12px rgba(0, 0, 0, .07)
-        }
-
-        .fg {
-            margin-bottom: 16px
-        }
-
-        .fg label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 14px
-        }
-
-        .fg input,
-        .fg textarea,
-        .fg select {
-            width: 100%;
-            padding: 10px 13px;
-            border: 1.5px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
-            box-sizing: border-box;
-            transition: .3s
-        }
-
-        .fg input:focus,
-        .fg textarea:focus {
-            border-color: #000;
-            outline: none
-        }
-
-        .row2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px
-        }
-    </style>
 </head>
 
 <body>
@@ -95,22 +12,25 @@
         <div class="sidebar-admin">
             <div class="brand">⚙ Admin Panel</div>
             <a href="/admin">📊 Dashboard</a>
-            <a href="/admin/products" class="active">📱 Product</a>
+            <a href="/admin/products" class="active">📱 Products</a>
             <a href="/admin/orders">📦 Orders</a>
-            <a href="/">🏠︎ Home</a>
+            <a href="/" style="margin-top:auto;border-top:1px solid var(--glass-border);padding-top:16px;">🏠︎ HOME</a>
         </div>
+
         <div class="admin-content">
-            <h2 style="margin-bottom:20px" th:text="${product.id != null} ? 'Edit product' : 'Add new product'"></h2>
+            <h2 style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;margin-bottom:22px;"
+                th:text="${product.id != null} ? 'Edit Product' : 'Add New Product'"></h2>
+
             <div class="form-card">
                 <form method="post" th:action="@{/admin/products/save}">
                     <input type="hidden" name="id" th:value="${product.id}">
                     <div class="fg">
-                        <label>Product name</label>
+                        <label>Product Name</label>
                         <input type="text" name="name" th:value="${product.name}" required>
                     </div>
                     <div class="row2">
                         <div class="fg">
-                            <label>Price(JPY)</label>
+                            <label>Price (JPY)</label>
                             <input type="number" name="price" th:value="${product.price}" required>
                         </div>
                         <div class="fg">
@@ -119,47 +39,43 @@
                         </div>
                     </div>
                     <div class="fg">
-                        <label>URL image</label>
+                        <label>Image URL</label>
                         <input type="text" name="imageUrl" th:value="${product.imageUrl}" placeholder="/images/...">
                     </div>
                     <div class="row2">
                         <div class="fg"><label>OS</label><input type="text" name="os" th:value="${product.os}"></div>
                         <div class="fg"><label>RAM</label><input type="text" name="ram" th:value="${product.ram}"></div>
-                        <div class="fg"><label>CPU</label><input type="text" name="cpu" th:value="${product.cpu}"></div>
+                        <div class="fg"><label>Chipset</label><input type="text" name="Chipset" th:value="${product.Chipset}"></div>
                         <div class="fg"><label>Frequency</label><input type="text" name="speed"
                                 th:value="${product.speed}"></div>
-                        <div class="fg"><label>Memory</label><input type="text" name="storage"
+                        <div class="fg"><label>Storage</label><input type="text" name="storage"
                                 th:value="${product.storage}"></div>
-                        <div class="fg"><label>Screen size</label><input type="text" name="size"
+                        <div class="fg"><label>Screen Size</label><input type="text" name="size"
                                 th:value="${product.size}"></div>
                         <div class="fg"><label>Battery</label><input type="text" name="battery"
                                 th:value="${product.battery}"></div>
-                        <div class="fg"><label>Charging power</label><input type="text" name="charging"
+                        <div class="fg"><label>Charging Power</label><input type="text" name="charging"
                                 th:value="${product.charging}"></div>
                     </div>
                     <div class="fg">
-                        <label>Describe</label>
+                        <label>Description</label>
                         <textarea name="description" rows="3" th:text="${product.description}"></textarea>
                     </div>
-                    <div style="display:flex;gap:12px;margin-top:8px">
-                        <button type="submit" class="btn-cart" style="width:160px">Save</button>
+                    <div style="display:flex;gap:12px;margin-top:10px;">
+                        <button type="submit" class="btn-cart" style="width:160px;">Save</button>
                         <a href="/admin/products" class="btn-back">Cancel</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
     <div class="toast-container" th:if="${toast}">
         <div class="toast" th:text="${toast}"></div>
     </div>
     <script>
-        setTimeout(() => {
-            document.querySelectorAll('.toast').forEach(t => t.remove());
-        }, 3200);
+        setTimeout(() => { document.querySelectorAll('.toast').forEach(t => t.remove()); }, 3200);
     </script>
-    <footer>
-        <div th:text="${shopname}" style="font-weight: bold; font-size: 20px;"></div>
-        <div class="footer-address" th:text="${address}"></div>
-    </footer>
 </body>
+
 </html>

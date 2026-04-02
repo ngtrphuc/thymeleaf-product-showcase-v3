@@ -1,5 +1,4 @@
 package io.github.ngtrphuc.smartphone_shop.controller;
-
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,7 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import io.github.ngtrphuc.smartphone_shop.model.Order;
+
 import io.github.ngtrphuc.smartphone_shop.model.Product;
 import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
 import io.github.ngtrphuc.smartphone_shop.service.OrderService;
@@ -17,7 +16,6 @@ import io.github.ngtrphuc.smartphone_shop.service.OrderService;
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
-
     private final ProductRepository productRepository;
     private final OrderService orderService;
 
@@ -28,16 +26,11 @@ public class AdminController {
 
     @GetMapping
     public String dashboard(Model model) {
-        var allOrders = orderService.getAllOrders();
-        double totalRevenue = allOrders.stream()
-                .filter(o -> !"cancelled".equals(o.getStatus()))
-                .mapToDouble(Order::getTotalAmount).sum();
-
         model.addAttribute("totalProducts", productRepository.count());
         model.addAttribute("totalItemsSold", orderService.getTotalItemsSold());
-        model.addAttribute("totalOrders", allOrders.size());
-        model.addAttribute("totalRevenue", totalRevenue);
-        model.addAttribute("recentOrders", allOrders.stream().limit(10).toList());
+        model.addAttribute("totalOrders", orderService.getAllOrders().size());
+        model.addAttribute("totalRevenue", orderService.getTotalRevenue());
+        model.addAttribute("recentOrders", orderService.getRecentOrders(10));
         model.addAttribute("shopname", "Smartphone Shop");
         return "admin/dashboard";
     }
@@ -64,13 +57,9 @@ public class AdminController {
 
     @GetMapping("/products/edit/{id}")
     public String editProductForm(@PathVariable Long id, Model model) {
-        if (id == null) {
-            return "redirect:/admin/products";
-        }
+        if (id == null) return "redirect:/admin/products";
         Product p = productRepository.findById(id).orElse(null);
-        if (p == null) {
-            return "redirect:/admin/products";
-        }
+        if (p == null) return "redirect:/admin/products";
         model.addAttribute("product", p);
         model.addAttribute("shopname", "Smartphone Shop");
         return "admin/product-form";
