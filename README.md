@@ -1,4 +1,4 @@
-📱 Smartphone Shop - Spring Boot Web Application (v3-clean)
+📱 Smartphone Shop - Spring Boot Web Application 
 A robust e-commerce platform for mobile devices, built with Java Spring Boot, Thymeleaf, and Spring Security, utilizing MySQL for persistent storage. This version focuses on a clean project architecture, optimized security logic, and professional multi-environment configuration.
 
 🚀 Key Features
@@ -26,7 +26,7 @@ Database: MySQL (Production) & H2 (Development)
 Build Tool: Maven
 
 📂 Project Detailed Structure
-This map represents the finalized v3-clean architecture:
+This map represents the finalized architecture:
 ```
 smartphone-shop/
 ├── 📁 src/
