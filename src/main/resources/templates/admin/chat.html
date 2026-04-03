@@ -1,14 +1,28 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <meta charset="UTF-8">
     <title>Chat Management</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <style>
+        .chat-badge {
+            display: none;
+            background: #ff4d6d;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            font-weight: 700;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+        .chat-badge.visible { display: flex; }
+
         .msg-admin { justify-content: flex-end; }
         .msg-user  { justify-content: flex-start; }
-
         .bubble-admin, .bubble-user {
             width: fit-content;
             max-width: 72%;
@@ -28,9 +42,9 @@
             color: var(--text);
             border-radius: 14px 14px 14px 2px;
         }
-
         .conv-item {
-            display: block;
+            display: flex;
+            align-items: center;
             padding: 14px 16px;
             border-bottom: 1px solid var(--glass-border);
             font-size: 13px;
@@ -38,27 +52,50 @@
             text-decoration: none;
             transition: 0.15s;
         }
-        .conv-item:hover {
-            background: var(--glass);
-            color: var(--text);
+        .conv-item:hover { background: var(--glass); color: var(--text); }
+        .conv-item.active { background: rgba(0,212,255,0.08); color: var(--accent); }
+        .conv-info { flex: 1; min-width: 0; }
+        .conv-email {
+            font-weight: 600;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .conv-item.active {
-            background: rgba(0, 212, 255, 0.08);
-            color: var(--accent);
+        .conv-unread { font-size: 11px; margin-top: 2px; opacity: 0.6; }
+        .conv-unread.has-unread { color: var(--accent); opacity: 1; }
+        .conv-badge {
+            display: none;
+            background: #ff4d6d;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            font-weight: 700;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-left: 8px;
         }
-        .unread-label { color: var(--text-muted); }
-        .unread-label.has-unread { color: var(--accent); }
+        .conv-badge.visible { display: flex; }
     </style>
 </head>
-
 <body>
+    <!-- CSRF token cho JS -->
+    <input type="hidden" id="csrf-token" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+    <input type="hidden" id="csrf-header" th:value="${_csrf.headerName}">
+
     <div class="admin-layout">
         <div class="sidebar-admin">
             <div class="brand">⚙ Admin Panel</div>
             <a href="/admin">📊 Dashboard</a>
             <a href="/admin/products">📱 Products</a>
             <a href="/admin/orders">📦 Orders</a>
-            <a href="/admin/chat" class="active">💬 Chat</a>
+            <a href="/admin/chat" class="active" style="display:flex;align-items:center;">
+                💬 Chat
+                <span id="admin-chat-badge" class="chat-badge">0</span>
+            </a>
             <a href="/" style="margin-top:auto;border-top:1px solid var(--glass-border);padding-top:16px;">🏠︎ HOME</a>
         </div>
 
@@ -77,13 +114,17 @@
                         th:href="@{/admin/chat/{e}(e=${email})}"
                         class="conv-item"
                         th:classappend="${email == selectedEmail} ? ' active' : ''">
-                        <div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
-                            th:text="${email}"></div>
-                        <div class="unread-label"
-                            th:classappend="${unreadCounts.get(email) > 0} ? ' has-unread' : ''"
-                            style="font-size:11px;margin-top:2px;opacity:0.6;"
-                            th:text="${unreadCounts.get(email) > 0} ? ${unreadCounts.get(email)} + ' unread' : 'No unread'">
+                        <div class="conv-info">
+                            <div class="conv-email" th:text="${email}"></div>
+                            <div class="conv-unread"
+                                th:classappend="${unreadCounts.get(email) > 0} ? ' has-unread' : ''"
+                                th:text="${unreadCounts.get(email) > 0} ? ${unreadCounts.get(email)} + ' unread' : 'No unread'">
+                            </div>
                         </div>
+                        <span class="conv-badge"
+                            th:classappend="${unreadCounts.get(email) > 0} ? ' visible' : ''"
+                            th:text="${unreadCounts.get(email) > 0} ? ${unreadCounts.get(email)} : ''">
+                        </span>
                     </a>
                 </div>
             </div>
@@ -129,6 +170,23 @@
         const chatBox = document.getElementById('chat-box');
         if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
 
+        function getCsrfToken() {
+            return document.getElementById('csrf-token').value;
+        }
+        function getCsrfHeader() {
+            return document.getElementById('csrf-header').value;
+        }
+        function postWithCsrf(url, body) {
+            return fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    [getCsrfHeader()]: getCsrfToken()
+                },
+                body: body
+            });
+        }
+
         const evtSource = new EventSource('/admin/chat/stream');
         evtSource.addEventListener('message', function (e) {
             const msg = JSON.parse(e.data);
@@ -143,7 +201,6 @@
             const wrapper = document.createElement('div');
             wrapper.style.display = 'flex';
             wrapper.style.justifyContent = isAdmin ? 'flex-end' : 'flex-start';
-
             const time = timeStr ? new Date(timeStr).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }) : '';
             const bubble = document.createElement('div');
             bubble.className = isAdmin ? 'bubble-admin' : 'bubble-user';
@@ -159,17 +216,32 @@
             const content = input.value.trim();
             if (!content || !selectedEmail) return;
             input.value = '';
-            fetch('/admin/chat/send', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'userEmail=' + encodeURIComponent(selectedEmail) + '&content=' + encodeURIComponent(content)
-            });
+            postWithCsrf('/admin/chat/send',
+                'userEmail=' + encodeURIComponent(selectedEmail) + '&content=' + encodeURIComponent(content)
+            );
         }
 
         function escHtml(s) {
             return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
+
+        function pollAdminUnread() {
+            fetch('/admin/chat/unread-count')
+                .then(r => r.json())
+                .then(count => {
+                    const badge = document.getElementById('admin-chat-badge');
+                    if (!badge) return;
+                    if (count > 0) {
+                        badge.textContent = count > 99 ? '99+' : count;
+                        badge.classList.add('visible');
+                    } else {
+                        badge.classList.remove('visible');
+                    }
+                })
+                .catch(() => {});
+        }
+        pollAdminUnread();
+        setInterval(pollAdminUnread, 10000);
     </script>
 </body>
-
 </html>

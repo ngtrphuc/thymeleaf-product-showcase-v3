@@ -55,6 +55,19 @@ public class ChatController {
         return "ok";
     }
 
+    @GetMapping("/chat/unread-count")
+    @ResponseBody
+    public long userUnreadCount(Authentication auth) {
+        return chatService.countUnreadByUser(auth.getName());
+    }
+
+    @PostMapping("/chat/mark-read")
+    @ResponseBody
+    public String markRead(Authentication auth) {
+        chatService.markReadByUser(auth.getName());
+        return "ok";
+    }
+
     @GetMapping("/admin/chat")
     public String adminChatPage(Model model) {
         List<String> emails = chatService.getAllConversationEmails();
@@ -101,5 +114,11 @@ public class ChatController {
         if (content == null || content.isBlank() || userEmail == null) return "error";
         chatService.saveAdminMessage(userEmail, content.trim());
         return "ok";
+    }
+
+    @GetMapping("/admin/chat/unread-count")
+    @ResponseBody
+    public long adminUnreadCount() {
+        return chatService.countAllUnreadByAdmin();
     }
 }

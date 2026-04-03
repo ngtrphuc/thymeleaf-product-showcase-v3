@@ -82,6 +82,10 @@ public class ChatService {
         return chatMessageRepository.countUnreadByAdmin(email);
     }
 
+    public long countUnreadByUser(String email) {
+        return chatMessageRepository.countUnreadByUser(email);
+    }
+
     public long countAllUnreadByAdmin() {
         return chatMessageRepository.countAllUnreadByAdmin();
     }

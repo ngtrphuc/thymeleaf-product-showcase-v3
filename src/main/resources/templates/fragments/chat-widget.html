@@ -4,6 +4,10 @@
 <body>
     <div th:fragment="chatWidget" sec:authorize="hasRole('USER')">
 
+        <!-- CSRF token hidden inputs để JS lấy -->
+        <input type="hidden" id="csrf-token" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <input type="hidden" id="csrf-header" th:value="${_csrf.headerName}">
+
         <div id="chat-fab" onclick="toggleChat()" style="position:fixed;bottom:28px;right:28px;width:54px;height:54px;border-radius:50%;
             background:linear-gradient(135deg,var(--accent),var(--accent2));
             display:flex;align-items:center;justify-content:center;
@@ -79,25 +83,14 @@
                 transform: scale(1.08);
                 box-shadow: 0 6px 26px rgba(0, 212, 255, 0.45);
             }
-
-            #chat-messages::-webkit-scrollbar {
-                width: 3px;
-            }
-
+            #chat-messages::-webkit-scrollbar { width: 3px; }
             #chat-messages::-webkit-scrollbar-thumb {
                 background: rgba(255, 255, 255, 0.1);
                 border-radius: 3px;
             }
-
             @keyframes chatPopIn {
-                from {
-                    opacity: 0;
-                    transform: scale(0.88) translateY(16px);
-                }
-                to {
-                    opacity: 1;
-                    transform: scale(1) translateY(0);
-                }
+                from { opacity: 0; transform: scale(0.88) translateY(16px); }
+                to   { opacity: 1; transform: scale(1) translateY(0); }
             }
         </style>
 
@@ -105,6 +98,38 @@
             let chatOpen = false;
             let chatLoaded = false;
             let chatEvtSource = null;
+
+            function getCsrfToken() {
+                return document.getElementById('csrf-token').value;
+            }
+            function getCsrfHeader() {
+                return document.getElementById('csrf-header').value;
+            }
+
+            function postWithCsrf(url, body) {
+                return fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        [getCsrfHeader()]: getCsrfToken()
+                    },
+                    body: body
+                });
+            }
+
+            // Load unread count khi page khởi động
+            (function initUnreadBadge() {
+                fetch('/chat/unread-count')
+                    .then(r => r.json())
+                    .then(count => {
+                        if (count > 0) {
+                            const badge = document.getElementById('chat-unread-badge');
+                            badge.textContent = count > 99 ? '99+' : count;
+                            badge.style.display = 'flex';
+                        }
+                    })
+                    .catch(() => {});
+            })();
 
             function toggleChat() {
                 chatOpen = !chatOpen;
@@ -115,7 +140,8 @@
                     popup.style.animation = 'chatPopIn 0.22s ease';
                     icon.textContent = '✕';
                     clearUnreadBadge();
-                    if (!chatLoaded) loadHistory();
+                    // Luôn reload history mỗi lần mở để đảm bảo có đủ tin nhắn
+                    loadHistory();
                     if (!chatEvtSource) startSSE();
                 } else {
                     popup.style.display = 'none';
@@ -160,11 +186,7 @@
                 if (!content) return;
                 input.value = '';
                 appendBubble(content, 'USER', new Date().toISOString(), true);
-                fetch('/chat/send', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'content=' + encodeURIComponent(content)
-                });
+                postWithCsrf('/chat/send', 'content=' + encodeURIComponent(content));
             }
 
             function appendBubble(content, role, timeStr, scroll) {
@@ -197,13 +219,14 @@
             }
 
             function markReadUser() {
-                fetch('/chat/mark-read', { method: 'POST' });
+                postWithCsrf('/chat/mark-read', '');
             }
 
             function showUnreadBadge() {
                 const badge = document.getElementById('chat-unread-badge');
                 const current = parseInt(badge.textContent) || 0;
-                badge.textContent = current + 1;
+                const next = current + 1;
+                badge.textContent = next > 99 ? '99+' : next;
                 badge.style.display = 'flex';
             }
 
@@ -220,5 +243,4 @@
         </script>
     </div>
 </body>
-
 </html>

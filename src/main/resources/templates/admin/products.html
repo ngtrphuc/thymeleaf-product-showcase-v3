@@ -4,6 +4,23 @@
     <meta charset="UTF-8">
     <title>Product Management</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .chat-badge {
+            display: none;
+            background: #ff4d6d;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            font-weight: 700;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+        .chat-badge.visible { display: flex; }
+    </style>
 </head>
 <body>
     <div class="admin-layout">
@@ -12,7 +29,10 @@
             <a href="/admin">📊 Dashboard</a>
             <a href="/admin/products" class="active">📱 Products</a>
             <a href="/admin/orders">📦 Orders</a>
-            <a href="/admin/chat">💬 Chat</a>
+            <a href="/admin/chat" style="display:flex;align-items:center;">
+                💬 Chat
+                <span id="admin-chat-badge" class="chat-badge">0</span>
+            </a>
             <a href="/" style="margin-top:auto;border-top:1px solid var(--glass-border);padding-top:16px;">🏠︎ HOME</a>
         </div>
 
@@ -96,6 +116,24 @@
         });
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDeleteModal(); });
         setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 3200);
+
+        function pollAdminUnread() {
+            fetch('/admin/chat/unread-count')
+                .then(r => r.json())
+                .then(count => {
+                    const badge = document.getElementById('admin-chat-badge');
+                    if (!badge) return;
+                    if (count > 0) {
+                        badge.textContent = count > 99 ? '99+' : count;
+                        badge.classList.add('visible');
+                    } else {
+                        badge.classList.remove('visible');
+                    }
+                })
+                .catch(() => {});
+        }
+        pollAdminUnread();
+        setInterval(pollAdminUnread, 10000);
     </script>
 </body>
 </html>
