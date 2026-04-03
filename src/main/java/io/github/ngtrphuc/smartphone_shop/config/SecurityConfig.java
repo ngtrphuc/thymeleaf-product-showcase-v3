@@ -21,7 +21,7 @@ public class SecurityConfig {
     private final LoginSuccessHandler loginSuccessHandler;
 
     public SecurityConfig(CustomUserDetailsService userDetailsService,
-                          LoginSuccessHandler loginSuccessHandler) {
+            LoginSuccessHandler loginSuccessHandler) {
         this.userDetailsService = userDetailsService;
         this.loginSuccessHandler = loginSuccessHandler;
     }
@@ -41,54 +41,54 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
-                                           DaoAuthenticationProvider authProvider) throws Exception {
+            DaoAuthenticationProvider authProvider) throws Exception {
         http
                 .authenticationProvider(authProvider)
                 .headers(headers -> headers
-                        .frameOptions(frame -> frame.sameOrigin())
-                        .contentSecurityPolicy(csp -> csp.policyDirectives(
-                                "default-src 'self'; " +
-                                "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; " +
-                                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-                                "font-src 'self' https://fonts.gstatic.com; " +
-                                "img-src 'self' data: https:;"
-                        ))
+                .frameOptions(frame -> frame.sameOrigin())
+                .contentSecurityPolicy(csp -> csp.policyDirectives(
+                "default-src 'self'; "
+                + "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
+                + "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                + "font-src 'self' https://fonts.gstatic.com; "
+                + "img-src 'self' data: https:;"
+        ))
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/css/**", "/images/**", "/js/**", "/actuator/health").permitAll()
-                        .requestMatchers("/", "/product/**", "/register", "/login", "/admin/access-denied-admin").permitAll()
-                        .requestMatchers("/cart/**", "/profile/**", "/my-orders/**").hasRole("USER")
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
+                .requestMatchers("/css/**", "/images/**", "/js/**", "/fonts/**", "/actuator/health").permitAll()
+                .requestMatchers("/", "/product/**", "/register", "/login", "/admin/access-denied-admin").permitAll()
+                .requestMatchers("/cart/**", "/profile/**", "/my-orders/**", "/chat/**").hasRole("USER")
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .loginPage("/login")
-                        .successHandler(loginSuccessHandler)
-                        .failureUrl("/login?error")
-                        .permitAll()
+                .loginPage("/login")
+                .successHandler(loginSuccessHandler)
+                .failureUrl("/login?error")
+                .permitAll()
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login?logout")
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID")
-                        .permitAll()
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout")
+                .invalidateHttpSession(true)
+                .deleteCookies("JSESSIONID")
+                .permitAll()
                 )
                 .exceptionHandling(exception -> exception
-                        .accessDeniedHandler((request, response, accessDeniedException) -> {
-                            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                            if (auth != null && auth.getAuthorities().stream()
-                                    .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-                                response.sendRedirect("/admin/access-denied-admin");
-                            } else {
-                                response.sendRedirect("/login");
-                            }
-                        })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                    if (auth != null && auth.getAuthorities().stream()
+                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+                        response.sendRedirect("/admin/access-denied-admin");
+                    } else {
+                        response.sendRedirect("/login");
+                    }
+                })
                 )
                 .sessionManagement(session -> session
-                        .sessionFixation().changeSessionId()
-                        .maximumSessions(1)
-                        .maxSessionsPreventsLogin(false)
+                .sessionFixation().changeSessionId()
+                .maximumSessions(1)
+                .maxSessionsPreventsLogin(false)
                 );
 
         return http.build();

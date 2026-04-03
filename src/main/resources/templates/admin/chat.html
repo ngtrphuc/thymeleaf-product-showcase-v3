@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chat Management</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+    <div class="admin-layout">
+        <div class="sidebar-admin">
+            <div class="brand">⚙ Admin Panel</div>
+            <a href="/admin">📊 Dashboard</a>
+            <a href="/admin/products">📱 Products</a>
+            <a href="/admin/orders">📦 Orders</a>
+            <a href="/admin/chat" class="active">💬 Chat</a>
+            <a href="/" style="margin-top:auto;border-top:1px solid var(--glass-border);padding-top:16px;">🏠︎ HOME</a>
+        </div>
+
+        <div class="admin-content" style="padding:0;display:flex;height:100vh;overflow:hidden;">
+
+            <div
+                style="width:260px;border-right:1px solid var(--glass-border);display:flex;flex-direction:column;overflow:hidden;">
+                <div
+                    style="padding:20px 16px 12px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;border-bottom:1px solid var(--glass-border);">
+                    Conversations
+                </div>
+                <div style="overflow-y:auto;flex:1;">
+                    <div th:if="${#lists.isEmpty(emails)}"
+                        style="padding:20px;color:var(--text-muted);font-size:13px;text-align:center;">
+                        No conversations yet.
+                    </div>
+                    <a th:each="email : ${emails}" th:href="@{/admin/chat/{e}(e=${email})}"
+                        th:classappend="${email == selectedEmail} ? ' conv-active' : ''"
+                        style="display:block;padding:14px 16px;border-bottom:1px solid var(--glass-border);font-size:13px;color:var(--text-muted);text-decoration:none;transition:0.15s;"
+                        th:style="${email == selectedEmail} ? 'background:rgba(0,212,255,0.08);color:var(--accent);' : ''">
+                        <div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
+                            th:text="${email}"></div>
+                        <div style="font-size:11px;margin-top:2px;opacity:0.6;">
+                            <span
+                                th:text="${chatService.countUnreadByAdmin(email)} > 0 ? chatService.countUnreadByAdmin(email) + ' unread' : 'No unread'"
+                                th:style="${chatService.countUnreadByAdmin(email)} > 0 ? 'color:var(--accent)' : ''"></span>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+                <div th:if="${selectedEmail == null}"
+                    style="flex:1;display:flex;align-items:center;justify-content:center;color:var(--text-muted);font-size:14px;">
+                    Select a conversation to start chatting.
+                </div>
+
+                <th:block th:if="${selectedEmail != null}">
+                    <div
+                        style="padding:14px 20px;border-bottom:1px solid var(--glass-border);font-weight:600;font-size:14px;font-family:'Syne',sans-serif;">
+                        <span th:text="${selectedEmail}"></span>
+                    </div>
+
+                    <div id="chat-box"
+                        style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:10px;">
+                        <div th:each="msg : ${history}" style="display:flex;"
+                            th:style="${msg.senderRole == 'ADMIN'} ? 'justify-content:flex-end' : 'justify-content:flex-start'">
+                            <div
+                                th:style="${msg.senderRole == 'ADMIN'}
+                            ? 'background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;padding:10px 14px;border-radius:14px 14px 2px 14px;max-width:72%;font-size:13px;line-height:1.5;'
+                            : 'background:var(--glass-hover);border:1px solid var(--glass-border);color:var(--text);padding:10px 14px;border-radius:14px 14px 14px 2px;max-width:72%;font-size:13px;line-height:1.5;'">
+                                <div th:text="${msg.content}"></div>
+                                <div th:text="${#temporals.format(msg.createdAt,'HH:mm')}"
+                                    style="font-size:10px;opacity:0.65;margin-top:4px;text-align:right;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="padding:14px 20px;border-top:1px solid var(--glass-border);display:flex;gap:10px;">
+                        <input id="msg-input" type="text" placeholder="Reply..."
+                            style="flex:1;background:var(--glass);border:1px solid var(--glass-border);border-radius:10px;padding:11px 16px;font-size:13px;color:var(--text);outline:none;"
+                            onkeydown="if(event.key==='Enter')sendReply()">
+                        <button onclick="sendReply()" class="btn-cart"
+                            style="padding:11px 20px;font-size:13px;">Send</button>
+                    </div>
+                </th:block>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        const selectedEmail = /*[[${selectedEmail}]]*/ null;
+        const chatBox = document.getElementById('chat-box');
+        if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+
+        const evtSource = new EventSource('/admin/chat/stream');
+        evtSource.addEventListener('message', function (e) {
+            const msg = JSON.parse(e.data);
+            if (msg.userEmail === selectedEmail) {
+                appendMessage(msg.content, msg.senderRole, msg.createdAt);
+            }
+        });
+
+        function appendMessage(content, role, timeStr) {
+            if (!chatBox) return;
+            const isAdmin = role === 'ADMIN';
+            const wrapper = document.createElement('div');
+            wrapper.style.cssText = 'display:flex;' + (isAdmin ? 'justify-content:flex-end' : 'justify-content:flex-start');
+            const time = timeStr ? new Date(timeStr).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }) : '';
+            const bubble = document.createElement('div');
+            bubble.style.cssText = isAdmin
+                ? 'background:linear-gradient(135deg,var(--accent),var(--accent2));color:white;padding:10px 14px;border-radius:14px 14px 2px 14px;max-width:72%;font-size:13px;line-height:1.5;'
+                : 'background:var(--glass-hover);border:1px solid var(--glass-border);color:var(--text);padding:10px 14px;border-radius:14px 14px 14px 2px;max-width:72%;font-size:13px;line-height:1.5;';
+            bubble.innerHTML = '<div>' + escHtml(content) + '</div>'
+                + '<div style="font-size:10px;opacity:0.65;margin-top:4px;text-align:right;">' + time + '</div>';
+            wrapper.appendChild(bubble);
+            chatBox.appendChild(wrapper);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function sendReply() {
+            const input = document.getElementById('msg-input');
+            const content = input.value.trim();
+            if (!content || !selectedEmail) return;
+            input.value = '';
+            fetch('/admin/chat/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'userEmail=' + encodeURIComponent(selectedEmail) + '&content=' + encodeURIComponent(content)
+            });
+            appendMessage(content, 'ADMIN', new Date().toISOString());
+        }
+
+        function escHtml(s) {
+            return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+    </script>
+</body>
+
+</html>

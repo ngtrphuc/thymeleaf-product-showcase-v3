@@ -59,6 +59,7 @@
         <div th:text="${shopname}" style="font-weight: bold; font-size: 20px;"></div>
         <div class="footer-address" th:text="${address}"></div>
     </footer>
+    <div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
 </body>
 
 </html>

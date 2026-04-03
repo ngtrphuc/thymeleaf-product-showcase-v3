@@ -72,7 +72,6 @@ body::before {
 
 body>* {
   position: relative;
-  z-index: 1;
 }
 
 a {
@@ -283,7 +282,7 @@ footer {
   justify-content: center;
   padding: 20px 20px 30px;
   position: relative;
-  z-index: 100;
+  z-index: 50;
 }
 
 .search-container form {
@@ -328,17 +327,19 @@ footer {
 }
 
 .custom-options {
+  display: none;
   position: absolute;
-  top: calc(100% + 5px);
+  top: 100%;
   left: 0;
   right: 0;
-  background: #1a1a2e;
-  border: 1px solid var(--glass-border);
-  border-radius: 10px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  display: none;
-  z-index: 999;
+  background: rgba(13, 18, 32, 0.97);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 212, 255, 0.35);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
   overflow: hidden;
+  z-index: 51;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
 }
 
 .custom-select.open .custom-options {

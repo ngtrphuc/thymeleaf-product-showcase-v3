@@ -73,5 +73,6 @@
         <div th:text="${shopname}" style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;letter-spacing:2px;"></div>
         <div class="footer-address" th:text="${address}"></div>
     </footer>
+    <div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
 </body>
 </html>
