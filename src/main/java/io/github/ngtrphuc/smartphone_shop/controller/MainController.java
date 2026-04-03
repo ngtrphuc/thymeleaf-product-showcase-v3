@@ -16,7 +16,7 @@ import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
 @Controller
 public class MainController {
 
-    private static final int PAGE_SIZE = 8;
+    private static final int PAGE_SIZE = 9;
     private final ProductRepository productRepository;
 
     public MainController(ProductRepository productRepository) {
