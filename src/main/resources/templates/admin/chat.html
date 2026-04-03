@@ -35,12 +35,14 @@
                         th:classappend="${email == selectedEmail} ? ' conv-active' : ''"
                         style="display:block;padding:14px 16px;border-bottom:1px solid var(--glass-border);font-size:13px;color:var(--text-muted);text-decoration:none;transition:0.15s;"
                         th:style="${email == selectedEmail} ? 'background:rgba(0,212,255,0.08);color:var(--accent);' : ''">
+
                         <div style="font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"
                             th:text="${email}"></div>
+
                         <div style="font-size:11px;margin-top:2px;opacity:0.6;">
-                            <span
-                                th:text="${chatService.countUnreadByAdmin(email)} > 0 ? chatService.countUnreadByAdmin(email) + ' unread' : 'No unread'"
-                                th:style="${chatService.countUnreadByAdmin(email)} > 0 ? 'color:var(--accent)' : ''"></span>
+                            <span th:with="count=${unreadCounts.get(email)}"
+                                th:text="${count > 0 ? count + ' unread' : 'No unread'}"
+                                th:style="${count > 0 ? 'color:var(--accent)' : ''}"></span>
                         </div>
                     </a>
                 </div>
@@ -86,7 +88,7 @@
     </div>
 
     <script th:inline="javascript">
-        const selectedEmail = /*[[${selectedEmail}]]*/ null;
+        const selectedEmail = null;
         const chatBox = document.getElementById('chat-box');
         if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
 
@@ -125,7 +127,6 @@
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: 'userEmail=' + encodeURIComponent(selectedEmail) + '&content=' + encodeURIComponent(content)
             });
-            appendMessage(content, 'ADMIN', new Date().toISOString());
         }
 
         function escHtml(s) {

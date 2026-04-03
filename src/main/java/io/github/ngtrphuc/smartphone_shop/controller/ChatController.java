@@ -1,9 +1,9 @@
 package io.github.ngtrphuc.smartphone_shop.controller;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import io.github.ngtrphuc.smartphone_shop.repository.UserRepository;
 import io.github.ngtrphuc.smartphone_shop.service.ChatService;
 import jakarta.transaction.Transactional;
 
@@ -23,11 +22,9 @@ import jakarta.transaction.Transactional;
 public class ChatController {
 
     private final ChatService chatService;
-    private final UserRepository userRepository;
 
-    public ChatController(ChatService chatService, UserRepository userRepository) {
+    public ChatController(ChatService chatService) {
         this.chatService = chatService;
-        this.userRepository = userRepository;
     }
 
     @GetMapping("/chat/history")
@@ -35,15 +32,13 @@ public class ChatController {
     public List<Map<String, Object>> chatHistory(Authentication auth) {
         String email = auth.getName();
         chatService.markReadByUser(email);
-        List<Map<String, Object>> result = new ArrayList<>();
-        chatService.getHistory(email).forEach(m -> {
+        return chatService.getHistory(email).stream().map(m -> {
             Map<String, Object> item = new HashMap<>();
             item.put("content", m.getContent());
             item.put("senderRole", m.getSenderRole());
             item.put("createdAt", m.getCreatedAt().toString());
-            result.add(item);
-        });
-        return result;
+            return item;
+        }).collect(Collectors.toList());
     }
 
     @GetMapping(value = "/chat/stream", produces = "text/event-stream")
@@ -60,22 +55,20 @@ public class ChatController {
         return "ok";
     }
 
-    @PostMapping("/chat/mark-read")
-    @ResponseBody
-    public String markRead(Authentication auth) {
-        chatService.markReadByUser(auth.getName());
-        return "ok";
-    }
-
     @GetMapping("/admin/chat")
     public String adminChatPage(Model model) {
         List<String> emails = chatService.getAllConversationEmails();
+        Map<String, Long> unreadCounts = new HashMap<>();
+        for (String email : emails) {
+            unreadCounts.put(email, chatService.countUnreadByAdmin(email));
+        }
         model.addAttribute("emails", emails);
-        model.addAttribute("chatService", chatService);
-        model.addAttribute("selectedEmail", emails.isEmpty() ? null : emails.get(0));
+        model.addAttribute("unreadCounts", unreadCounts);
         if (!emails.isEmpty()) {
-            model.addAttribute("history", chatService.getHistory(emails.get(0)));
-            chatService.markReadByAdmin(emails.get(0));
+            String first = emails.get(0);
+            model.addAttribute("selectedEmail", first);
+            model.addAttribute("history", chatService.getHistory(first));
+            chatService.markReadByAdmin(first);
         }
         return "admin/chat";
     }
@@ -83,9 +76,13 @@ public class ChatController {
     @GetMapping("/admin/chat/{email}")
     public String adminChatConversation(@PathVariable String email, Model model) {
         List<String> emails = chatService.getAllConversationEmails();
+        Map<String, Long> unreadCounts = new HashMap<>();
+        for (String e : emails) {
+            unreadCounts.put(e, chatService.countUnreadByAdmin(e));
+        }
         chatService.markReadByAdmin(email);
         model.addAttribute("emails", emails);
-        model.addAttribute("chatService", chatService);
+        model.addAttribute("unreadCounts", unreadCounts);
         model.addAttribute("selectedEmail", email);
         model.addAttribute("history", chatService.getHistory(email));
         return "admin/chat";
@@ -104,11 +101,5 @@ public class ChatController {
         if (content == null || content.isBlank() || userEmail == null) return "error";
         chatService.saveAdminMessage(userEmail, content.trim());
         return "ok";
-    }
-
-    @GetMapping("/admin/chat/unread-count")
-    @ResponseBody
-    public long unreadCount() {
-        return chatService.countAllUnreadByAdmin();
     }
 }

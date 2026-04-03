@@ -2,94 +2,50 @@ package io.github.ngtrphuc.smartphone_shop.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-import io.github.ngtrphuc.smartphone_shop.service.CustomUserDetailsService;
-
-@Configuration(proxyBeanMethods = false)
+@Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final CustomUserDetailsService userDetailsService;
     private final LoginSuccessHandler loginSuccessHandler;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService,
-            LoginSuccessHandler loginSuccessHandler) {
-        this.userDetailsService = userDetailsService;
+    public SecurityConfig(LoginSuccessHandler loginSuccessHandler) {
         this.loginSuccessHandler = loginSuccessHandler;
     }
 
     @Bean
-    public static PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public DaoAuthenticationProvider authProvider(PasswordEncoder passwordEncoder) {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
-        provider.setPasswordEncoder(passwordEncoder);
-        provider.setUserDetailsService(userDetailsService);
-        return provider;
-    }
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http,
-            DaoAuthenticationProvider authProvider) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authenticationProvider(authProvider)
-                .headers(headers -> headers
-                .frameOptions(frame -> frame.sameOrigin())
-                .contentSecurityPolicy(csp -> csp.policyDirectives(
-                "default-src 'self'; "
-                + "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
-                + "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-                + "font-src 'self' https://fonts.gstatic.com; "
-                + "img-src 'self' data: https:;"
-        ))
-                )
-                .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/css/**", "/images/**", "/js/**", "/fonts/**", "/actuator/health").permitAll()
-                .requestMatchers("/", "/product/**", "/register", "/login", "/admin/access-denied-admin").permitAll()
-                .requestMatchers("/cart/**", "/profile/**", "/my-orders/**", "/chat/**").hasRole("USER")
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/", "/register", "/login", "/css/**", "/images/**", "/detail/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/chat/**").authenticated()
+                .requestMatchers("/cart/**", "/profile/**", "/my-orders/**", "/checkout/**", "/shipping/**").hasRole("USER")
                 .anyRequest().authenticated()
-                )
-                .formLogin(form -> form
+            )
+            .formLogin(login -> login
                 .loginPage("/login")
                 .successHandler(loginSuccessHandler)
-                .failureUrl("/login?error")
                 .permitAll()
-                )
-                .logout(logout -> logout
-                .logoutUrl("/logout")
-                .logoutSuccessUrl("/login?logout")
-                .invalidateHttpSession(true)
-                .deleteCookies("JSESSIONID")
+            )
+            .logout(logout -> logout
+                .logoutSuccessUrl("/")
                 .permitAll()
-                )
-                .exceptionHandling(exception -> exception
-                .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                    if (auth != null && auth.getAuthorities().stream()
-                            .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-                        response.sendRedirect("/admin/access-denied-admin");
-                    } else {
-                        response.sendRedirect("/login");
-                    }
-                })
-                )
-                .sessionManagement(session -> session
-                .sessionFixation().changeSessionId()
-                .maximumSessions(1)
-                .maxSessionsPreventsLogin(false)
-                );
+            )
+            .exceptionHandling(ex -> ex
+                .accessDeniedPage("/error/access-denied-admin")
+            );
 
         return http.build();
     }
