@@ -38,7 +38,7 @@ smartphone-shop/
 │   │   │   │   ├── GlobalModelAttributes.java
 │   │   │   │   ├── LoginSuccessHandler.java
 │   │   │   │   └── SecurityConfig.java
-│   │   │   ├── 🕹️ controller/
+│   │   │   ├── 🎮 controller/
 │   │   │   │   ├── AdminController.java
 │   │   │   │   ├── AuthController.java
 │   │   │   │   ├── CartController.java
@@ -70,7 +70,7 @@ smartphone-shop/
 │   │       ├── 📄 static/
 │   │       │   ├── 🎨 css/style.css
 │   │       │   └── 🖼️ images/
-│   │       ├── 📋 templates/
+│   │       ├── 🧾 templates/
 │   │       │   ├── 👤 auth/ (login.html, register.html)
 │   │       │   ├── 🛡️ admin/ 
 │   │       │   │   ├── admin/
@@ -81,9 +81,9 @@ smartphone-shop/
 │   │       │   │   └── products.html
 │   │       │   ├── ⚠️ error/ (access-denied-admin.html)
 │   │       │   ├── 🧩 fragments/
-│   │       │   │   └── chat-widget.html          <-- [MỚI]
+│   │       │   │   └── chat-widget.html        
 │   │       │   ├── 🛒 cart.html
-│   │       │   ├── 💳 checkout.html
+│   │       │   ├── 🏷️ checkout.html
 │   │       │   ├── 🔍 detail.html
 │   │       │   ├── 🏠 index.html
 │   │       │   ├── 📦 my-orders.html
