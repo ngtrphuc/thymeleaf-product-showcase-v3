@@ -29,75 +29,103 @@ Build Tool: Maven
 This map represents the finalized architecture:
 ```
 smartphone-shop/
-├── 📁 src/
-│   ├── 📂 main/
-│   │   ├── 📁 java/io/github/ngtrphuc/smartphone_shop/
-│   │   │   ├── ⚡ SmartphoneShopApplication.java
-│   │   │   ├── ⚙️ config/
-│   │   │   │   ├── DataInitializer.java
-│   │   │   │   ├── GlobalModelAttributes.java
-│   │   │   │   ├── LoginSuccessHandler.java
-│   │   │   │   └── SecurityConfig.java
-│   │   │   ├── 🎮 controller/
-│   │   │   │   ├── AdminController.java
-│   │   │   │   ├── AuthController.java
-│   │   │   │   ├── CartController.java
-│   │   │   │   ├── ChatController.java           
-│   │   │   │   ├── MainController.java
-│   │   │   │   ├── OrderController.java
-│   │   │   │   └── ProfileController.java
-│   │   │   ├── 📦 model/
-│   │   │   │   ├── CartItem.java
-│   │   │   │   ├── CartItemEntity.java
-│   │   │   │   ├── ChatMessage.java              
-│   │   │   │   ├── Order.java
-│   │   │   │   ├── OrderItem.java
-│   │   │   │   ├── Product.java
-│   │   │   │   └── User.java
-│   │   │   ├── 🗄️ repository/
-│   │   │   │   ├── CartItemRepository.java
-│   │   │   │   ├── ChatMessageRepository.java   
-│   │   │   │   ├── OrderRepository.java
-│   │   │   │   ├── ProductRepository.java
-│   │   │   │   └── UserRepository.java
-│   │   │   └── 🛠️ service/
-│   │   │       ├── AuthService.java
-│   │   │       ├── CartService.java
-│   │   │       ├── ChatService.java              
-│   │   │       ├── CustomUserDetailsService.java
-│   │   │       └── OrderService.java
-│   │   └── 📂 resources/
-│   │       ├── 📄 static/
-│   │       │   ├── 🎨 css/style.css
-│   │       │   └── 🖼️ images/
-│   │       ├── 🧾 templates/
-│   │       │   ├── 👤 auth/ (login.html, register.html)
-│   │       │   ├── 🛡️ admin/ 
-│   │       │   │   ├── admin/
-│   │       │   │   │   └── chat.html             
-│   │       │   │   ├── dashboard.html
-│   │       │   │   ├── orders.html
-│   │       │   │   ├── product-form.html
-│   │       │   │   └── products.html
-│   │       │   ├── ⚠️ error/ (access-denied-admin.html)
-│   │       │   ├── 🧩 fragments/
-│   │       │   │   └── chat-widget.html        
-│   │       │   ├── 🛒 cart.html
-│   │       │   ├── 🏷️ checkout.html
-│   │       │   ├── 🔍 detail.html
-│   │       │   ├── 🏠 index.html
-│   │       │   ├── 📦 my-orders.html
-│   │       │   ├── 🆔 profile.html
-│   │       │   ├── 🚚 shipping.html
-│   │       │   └── ✅ success.html
-│   │       ├── ⚙️ application.properties
-│   │       ├── ⚙️ application-dev.properties
-│   │       └── ⚙️ application-prod.properties
-│   └── 🧪 test/java/io/github/ngtrphuc/smartphone_shop/
-│       └── SmartphoneShopApplicationTests.java
+├── 📁 backend/
+│   ├── ⚡ SmartphoneShopApplication.java
+│
+│   ├── ⚙️ config/
+│   │   ├── DataInitializer.java
+│   │   ├── GlobalModelAttributes.java
+│   │   ├── LoginSuccessHandler.java
+│   │   ├── SecurityConfig.java
+│   │   ├── ThymeleafConfig.java          
+│   │   └── WebConfig.java                
+│   │
+│   ├── 🎮 controller/
+│   │   ├── 📁 admin/
+│   │   │   ├── AdminController.java
+│   │   │   └── ChatAdminController.java  
+│   │   │
+│   │   └── 📁 user/
+│   │       ├── AuthController.java
+│   │       ├── CartController.java
+│   │       ├── ChatUserController.java   
+│   │       ├── MainController.java
+│   │       ├── OrderController.java
+│   │       └── ProfileController.java
+│   │
+│   ├── 🛠️ service/
+│   │   ├── AuthService.java
+│   │   ├── CartService.java
+│   │   ├── ChatService.java
+│   │   ├── CustomUserDetailsService.java
+│   │   └── OrderService.java
+│   │
+│   ├── 🗄️ repository/
+│   │   ├── CartItemRepository.java
+│   │   ├── ChatMessageRepository.java
+│   │   ├── OrderRepository.java
+│   │   ├── ProductRepository.java
+│   │   └── UserRepository.java
+│   │
+│   └── 📦 model/
+│       ├── CartItem.java
+│       ├── CartItemEntity.java
+│       ├── ChatMessage.java
+│       ├── Order.java
+│       ├── OrderItem.java
+│       ├── Product.java
+│       └── User.java
+│
+├── 📁 frontend/
+│   ├── 👤 customer/
+│   │   ├── 🧾 templates/
+│   │   │   ├── 🏠 index.html
+│   │   │   ├── 🔍 detail.html
+│   │   │   ├── 🛒 cart.html
+│   │   │   ├── 🏷️ checkout.html
+│   │   │   ├── 🚚 shipping.html
+│   │   │   ├── ✅ success.html
+│   │   │   ├── 📦 my-orders.html
+│   │   │   ├── 🆔 profile.html
+│   │   │   │
+│   │   │   ├── 👤 auth/
+│   │   │   │   ├── 🔑 login.html
+│   │   │   │   └── 🔒 register.html
+│   │   │   │
+│   │   │   └── 🧩 fragments/
+│   │   │       └── chat-widget.html
+│   │   │
+│   │   └── 📄 static/
+│   │       ├── 🎨 css/style.css
+│   │       ├── 🔤 fonts/                 
+│   │       └── 🖼️ images/
+│   │
+│   └── 🛡️ admin/
+│       ├── 🧾 templates/
+│       │   ├── dashboard.html
+│       │   ├── orders.html
+│       │   ├── products.html
+│       │   ├── product-form.html
+│       │   ├── chat.html                
+│       │   └── 📁 error/
+│       │       └── access-denied-admin.html
+│       │
+│       └── 📄 static/
+│           └── 🎨 css/style.css
+│
+├── 🕹️ config/
+│   ├── application.properties
+│   ├── application-dev.properties
+│   └── application-prod.properties
+│
+├── 🧪 test/
+│   └── SmartphoneShopApplicationTests.java
+│
 ├── 🪶 pom.xml
 ├── 📄 mvnw
-└── 📄 mvnw.cmd
+├── 📄 mvnw.cmd
+└── 📄 README.md
+
 ```
 
 ⚙️ Setup and Installation
