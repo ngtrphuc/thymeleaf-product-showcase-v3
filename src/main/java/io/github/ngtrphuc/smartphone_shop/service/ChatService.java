@@ -3,6 +3,7 @@ package io.github.ngtrphuc.smartphone_shop.service;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -101,7 +102,7 @@ public class ChatService {
     }
 
     private void pushToAdmins(String conversationEmail, ChatMessage msg) {
-        String payload = buildPayload(msg, conversationEmail);
+        String payload = Objects.requireNonNull(buildPayload(msg, conversationEmail));
         List<SseEmitter> dead = new CopyOnWriteArrayList<>();
         for (SseEmitter emitter : adminEmitters) {
             try {
@@ -118,7 +119,7 @@ public class ChatService {
         if (emitters == null) {
             return;
         }
-        String payload = buildPayload(msg, email);
+        String payload = Objects.requireNonNull(buildPayload(msg, email));
         List<SseEmitter> dead = new CopyOnWriteArrayList<>();
         for (SseEmitter emitter : emitters) {
             try {

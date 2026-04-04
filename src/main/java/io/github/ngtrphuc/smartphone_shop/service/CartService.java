@@ -59,16 +59,20 @@ public class CartService {
         }
 
         for (CartItem item : sessionCart) {
+            Long itemId = item.getId();
+            if (itemId == null) {
+                continue;
+            }
             Optional<CartItemEntity> existing
-                    = cartItemRepository.findByUserEmailAndProductId(email, item.getId());
+                    = cartItemRepository.findByUserEmailAndProductId(email, itemId);
             if (existing.isPresent()) {
                 CartItemEntity e = existing.get();
-                Product p = productRepository.findById(item.getId()).orElse(null);
+                Product p = productRepository.findById(itemId).orElse(null);
                 int maxStock = (p != null && p.getStock() != null) ? p.getStock() : 99;
                 e.setQuantity(Math.min(e.getQuantity() + item.getQuantity(), maxStock));
                 cartItemRepository.save(e);
             } else {
-                cartItemRepository.save(new CartItemEntity(email, item.getId(), item.getQuantity()));
+                cartItemRepository.save(new CartItemEntity(email, itemId, item.getQuantity()));
             }
         }
         session.removeAttribute("cart");
@@ -85,7 +89,9 @@ public class CartService {
 
         List<Long> productIds = entities.stream().map(CartItemEntity::getProductId).toList();
         Map<Long, Product> productMap = productRepository.findAllByIdIn(productIds)
-                .stream().collect(Collectors.toMap(Product::getId, p -> p));
+                .stream()
+                .filter(p -> p.getId() != null)
+                .collect(Collectors.toMap(Product::getId, p -> p));
 
         List<CartItem> result = entities.stream()
                 .map(e -> {

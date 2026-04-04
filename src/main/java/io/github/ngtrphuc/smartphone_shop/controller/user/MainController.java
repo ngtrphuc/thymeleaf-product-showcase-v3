@@ -3,6 +3,7 @@ package io.github.ngtrphuc.smartphone_shop.controller.user;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.PatternSyntaxException;
 
 import org.springframework.stereotype.Controller;
@@ -102,8 +103,7 @@ public class MainController {
     }
 
     @GetMapping("/product/{id}")
-    public String productDetail(@PathVariable Long id, Model model) {
-        if (id == null) return "redirect:/";
+    public String productDetail(@PathVariable long id, Model model) {
         Product product = productRepository.findById(id).orElse(null);
         if (product == null) return "redirect:/";
         model.addAttribute("product", product);
@@ -126,12 +126,10 @@ public class MainController {
                         return nb.compareToIgnoreCase(na);
                     }).toList();
             case "price_asc" -> products.stream()
-                    .sorted(Comparator.comparingDouble(
-                            p -> p.getPrice() != null ? p.getPrice() : 0.0))
+                    .sorted(Comparator.comparingDouble(this::safePrice))
                     .toList();
             case "price_desc" -> products.stream()
-                    .sorted(Comparator.comparingDouble(
-                            (Product p) -> p.getPrice() != null ? p.getPrice() : 0.0).reversed())
+                    .sorted(Comparator.comparingDouble(this::safePrice).reversed())
                     .toList();
             default -> products;
         };
@@ -176,6 +174,7 @@ public class MainController {
     private Double resolveMin(Double existing, Double fallback) { return existing != null ? existing : fallback; }
     private Double resolveMax(Double existing, Double fallback) { return existing != null ? existing : fallback; }
     private String blankToNull(String s) { return (s == null || s.isBlank()) ? null : s; }
+    private double safePrice(Product product) { return Objects.requireNonNullElse(product.getPrice(), 0.0); }
 
     private int parseBattery(String battery) {
         if (battery == null) return 0;

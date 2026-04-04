@@ -60,7 +60,7 @@ public class AdminController {
     }
 
     @GetMapping("/products/edit/{id}")
-    public String editProductForm(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+    public String editProductForm(@PathVariable long id, Model model, RedirectAttributes redirectAttributes) {
         return productRepository.findById(id)
                 .map(product -> {
                     model.addAttribute("product", product);
@@ -82,7 +82,7 @@ public class AdminController {
     }
 
     @PostMapping("/products/delete/{id}")
-    public String deleteProduct(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String deleteProduct(@PathVariable long id, RedirectAttributes redirectAttributes) {
         if (!productRepository.existsById(id)) {
             redirectAttributes.addFlashAttribute("toast", "Product not found.");
             return "redirect:/admin/products";
@@ -99,7 +99,7 @@ public class AdminController {
     }
 
     @PostMapping("/orders/{id}/status")
-    public String updateOrderStatus(@PathVariable Long id,
+    public String updateOrderStatus(@PathVariable long id,
             @RequestParam String status,
             RedirectAttributes redirectAttributes) {
         orderService.updateStatus(id, status);
