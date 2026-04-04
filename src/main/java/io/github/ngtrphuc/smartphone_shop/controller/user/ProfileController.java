@@ -1,4 +1,4 @@
-package io.github.ngtrphuc.smartphone_shop.controller;
+package io.github.ngtrphuc.smartphone_shop.controller.user;
 
 import java.util.List;
 
@@ -68,3 +68,5 @@ public class ProfileController {
         return "redirect:/profile";
     }
 }
+
+

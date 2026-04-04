@@ -5,6 +5,18 @@
     <meta charset="UTF-8">
     <title>Product</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .form-card input[type="number"]::-webkit-outer-spin-button,
+        .form-card input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .form-card input[type="number"] {
+            -moz-appearance: textfield;
+            appearance: textfield;
+        }
+    </style>
 </head>
 
 <body>
@@ -24,6 +36,7 @@
 
             <div class="form-card">
                 <form method="post" th:action="@{/admin/products/save}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                     <input type="hidden" name="id" th:value="${product.id}">
                     <div class="fg">
                         <label>Product Name</label>
@@ -46,13 +59,15 @@
                     <div class="row2">
                         <div class="fg"><label>OS</label><input type="text" name="os" th:value="${product.os}"></div>
                         <div class="fg"><label>RAM</label><input type="text" name="ram" th:value="${product.ram}"></div>
-                        <div class="fg"><label>Chipset</label><input type="text" name="Chipset" th:value="${product.Chipset}"></div>
+                        <div class="fg"><label>Chipset</label><input type="text" name="chipset" th:value="${product.chipset}"></div>
                         <div class="fg"><label>Frequency</label><input type="text" name="speed"
                                 th:value="${product.speed}"></div>
                         <div class="fg"><label>Storage</label><input type="text" name="storage"
                                 th:value="${product.storage}"></div>
                         <div class="fg"><label>Screen Size</label><input type="text" name="size"
                                 th:value="${product.size}"></div>
+                        <div class="fg"><label>Resolution</label><input type="text" name="resolution"
+                                th:value="${product.resolution}"></div>
                         <div class="fg"><label>Battery</label><input type="text" name="battery"
                                 th:value="${product.battery}"></div>
                         <div class="fg"><label>Charging Power</label><input type="text" name="charging"

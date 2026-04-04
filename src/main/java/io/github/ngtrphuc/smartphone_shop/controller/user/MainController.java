@@ -1,5 +1,6 @@
-package io.github.ngtrphuc.smartphone_shop.controller;
+package io.github.ngtrphuc.smartphone_shop.controller.user;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.PatternSyntaxException;
@@ -17,6 +18,10 @@ import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
 public class MainController {
 
     private static final int PAGE_SIZE = 9;
+    private static final List<String> BRANDS = Arrays.asList(
+            "Apple", "Samsung", "Google", "Oppo", "Vivo", "Xiaomi", "ASUS", "ZTE"
+    );
+
     private final ProductRepository productRepository;
 
     public MainController(ProductRepository productRepository) {
@@ -27,6 +32,7 @@ public class MainController {
     public String index(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String sort,
+            @RequestParam(required = false) String brand,
             @RequestParam(required = false) String priceRange,
             @RequestParam(required = false) Double priceMin,
             @RequestParam(required = false) Double priceMax,
@@ -41,17 +47,29 @@ public class MainController {
         Double resolvedPriceMax = priceMax;
         if (priceRange != null) {
             switch (priceRange) {
-                case "under150"  -> resolvedPriceMax = (resolvedPriceMax == null) ? 149999.0 : resolvedPriceMax;
-                case "150to200"  -> { resolvedPriceMin = resolveMin(resolvedPriceMin, 150000.0);
-                                      resolvedPriceMax = resolveMax(resolvedPriceMax, 199999.0); }
-                case "200to250"  -> { resolvedPriceMin = resolveMin(resolvedPriceMin, 200000.0);
-                                      resolvedPriceMax = resolveMax(resolvedPriceMax, 250000.0); }
-                case "over250"   -> resolvedPriceMin = resolveMin(resolvedPriceMin, 250001.0);
+                case "under150" -> resolvedPriceMax = (resolvedPriceMax == null) ? 149999.0 : resolvedPriceMax;
+                case "150to200" -> {
+                    resolvedPriceMin = resolveMin(resolvedPriceMin, 150000.0);
+                    resolvedPriceMax = resolveMax(resolvedPriceMax, 199999.0);
+                }
+                case "200to250" -> {
+                    resolvedPriceMin = resolveMin(resolvedPriceMin, 200000.0);
+                    resolvedPriceMax = resolveMax(resolvedPriceMax, 250000.0);
+                }
+                case "over250" -> resolvedPriceMin = resolveMin(resolvedPriceMin, 250001.0);
             }
         }
 
         List<Product> all = productRepository.findAllWithFilters(
                 blankToNull(keyword), resolvedPriceMin, resolvedPriceMax);
+
+        // Filter brand
+        if (brand != null && !brand.isBlank()) {
+            final String b = brand.toLowerCase();
+            all = all.stream()
+                    .filter(p -> p.getName() != null && p.getName().toLowerCase().contains(b))
+                    .toList();
+        }
 
         all = applySortInMemory(all, sort);
         all = applyStringFilters(all, batteryRange, batteryMin, batteryMax, screenSize);
@@ -71,6 +89,8 @@ public class MainController {
         model.addAttribute("totalElements", (long) totalElements);
         model.addAttribute("keyword", keyword);
         model.addAttribute("sort", sort);
+        model.addAttribute("brand", brand);
+        model.addAttribute("brands", BRANDS);
         model.addAttribute("priceRange", priceRange);
         model.addAttribute("priceMin", priceMin);
         model.addAttribute("priceMax", priceMax);
@@ -141,7 +161,10 @@ public class MainController {
                 case "under6.5" -> products.stream()
                         .filter(p -> parseScreen(p.getSize()) < 6.5).toList();
                 case "6.5to6.8" -> products.stream()
-                        .filter(p -> { double s = parseScreen(p.getSize()); return s >= 6.5 && s <= 6.8; }).toList();
+                        .filter(p -> {
+                            double s = parseScreen(p.getSize());
+                            return s >= 6.5 && s <= 6.8;
+                        }).toList();
                 case "over6.8" -> products.stream()
                         .filter(p -> parseScreen(p.getSize()) > 6.8).toList();
                 default -> products;

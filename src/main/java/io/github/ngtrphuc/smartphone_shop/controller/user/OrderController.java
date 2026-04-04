@@ -1,4 +1,4 @@
-package io.github.ngtrphuc.smartphone_shop.controller;
+package io.github.ngtrphuc.smartphone_shop.controller.user;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -36,3 +36,4 @@ public class OrderController {
         return "redirect:/my-orders";
     }
 }
+

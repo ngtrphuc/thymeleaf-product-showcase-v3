@@ -1,4 +1,4 @@
-package io.github.ngtrphuc.smartphone_shop.controller;
+package io.github.ngtrphuc.smartphone_shop.controller.user;
 
 import java.util.List;
 
@@ -52,7 +52,7 @@ public class CartController {
             HttpSession session, RedirectAttributes ra) {
         cartService.addItem(getEmail(auth), session, id);
         cartService.syncCartCount(session, getEmail(auth));
-        ra.addFlashAttribute("toast", "Added to cart! 🛒");
+        ra.addFlashAttribute("toast", "Added to cart! ðŸ›’");
         return "redirect:/product/" + id;
     }
 
@@ -145,3 +145,4 @@ public class CartController {
         return "success";
     }
 }
+
