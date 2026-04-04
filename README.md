@@ -1,145 +1,180 @@
-📱 Smartphone Shop - Spring Boot Web Application 
-A robust e-commerce platform for mobile devices, built with Java Spring Boot, Thymeleaf, and Spring Security, utilizing MySQL for persistent storage. This version focuses on a clean project architecture, optimized security logic, and professional multi-environment configuration.
+# 📱 Smartphone Shop - Spring Boot Web Application
 
-🚀 Key Features
-Authentication & Authorization: Secure registration and login system with clear role separation between Admin and User.
+A smartphone e-commerce web application built with Spring Boot, Thymeleaf, Spring Security, and MySQL. The project includes customer-facing shopping flows, admin management pages, chat support, and multi-profile configuration for development and production.
 
-Smart Navigation: Implementation of a LoginSuccessHandler to automatically redirect users based on their roles after a successful login.
+## 🚀 Key Features
 
-Persistent Shopping Cart: Full CRUD functionality for the cart, with data synchronized between sessions and the database.
+- Authentication and authorization with separate `ADMIN` and `USER` roles
+- Custom login success handling based on role
+- Product browsing, filtering, and detail pages
+- Persistent shopping cart and checkout flow
+- User profile management
+- Customer order history and order cancellation
+- Admin dashboard for products, orders, and chat management
+- Customer/admin chat support flow
+- Profile-based configuration for development and production
 
-User Profiles: Dedicated profile management allowing users to view and update their personal information.
+## 🛠 Tech Stack
 
-Admin Dashboard: A centralized interface for managing products, inventory, and tracking customer orders.
+- Backend: Java 21, Spring Boot 3.5.x
+- Security: Spring Security with form-based authentication and role-based access control
+- Frontend: Thymeleaf, HTML5, CSS3
+- Database: MySQL in both development and production profiles
+- Persistence: Spring Data JPA / Hibernate
+- API Docs: springdoc-openapi
+- Build Tool: Maven
 
-Custom Error Handling: Professional "Access Denied" pages for unauthorized attempts to enter the administrative area.
+## 📂 Project Structure
 
-🛠 Tech Stack
-Backend: Java 17, Spring Boot 3.x
-
-Security: Spring Security (Form-based authentication)
-
-Frontend: Thymeleaf, HTML5, CSS3 (Internalized styling)
-
-Database: MySQL (Production) & H2 (Development)
-
-Build Tool: Maven
-
-📂 Project Detailed Structure
-This map represents the finalized architecture:
 ```
-smartphone-shop/
-├── 📁 backend/
-│   ├── ⚡ SmartphoneShopApplication.java
-│
-│   ├── ⚙️ config/
-│   │   ├── DataInitializer.java
-│   │   ├── GlobalModelAttributes.java
-│   │   ├── LoginSuccessHandler.java
-│   │   ├── SecurityConfig.java
-│   │   ├── ThymeleafConfig.java          
-│   │   └── WebConfig.java                
-│   │
-│   ├── 🎮 controller/
-│   │   ├── 📁 admin/
-│   │   │   ├── AdminController.java
-│   │   │   └── ChatAdminController.java  
+📂 SMARTPHONE SHOP
+├── 📂 src
+│   ├── 📂 main
+│   │   ├── 📂 java
+│   │   │   └── 📂 io.github.ngtrphuc.smartphone_shop
+│   │   │       ├── 📂 config
+│   │   │       │   ├── 📄 DataInitializer.java
+│   │   │       │   ├── 📄 GlobalModelAttributes.java
+│   │   │       │   ├── 📄 LoginSuccessHandler.java
+│   │   │       │   ├── 📄 SecurityConfig.java
+│   │   │       │   ├── 📄 ThymeleafConfig.java
+│   │   │       │   └── 📄 WebConfig.java
+│   │   │       │
+│   │   │       ├── 📂 controller
+│   │   │       │   ├── 📂 admin
+│   │   │       │   │   ├── 📄 AdminController.java
+│   │   │       │   │   └── 📄 ChatAdminController.java
+│   │   │       │   └── 📂 user
+│   │   │       │       ├── 📄 AuthController.java
+│   │   │       │       ├── 📄 CartController.java
+│   │   │       │       ├── 📄 ChatUserController.java
+│   │   │       │       ├── 📄 MainController.java
+│   │   │       │       ├── 📄 OrderController.java
+│   │   │       │       └── 📄 ProfileController.java
+│   │   │       │
+│   │   │       ├── 📂 model
+│   │   │       │   ├── 📄 CartItem.java
+│   │   │       │   ├── 📄 CartItemEntity.java
+│   │   │       │   ├── 📄 ChatMessage.java
+│   │   │       │   ├── 📄 Order.java
+│   │   │       │   ├── 📄 OrderItem.java
+│   │   │       │   ├── 📄 Product.java
+│   │   │       │   └── 📄 User.java
+│   │   │       │
+│   │   │       ├── 📂 repository
+│   │   │       │   ├── 📄 CartItemRepository.java
+│   │   │       │   ├── 📄 ChatMessageRepository.java
+│   │   │       │   ├── 📄 OrderRepository.java
+│   │   │       │   ├── 📄 ProductRepository.java
+│   │   │       │   └── 📄 UserRepository.java
+│   │   │       │
+│   │   │       ├── 📂 service
+│   │   │       │   ├── 📄 AuthService.java
+│   │   │       │   ├── 📄 CartService.java
+│   │   │       │   ├── 📄 ChatService.java
+│   │   │       │   ├── 📄 CustomUserDetailsService.java
+│   │   │       │   └── 📄 OrderService.java
+│   │   │       │
+│   │   │       └── 📄 SmartphoneShopApplication.java
 │   │   │
-│   │   └── 📁 user/
-│   │       ├── AuthController.java
-│   │       ├── CartController.java
-│   │       ├── ChatUserController.java   
-│   │       ├── MainController.java
-│   │       ├── OrderController.java
-│   │       └── ProfileController.java
+│   │   └── 📂 resources
+│   │       ├── 📂 static
+│   │       │   ├── 📂 admin
+│   │       │   │   └── 📂 css
+│   │       │   │       └── 📄 style.css
+│   │       │   └── 📂 customer
+│   │       │       ├── 📂 css
+│   │       │       │   └── 📄 style.css
+│   │       │       ├── 📂 fonts
+│   │       │       └── 📂 images
+│   │       │
+│   │       ├── 📂 templates
+│   │       │   ├── 📂 admin
+│   │       │   │   ├── 📂 error
+│   │       │   │   │   └── 📄 access-denied-admin.html
+│   │       │   │   ├── 📄 chat.html
+│   │       │   │   ├── 📄 dashboard.html
+│   │       │   │   ├── 📄 orders.html
+│   │       │   │   ├── 📄 product-form.html
+│   │       │   │   └── 📄 products.html
+│   │       │   │
+│   │       │   └── 📂 customer
+│   │       │       ├── 📂 auth
+│   │       │       │   ├── 📄 login.html
+│   │       │       │   └── 📄 register.html
+│   │       │       ├── 📂 fragments
+│   │       │       │   └── 📄 chat-widget.html
+│   │       │       ├── 📄 cart.html
+│   │       │       ├── 📄 checkout.html
+│   │       │       ├── 📄 detail.html
+│   │       │       ├── 📄 index.html
+│   │       │       ├── 📄 my-orders.html
+│   │       │       ├── 📄 profile.html
+│   │       │       ├── 📄 shipping.html
+│   │       │       └── 📄 success.html
 │   │
-│   ├── 🛠️ service/
-│   │   ├── AuthService.java
-│   │   ├── CartService.java
-│   │   ├── ChatService.java
-│   │   ├── CustomUserDetailsService.java
-│   │   └── OrderService.java
-│   │
-│   ├── 🗄️ repository/
-│   │   ├── CartItemRepository.java
-│   │   ├── ChatMessageRepository.java
-│   │   ├── OrderRepository.java
-│   │   ├── ProductRepository.java
-│   │   └── UserRepository.java
-│   │
-│   └── 📦 model/
-│       ├── CartItem.java
-│       ├── CartItemEntity.java
-│       ├── ChatMessage.java
-│       ├── Order.java
-│       ├── OrderItem.java
-│       ├── Product.java
-│       └── User.java
+│   │       ├── 📄 application.properties
+│   │       ├── 📄 application-dev.properties
+│   │       └── 📄 application-prod.properties
 │
-├── 📁 frontend/
-│   ├── 👤 customer/
-│   │   ├── 🧾 templates/
-│   │   │   ├── 🏠 index.html
-│   │   │   ├── 🔍 detail.html
-│   │   │   ├── 🛒 cart.html
-│   │   │   ├── 🏷️ checkout.html
-│   │   │   ├── 🚚 shipping.html
-│   │   │   ├── ✅ success.html
-│   │   │   ├── 📦 my-orders.html
-│   │   │   ├── 🆔 profile.html
-│   │   │   │
-│   │   │   ├── 👤 auth/
-│   │   │   │   ├── 🔑 login.html
-│   │   │   │   └── 🔒 register.html
-│   │   │   │
-│   │   │   └── 🧩 fragments/
-│   │   │       └── chat-widget.html
-│   │   │
-│   │   └── 📄 static/
-│   │       ├── 🎨 css/style.css
-│   │       ├── 🔤 fonts/                 
-│   │       └── 🖼️ images/
-│   │
-│   └── 🛡️ admin/
-│       ├── 🧾 templates/
-│       │   ├── dashboard.html
-│       │   ├── orders.html
-│       │   ├── products.html
-│       │   ├── product-form.html
-│       │   ├── chat.html                
-│       │   └── 📁 error/
-│       │       └── access-denied-admin.html
-│       │
-│       └── 📄 static/
-│           └── 🎨 css/style.css
+│   └── 📂 test
+│       └── 📂 java
+│           └── 📂 io.github.ngtrphuc.smartphone_shop
+│               └── 📄 SmartphoneShopApplicationTests.java
 │
-├── 🕹️ config/
-│   ├── application.properties
-│   ├── application-dev.properties
-│   └── application-prod.properties
-│
-├── 🧪 test/
-│   └── SmartphoneShopApplicationTests.java
-│
-├── 🪶 pom.xml
+├── 📄 pom.xml
 ├── 📄 mvnw
 ├── 📄 mvnw.cmd
+├── 📄 .gitignore
 └── 📄 README.md
-
 ```
 
-⚙️ Setup and Installation
-Clone the repository:
+## ⚙️ Setup and Run
 
-Bash
+### 1. Clone the repository
+
+```bash
 git clone https://github.com/ngtrphuc/thymeleaf-product-showcase-v3.git
-Database Configuration:
-Configure your MySQL connection details in src/main/resources/application-prod.properties.
+cd thymeleaf-product-showcase-v3
+```
 
-Run the Application:
-Using the Maven Wrapper:
+### 2. Configure the database
 
-Bash
+The app uses the `dev` profile by default:
+
+```properties
+spring.profiles.active=dev
+```
+
+Update your local MySQL settings in:
+
+- `src/main/resources/application-dev.properties` for local development
+- `src/main/resources/application-prod.properties` for production
+
+### 3. Run the application
+
+Using Maven Wrapper:
+
+```bash
 ./mvnw spring-boot:run
-Access the App:
-Open your browser and navigate to http://localhost:8080.
+```
+
+On Windows:
+
+```bat
+mvnw.cmd spring-boot:run
+```
+
+### 4. Access the app
+
+Open:
+
+```text
+http://localhost:8080
+```
+
+## 📝 Notes
+
+- Development currently uses MySQL, not H2
+- Static assets are organized under `static/customer` and `static/admin`
+- Templates are organized under `templates/customer` and `templates/admin`
