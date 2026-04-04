@@ -52,7 +52,7 @@
                     <button type="submit" class="btn-logout-link">🚪 Log Out</button>
                 </form>
             </th:block>
-            <a sec:authorize="hasRole('ADMIN')" href="/cart" class="btn-header"
+            <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header"
                 style="color:#00d4ff !important;border-color:rgba(0,212,255,0.25) !important;">
                 🛒 Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)
             </a>
