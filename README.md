@@ -112,11 +112,11 @@ A smartphone e-commerce web application built with Spring Boot, Thymeleaf, Sprin
 │   │       │       ├── 📄 profile.html
 │   │       │       ├── 📄 shipping.html
 │   │       │       └── 📄 success.html
-│   │
+│   │       │
 │   │       ├── 📄 application.properties
 │   │       ├── 📄 application-dev.properties
 │   │       └── 📄 application-prod.properties
-│
+│   │
 │   └── 📂 test
 │       └── 📂 java
 │           └── 📂 io.github.ngtrphuc.smartphone_shop
