@@ -89,24 +89,39 @@
 </head>
 
 <body>
+    <div id="page-config" th:attr="data-current-page=${currentPage},data-page-size=${pageSize}"></div>
     <div class="header">
         <a href="/" class="home-animated">&#127968; HOME</a>
         <div style="display:flex;align-items:center;gap:10px;">
-            <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header">&#128273; Log In</a>
+            <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header header-action">
+                <span class="header-action__icon">&#128273;</span>
+                <span class="header-action__label">Log In</span>
+            </a>
             <th:block sec:authorize="isAuthenticated()">
-                <a sec:authorize="hasRole('USER')" th:href="@{/profile}" class="btn-header">
-                    &#128100; <span sec:authentication="name"></span>
+                <a sec:authorize="hasRole('USER')" th:href="@{/profile}" class="btn-header header-action header-action--profile">
+                    <span class="header-action__icon">&#128100;</span>
+                    <span class="header-action__label" sec:authentication="name"></span>
                 </a>
-                <a sec:authorize="hasRole('USER')" href="/my-orders" class="btn-header">&#128203; Orders</a>
-                <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header"
-                    style="color:#00d4ff !important;border-color:rgba(0,212,255,0.25) !important;">&#9881; Admin</a>
+                <a sec:authorize="hasRole('USER')" href="/my-orders" class="btn-header header-action">
+                    <span class="header-action__icon">&#128203;</span>
+                    <span class="header-action__label">Orders</span>
+                </a>
+                <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header header-action header-action--accent"
+                    style="color:#00d4ff !important;border-color:rgba(0,212,255,0.25) !important;">
+                    <span class="header-action__icon">&#9881;</span>
+                    <span class="header-action__label">Admin</span>
+                </a>
                 <form th:action="@{/logout}" method="post" style="display:inline;margin:0;">
-                    <button type="submit" class="btn-logout-link">&#128682; Log Out</button>
+                    <button type="submit" class="btn-logout-link header-action">
+                        <span class="header-action__icon">&#128682;</span>
+                        <span class="header-action__label">Log Out</span>
+                    </button>
                 </form>
             </th:block>
-            <a sec:authorize="hasRole('USER')" href="/cart" class="btn-header"
+            <a sec:authorize="hasRole('USER')" href="/cart" class="btn-header header-action header-action--accent"
                 style="color:#00d4ff !important;border-color:rgba(0,212,255,0.25) !important;">
-                &#128722; Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)
+                <span class="header-action__icon">&#128722;</span>
+                <span class="header-action__label">Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)</span>
             </a>
         </div>
     </div>
@@ -126,6 +141,7 @@
             <input type="hidden" name="batteryMin" id="f_batteryMin" th:value="${batteryMin}">
             <input type="hidden" name="batteryMax" id="f_batteryMax" th:value="${batteryMax}">
             <input type="hidden" name="screenSize" id="f_screenSize" th:value="${screenSize}">
+            <input type="hidden" name="pageSize" id="pageSizeValue" th:value="${pageSize}">
             <input type="hidden" name="sort" id="sortValue" th:value="${sort}">
             <div class="custom-select" id="customSelect">
                 <div class="custom-select__trigger" id="selectTrigger">
@@ -317,7 +333,8 @@
             <div th:each="p : ${products}" class="card card-wrapper"
                 th:classappend="${p.stock != null and p.stock <= 0} ? ' out-of-stock' : ''">
                 <span th:if="${p.stock != null and p.stock <= 0}" class="badge-out-of-stock">Out of Stock</span>
-                <a th:href="@{'/product/' + ${p.id}}" style="text-decoration:none;color:inherit;">
+                <a th:href="@{/product/{id}(id=${p.id}, page=${currentPage}, pageSize=${pageSize}, keyword=${keyword}, sort=${sort}, brand=${brand}, priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax}, batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax}, screenSize=${screenSize})}"
+                    style="text-decoration:none;color:inherit;">
                     <img th:src="@{${p.imageUrl}}" alt="phone">
                     <h3 th:text="${p.name}"></h3>
                     <p class="price"
@@ -330,15 +347,15 @@
 
             <div class="pagination-wrapper" th:if="${totalPages != null and totalPages > 1}">
                 <a th:if="${currentPage > 0}"
-                    th:href="@{/(page=${currentPage - 1}, keyword=${keyword}, sort=${sort}, brand=${brand}, priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax}, batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax}, screenSize=${screenSize})}">&#8249;</a>
+                    th:href="@{/(page=${currentPage - 1}, pageSize=${pageSize}, keyword=${keyword}, sort=${sort}, brand=${brand}, priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax}, batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax}, screenSize=${screenSize})}">&#8249;</a>
                 <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
                     <span th:if="${i == currentPage}" class="active" th:text="${i + 1}"></span>
                     <a th:unless="${i == currentPage}"
-                        th:href="@{/(page=${i}, keyword=${keyword}, sort=${sort}, brand=${brand}, priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax}, batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax}, screenSize=${screenSize})}"
+                        th:href="@{/(page=${i}, pageSize=${pageSize}, keyword=${keyword}, sort=${sort}, brand=${brand}, priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax}, batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax}, screenSize=${screenSize})}"
                         th:text="${i + 1}"></a>
                 </th:block>
                 <a th:if="${currentPage < totalPages - 1}"
-                    th:href="@{/(page=${currentPage + 1}, keyword=${keyword}, sort=${sort}, brand=${brand}, priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax}, batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax}, screenSize=${screenSize})}">&#8250;</a>
+                    th:href="@{/(page=${currentPage + 1}, pageSize=${pageSize}, keyword=${keyword}, sort=${sort}, brand=${brand}, priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax}, batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax}, screenSize=${screenSize})}">&#8250;</a>
             </div>
         </div>
     </div>
@@ -355,10 +372,37 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const desktopPageSize = 9;
+            const compactPageSize = 8;
+            const compactBreakpoint = 1100;
+            const pageConfig = document.getElementById('page-config');
+            const pageSizeInput = document.getElementById('pageSizeValue');
             const trigger = document.getElementById('selectTrigger');
             const sortInput = document.getElementById('sortValue');
             const selectLabel = document.getElementById('selectLabel');
             const customSelect = document.getElementById('customSelect');
+            const currentPage = pageConfig ? Number(pageConfig.dataset.currentPage || '0') : 0;
+            const currentPageSize = pageConfig ? Number(pageConfig.dataset.pageSize || desktopPageSize) : desktopPageSize;
+
+            function desiredPageSize() {
+                return window.innerWidth <= compactBreakpoint ? compactPageSize : desktopPageSize;
+            }
+
+            function syncResponsivePageSize() {
+                const nextPageSize = desiredPageSize();
+                if (pageSizeInput) {
+                    pageSizeInput.value = String(nextPageSize);
+                }
+                if (nextPageSize === currentPageSize) {
+                    return;
+                }
+                const params = new URLSearchParams(window.location.search);
+                const itemOffset = currentPage * currentPageSize;
+                params.set('pageSize', String(nextPageSize));
+                params.set('page', String(Math.floor(itemOffset / nextPageSize)));
+                window.location.replace(`${window.location.pathname}?${params.toString()}`);
+            }
+
             if (trigger && sortInput && customSelect) {
                 trigger.addEventListener('click', () => customSelect.classList.toggle('open'));
                 document.querySelectorAll('.custom-option').forEach(option => {
@@ -373,6 +417,12 @@
                     if (!customSelect.contains(e.target)) customSelect.classList.remove('open');
                 });
             }
+            syncResponsivePageSize();
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(syncResponsivePageSize, 180);
+            });
             setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 3200);
         });
     </script>

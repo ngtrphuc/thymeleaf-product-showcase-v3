@@ -4,7 +4,6 @@
 <body>
     <div th:fragment="chatWidget" sec:authorize="hasRole('USER')">
 
-        <!-- CSRF token hidden inputs để JS lấy -->
         <input type="hidden" id="csrf-token" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
         <input type="hidden" id="csrf-header" th:value="${_csrf.headerName}">
 
@@ -117,7 +116,6 @@
                 });
             }
 
-            // Load unread count khi page khởi động
             (function initUnreadBadge() {
                 fetch('/chat/unread-count')
                     .then(r => r.json())
@@ -140,7 +138,6 @@
                     popup.style.animation = 'chatPopIn 0.22s ease';
                     icon.textContent = '✕';
                     clearUnreadBadge();
-                    // Luôn reload history mỗi lần mở để đảm bảo có đủ tin nhắn
                     loadHistory();
                     if (!chatEvtSource) startSSE();
                 } else {

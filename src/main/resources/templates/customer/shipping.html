@@ -8,7 +8,10 @@
 <body>
     <div class="header">
         <div style="display:flex;align-items:center;gap:10px;">
-            <a href="/cart" class="btn-header">◀ Back to Cart</a>
+            <a href="/cart" class="btn-header header-action">
+                <span class="header-action__icon">&#9664;</span>
+                <span class="header-action__label">Back to Cart</span>
+            </a>
         </div>
         <span style="color:var(--text-muted);font-size:13px;">Checkout Step 1 of 2</span>
     </div>
@@ -52,7 +55,7 @@
                 <input type="text" id="newAddressInput" name="address" placeholder="Street, City, Province..." minlength="10">
             </div>
 
-            <button type="submit" class="btn-submit">Continue to Summary →</button>
+            <button type="submit" class="btn-submit">Continue to Summary &rarr;</button>
         </form>
     </div>
 

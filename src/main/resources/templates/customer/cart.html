@@ -9,23 +9,35 @@
 
 <body>
     <div class="header">
-        <a href="/" class="home-animated">🏠︎ HOME</a>
+        <a href="/" class="home-animated">&#x1F3E0;&#xFE0E; HOME</a>
         <div style="display:flex;align-items:center;gap:10px;">
-            <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header">🔑 Log In</a>
+            <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header header-action">
+                <span class="header-action__icon">&#x1F511;</span>
+                <span class="header-action__label">Log In</span>
+            </a>
             <th:block sec:authorize="isAuthenticated()">
-                <a sec:authorize="hasRole('USER')" th:href="@{/profile}" class="btn-header">
-                    👤 <span sec:authentication="name"></span>
+                <a sec:authorize="hasRole('USER')" th:href="@{/profile}" class="btn-header header-action header-action--profile">
+                    <span class="header-action__icon">&#x1F464;</span>
+                    <span class="header-action__label" sec:authentication="name"></span>
                 </a>
-                <a sec:authorize="hasRole('USER')" href="/my-orders" class="btn-header">📋 Orders</a>
-                <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header"
-                    style="color:#00d4ff !important;border-color:rgba(0,212,255,0.25) !important;">⚙ Admin</a>
+                <a sec:authorize="hasRole('USER')" href="/my-orders" class="btn-header header-action">
+                    <span class="header-action__icon">&#x1F4CB;</span>
+                    <span class="header-action__label">Orders</span>
+                </a>
+                <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header header-action header-action--accent">
+                    <span class="header-action__icon">&#9881;</span>
+                    <span class="header-action__label">Admin</span>
+                </a>
                 <form th:action="@{/logout}" method="post" style="display:inline;margin:0;">
-                    <button type="submit" class="btn-logout-link">🚪 Log Out</button>
+                    <button type="submit" class="btn-logout-link header-action">
+                        <span class="header-action__icon">&#x1F6AA;</span>
+                        <span class="header-action__label">Log Out</span>
+                    </button>
                 </form>
             </th:block>
-            <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header"
-                style="color:#00d4ff !important;border-color:rgba(0,212,255,0.25) !important;">
-                🛒 Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)
+            <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header header-action header-action--accent header-action--active">
+                <span class="header-action__icon">&#x1F6D2;</span>
+                <span class="header-action__label">Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)</span>
             </a>
         </div>
     </div>
@@ -50,20 +62,20 @@
                     <td th:text="${#numbers.formatDecimal(item.price, 0, 'COMMA', 0, 'POINT')} + ' JPY'"
                         style="color:var(--text-muted);"></td>
                     <td>
-                        <a th:href="@{/cart/decrease/{id}(id=${item.id})}" class="qty-btn">−</a>
+                        <a th:href="@{/cart/decrease/{id}(id=${item.id})}" class="qty-btn">&minus;</a>
                         <span th:text="${item.quantity}" style="margin:0 10px;font-weight:600;"></span>
                         <a th:href="@{/cart/increase/{id}(id=${item.id})}" class="qty-btn">+</a>
                     </td>
                     <td th:text="${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' JPY'"
                         style="color:var(--accent);font-weight:700;font-family:'Syne',sans-serif;"></td>
-                    <td><a th:href="@{/cart/remove/{id}(id=${item.id})}" class="btn-remove">✕</a></td>
+                    <td><a th:href="@{/cart/remove/{id}(id=${item.id})}" class="btn-remove">&times;</a></td>
                 </tr>
             </tbody>
         </table>
 
         <div th:if="${#lists.isEmpty(cart)}"
             style="text-align:center;padding:80px 20px;display:flex;flex-direction:column;align-items:center;gap:20px;">
-            <div style="font-size:60px;opacity:0.4;">🛒</div>
+            <div style="font-size:60px;opacity:0.4;">&#x1F6D2;</div>
             <h3 style="font-size:1.3rem;color:var(--text-muted);font-weight:500;">Your bag is empty!</h3>
             <p style="color:var(--text-muted);font-size:14px;">Looks like you haven't added anything yet.</p>
             <a href="/" class="btn-checkout" style="padding:12px 36px;">GO SHOPPING</a>

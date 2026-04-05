@@ -8,9 +8,11 @@ import java.util.regex.PatternSyntaxException;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import io.github.ngtrphuc.smartphone_shop.model.Product;
 import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
@@ -18,9 +20,10 @@ import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
 @Controller
 public class MainController {
 
-    private static final int PAGE_SIZE = 9;
+    private static final int DESKTOP_PAGE_SIZE = 9;
+    private static final int COMPACT_PAGE_SIZE = 8;
     private static final List<String> BRANDS = Arrays.asList(
-            "Apple", "Samsung", "Google", "Oppo", "Vivo", "Xiaomi", "ASUS", "ZTE"
+            "Apple", "Samsung", "Google", "Oppo", "Vivo", "Xiaomi", "Sony", "ASUS", "ZTE"
     );
 
     private final ProductRepository productRepository;
@@ -41,6 +44,7 @@ public class MainController {
             @RequestParam(required = false) Integer batteryMin,
             @RequestParam(required = false) Integer batteryMax,
             @RequestParam(required = false) String screenSize,
+            @RequestParam(required = false) Integer pageSize,
             @RequestParam(defaultValue = "0") int page,
             Model model) {
 
@@ -64,7 +68,6 @@ public class MainController {
         List<Product> all = productRepository.findAllWithFilters(
                 blankToNull(keyword), resolvedPriceMin, resolvedPriceMax);
 
-        // Filter brand
         if (brand != null && !brand.isBlank()) {
             final String b = brand.toLowerCase();
             all = all.stream()
@@ -75,19 +78,21 @@ public class MainController {
         all = applySortInMemory(all, sort);
         all = applyStringFilters(all, batteryRange, batteryMin, batteryMax, screenSize);
 
+        int effectivePageSize = resolvePageSize(pageSize);
         int totalElements = all.size();
-        int totalPages = totalElements == 0 ? 1 : (int) Math.ceil((double) totalElements / PAGE_SIZE);
+        int totalPages = totalElements == 0 ? 1 : (int) Math.ceil((double) totalElements / effectivePageSize);
         int safePage = Math.max(0, Math.min(page, totalPages - 1));
 
         List<Product> products = all.stream()
-                .skip((long) safePage * PAGE_SIZE)
-                .limit(PAGE_SIZE)
+                .skip((long) safePage * effectivePageSize)
+                .limit(effectivePageSize)
                 .toList();
 
         model.addAttribute("products", products);
         model.addAttribute("currentPage", safePage);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("totalElements", (long) totalElements);
+        model.addAttribute("pageSize", effectivePageSize);
         model.addAttribute("keyword", keyword);
         model.addAttribute("sort", sort);
         model.addAttribute("brand", brand);
@@ -103,10 +108,13 @@ public class MainController {
     }
 
     @GetMapping("/product/{id}")
-    public String productDetail(@PathVariable long id, Model model) {
+    public String productDetail(@PathVariable long id,
+            @RequestParam MultiValueMap<String, String> requestParams,
+            Model model) {
         Product product = productRepository.findById(id).orElse(null);
         if (product == null) return "redirect:/";
         model.addAttribute("product", product);
+        model.addAttribute("backUrl", buildBackUrl(requestParams));
         return "detail";
     }
 
@@ -175,6 +183,24 @@ public class MainController {
     private Double resolveMax(Double existing, Double fallback) { return existing != null ? existing : fallback; }
     private String blankToNull(String s) { return (s == null || s.isBlank()) ? null : s; }
     private double safePrice(Product product) { return Objects.requireNonNullElse(product.getPrice(), 0.0); }
+    private String buildBackUrl(MultiValueMap<String, String> requestParams) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/");
+        requestParams.forEach((key, values) -> {
+            if (key == null || key.isBlank() || values == null) {
+                return;
+            }
+            for (String value : values) {
+                if (value != null && !value.isBlank()) {
+                    builder.queryParam(key, value);
+                }
+            }
+        });
+        return builder.build().encode().toUriString();
+    }
+
+    private int resolvePageSize(Integer pageSize) {
+        return pageSize != null && pageSize == COMPACT_PAGE_SIZE ? COMPACT_PAGE_SIZE : DESKTOP_PAGE_SIZE;
+    }
 
     private int parseBattery(String battery) {
         if (battery == null) return 0;

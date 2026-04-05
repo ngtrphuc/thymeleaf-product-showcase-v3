@@ -20,7 +20,7 @@ public class AuthController {
                             Model model) {
         if (error != null)  model.addAttribute("error", "Invalid email or password.");
         if (logout != null) model.addAttribute("message", "You have been logged out.");
-        return "customer/auth/login"; // templates/customer/auth/login.html
+        return "customer/auth/login";
     }
 
     @GetMapping("/register")

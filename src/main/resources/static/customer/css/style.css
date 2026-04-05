@@ -238,6 +238,130 @@ button {
   color: var(--text);
 }
 
+.header-action {
+  --header-action-collapsed: 44px;
+  --header-action-expanded: 138px;
+  --header-action-overshoot: calc(var(--header-action-expanded) + 20px);
+  --header-action-relax: calc(var(--header-action-expanded) + 6px);
+  --header-action-morph-duration: 1.82s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  min-width: var(--header-action-collapsed);
+  max-width: var(--header-action-collapsed);
+  height: 44px;
+  box-sizing: border-box;
+  flex: 0 1 auto;
+  padding: 0 12px;
+  overflow: hidden;
+  border-radius: 16px;
+  transform-origin: left center;
+  transition: max-width var(--header-action-morph-duration) cubic-bezier(0.16, 1, 0.3, 1),
+    background var(--header-action-morph-duration) cubic-bezier(0.16, 1, 0.3, 1),
+    border-color var(--header-action-morph-duration) cubic-bezier(0.16, 1, 0.3, 1),
+    color var(--header-action-morph-duration) cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow var(--header-action-morph-duration) cubic-bezier(0.16, 1, 0.3, 1),
+    transform var(--header-action-morph-duration) cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+.header-action:hover,
+.header-action:focus-visible,
+.header-action.header-action--active {
+  max-width: var(--header-action-expanded);
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: var(--text) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
+  animation: headerActionExpand 1.86s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.header-action--profile:hover,
+.header-action--profile:focus-visible,
+.header-action--profile.header-action--active {
+  --header-action-expanded: clamp(180px, 22vw, 280px);
+  --header-action-overshoot: calc(var(--header-action-expanded) + 20px);
+  --header-action-relax: calc(var(--header-action-expanded) + 6px);
+}
+
+.header-action--accent:hover,
+.header-action--accent:focus-visible,
+.header-action--accent.header-action--active {
+  background: rgba(0, 212, 255, 0.14) !important;
+  border-color: rgba(0, 212, 255, 0.28) !important;
+  color: var(--accent) !important;
+}
+
+.header-action__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.header-action__label {
+  opacity: 0;
+  transform: translateX(-8px);
+  transition: opacity 0.84s ease 0.14s, transform 1.34s cubic-bezier(0.16, 1, 0.3, 1) 0.14s;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-action--profile .header-action__label {
+  text-overflow: clip;
+}
+
+@media (max-width: 900px) {
+  .header-action--profile:hover,
+  .header-action--profile:focus-visible,
+  .header-action--profile.header-action--active {
+    max-width: 200px;
+  }
+}
+
+.header-action:hover .header-action__label,
+.header-action:focus-visible .header-action__label,
+.header-action.header-action--active .header-action__label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@keyframes headerActionExpand {
+  0% {
+    max-width: var(--header-action-collapsed);
+    transform: translateY(0) scaleX(1);
+  }
+  64% {
+    max-width: var(--header-action-overshoot);
+    transform: translateY(-1px) scaleX(1.016);
+  }
+  82% {
+    max-width: var(--header-action-relax);
+    transform: translateY(0) scaleX(1.004);
+  }
+  100% {
+    max-width: var(--header-action-expanded);
+    transform: translateY(0) scaleX(1);
+  }
+}
+
+.header-action.btn-logout-link {
+  background: var(--glass);
+}
+
+.header-action.btn-logout-link:hover,
+.header-action.btn-logout-link:focus-visible,
+.header-action.btn-logout-link.header-action--active {
+  background: rgba(255, 77, 109, 0.12);
+  color: #ffd7de;
+  border-color: rgba(255, 77, 109, 0.22);
+}
+
 footer {
   background: rgba(7, 11, 20, 0.9);
   border-top: 1px solid var(--glass-border);
@@ -524,7 +648,6 @@ footer {
   gap: 20px;
   align-items: start;
   min-width: 0;
-  /* thêm — tránh overflow */
 }
 
 @media (max-width: 1100px) {
@@ -550,11 +673,6 @@ footer {
 }
 
 @media (max-width: 480px) {
-  .main-layout .container {
-    grid-template-columns: 1fr;
-  }
-
-
   .sidebar {
     flex: none;
     width: 100%;
@@ -1389,6 +1507,75 @@ footer {
   background: rgba(0, 212, 255, 0.08);
   color: var(--accent);
   border: 1px solid rgba(0, 212, 255, 0.15);
+}
+
+.sidebar-admin .admin-nav-link {
+  min-height: 52px;
+  padding: 12px 14px;
+  margin: 4px 12px;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+  overflow: hidden;
+  transition: min-height 0.38s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+    background 0.22s ease,
+    border-color 0.22s ease,
+    color 0.22s ease,
+    box-shadow 0.22s ease;
+}
+
+.sidebar-admin .admin-nav-link:hover,
+.sidebar-admin .admin-nav-link:focus-visible,
+.sidebar-admin .admin-nav-link.active {
+  min-height: 88px;
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
+}
+
+.sidebar-admin .admin-nav-link.active {
+  background: rgba(0, 212, 255, 0.1);
+  border-color: rgba(0, 212, 255, 0.22);
+  color: var(--accent);
+}
+
+.admin-nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.admin-nav-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-6px);
+  overflow: hidden;
+  transition: max-height 0.24s ease, opacity 0.2s ease, transform 0.24s ease, margin-top 0.24s ease;
+}
+
+.sidebar-admin .admin-nav-link:hover .admin-nav-body,
+.sidebar-admin .admin-nav-link:focus-visible .admin-nav-body,
+.sidebar-admin .admin-nav-link.active .admin-nav-body {
+  max-height: 28px;
+  opacity: 1;
+  transform: translateY(0);
+  margin-top: 8px;
+}
+
+.admin-nav-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
 }
 
 .admin-content {

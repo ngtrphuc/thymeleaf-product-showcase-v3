@@ -20,27 +20,192 @@
             flex-shrink: 0;
         }
         .chat-badge.visible { display: flex; }
+        .admin-toolbar {
+            display: grid;
+            grid-template-columns: minmax(240px, 1.4fr) repeat(3, minmax(160px, 0.8fr)) auto auto;
+            gap: 12px;
+            margin-bottom: 18px;
+            padding: 16px;
+            background: rgba(13, 18, 32, 0.72);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            align-items: center;
+        }
+        .admin-toolbar input,
+        .admin-toolbar select {
+            width: 100%;
+            background: linear-gradient(180deg, rgba(20, 28, 46, 0.98), rgba(12, 18, 32, 0.98));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 11px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #f3f7ff;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+            transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease;
+        }
+        .admin-toolbar input::placeholder {
+            color: rgba(232, 234, 240, 0.45);
+            font-weight: 500;
+        }
+        .admin-toolbar input:hover,
+        .admin-toolbar select:hover {
+            transform: translateY(-2px);
+            border-color: rgba(0, 212, 255, 0.26);
+            background: linear-gradient(180deg, rgba(23, 33, 54, 1), rgba(15, 23, 39, 1));
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(0, 212, 255, 0.05);
+        }
+        .admin-toolbar input:focus,
+        .admin-toolbar select:focus {
+            border-color: rgba(0, 212, 255, 0.35);
+            background: linear-gradient(180deg, rgba(23, 33, 54, 1), rgba(15, 23, 39, 1));
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.08), 0 14px 28px rgba(0, 0, 0, 0.3);
+        }
+        .admin-toolbar select {
+            color-scheme: dark;
+            cursor: pointer;
+            color: #ffffff;
+            text-shadow: 0 0 12px rgba(0, 212, 255, 0.14);
+        }
+        .admin-toolbar select option {
+            background: #0f1727;
+            color: #eef4ff;
+        }
+        .admin-toolbar select option:checked {
+            background: #0ea5e9;
+            color: #ffffff;
+            font-weight: 700;
+        }
+        .admin-toolbar select option:hover,
+        .admin-toolbar select option:focus {
+            background: #1d4ed8;
+            color: #ffffff;
+        }
+        .admin-toolbar select:not([name="brand"]) option[value="all"]:checked,
+        .admin-toolbar select option[value=""]:checked {
+            background: #2563eb;
+            color: #ffffff;
+        }
+        .admin-toolbar-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .admin-toolbar-actions .btn-reset {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 90px;
+            height: 42px;
+            padding: 0 16px;
+            background: linear-gradient(180deg, rgba(20, 28, 46, 0.98), rgba(12, 18, 32, 0.98));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            color: var(--text-muted);
+            transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease, color 0.22s ease;
+        }
+        .admin-toolbar-actions .btn-reset:hover {
+            color: var(--text);
+            background: linear-gradient(180deg, rgba(23, 33, 54, 1), rgba(15, 23, 39, 1));
+            border-color: rgba(0, 212, 255, 0.22);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.28);
+        }
+        .admin-toolbar .btn-checkout {
+            transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
+        }
+        .admin-toolbar .btn-checkout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 28px rgba(0, 212, 255, 0.24);
+            filter: saturate(1.08);
+        }
+        @media (max-width: 1200px) {
+            .admin-toolbar {
+                grid-template-columns: repeat(2, minmax(220px, 1fr));
+            }
+        }
+        @media (max-width: 720px) {
+            .admin-toolbar {
+                grid-template-columns: 1fr;
+            }
+            .admin-toolbar-actions {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="admin-layout">
         <div class="sidebar-admin">
             <div class="brand">⚙ Admin Panel</div>
-            <a href="/admin">📊 Dashboard</a>
-            <a href="/admin/products" class="active">📱 Products</a>
-            <a href="/admin/orders">📦 Orders</a>
-            <a href="/admin/chat" style="display:flex;align-items:center;">
-                💬 Chat
-                <span id="admin-chat-badge" class="chat-badge">0</span>
+            <a href="/admin" class="admin-nav-link">
+                <span class="admin-nav-icon">📊</span>
+                <span class="admin-nav-body"><span class="admin-nav-label">Dashboard</span></span>
+            </a>
+            <a href="/admin/products" class="admin-nav-link active">
+                <span class="admin-nav-icon">📱</span>
+                <span class="admin-nav-body"><span class="admin-nav-label">Products</span></span>
+            </a>
+            <a href="/admin/orders" class="admin-nav-link">
+                <span class="admin-nav-icon">📦</span>
+                <span class="admin-nav-body"><span class="admin-nav-label">Orders</span></span>
+            </a>
+            <a href="/admin/chat" class="admin-nav-link">
+                <span class="admin-nav-icon">💬</span>
+                <span class="admin-nav-body">
+                    <span class="admin-nav-label">Chat</span>
+                    <span id="admin-chat-badge" class="chat-badge">0</span>
+                </span>
             </a>
             <a href="/" style="margin-top:auto;border-top:1px solid var(--glass-border);padding-top:16px;">🏠︎ HOME</a>
         </div>
 
         <div class="admin-content">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;">
-                <h2 style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;">Product List</h2>
-                <a href="/admin/products/new" class="btn-checkout" style="padding:9px 18px;font-size:13px;">+ Add New</a>
+                <div>
+                    <h2 style="font-family:'Syne',sans-serif;font-weight:700;font-size:22px;">Product List</h2>
+                    <p style="margin-top:6px;color:var(--text-muted);font-size:13px;">
+                        Showing page <span th:text="${currentPage + 1}">1</span>
+                        of <span th:text="${totalPages > 0 ? totalPages : 1}">1</span>
+                        (<span th:text="${totalProducts}">0</span> products)
+                    </p>
+                </div>
+                <a th:href="@{/admin/products/new(page=${currentPage}, keyword=${keyword}, brand=${brand}, stock=${stock}, sort=${sort})}"
+                    class="btn-checkout" style="padding:9px 18px;font-size:13px;">+ Add New</a>
             </div>
+
+            <form method="get" th:action="@{/admin/products}" class="admin-toolbar">
+                <input type="hidden" name="page" value="0">
+                <input type="search" name="keyword" th:value="${keyword}"
+                    placeholder="Search by ID, name, description, OS, chipset...">
+                <select name="brand">
+                    <option value="">All brands</option>
+                    <option th:each="brandOption : ${brands}" th:value="${brandOption}"
+                        th:selected="${brandOption == brand}" th:text="${brandOption}"></option>
+                </select>
+                <select name="stock">
+                    <option value="all" th:selected="${stock == 'all'}">All stock states</option>
+                    <option value="in_stock" th:selected="${stock == 'in_stock'}">In stock</option>
+                    <option value="low_stock" th:selected="${stock == 'low_stock'}">Low stock (1-5)</option>
+                    <option value="out_of_stock" th:selected="${stock == 'out_of_stock'}">Out of stock</option>
+                </select>
+                <select name="sort">
+                    <option value="id_asc" th:selected="${sort == 'id_asc'}">ID: Low to High</option>
+                    <option value="id_desc" th:selected="${sort == 'id_desc'}">ID: High to Low</option>
+                    <option value="name_asc" th:selected="${sort == 'name_asc'}">Name: A to Z</option>
+                    <option value="name_desc" th:selected="${sort == 'name_desc'}">Name: Z to A</option>
+                    <option value="price_asc" th:selected="${sort == 'price_asc'}">Price: Low to High</option>
+                    <option value="price_desc" th:selected="${sort == 'price_desc'}">Price: High to Low</option>
+                    <option value="stock_asc" th:selected="${sort == 'stock_asc'}">Stock: Low to High</option>
+                    <option value="stock_desc" th:selected="${sort == 'stock_desc'}">Stock: High to Low</option>
+                </select>
+                <div class="admin-toolbar-actions">
+                    <button type="submit" class="btn-checkout" style="padding:11px 18px;font-size:13px;">Apply</button>
+                    <a th:href="@{/admin/products}" class="btn-reset">Reset</a>
+                </div>
+            </form>
 
             <table class="admin-table">
                 <thead>
@@ -64,12 +229,33 @@
                             <span th:if="${p.stock == null or p.stock <= 0}" style="color:var(--accent3);font-weight:600;">Out</span>
                         </td>
                         <td style="display:flex;gap:8px;align-items:center;">
-                            <a th:href="@{/admin/products/edit/{id}(id=${p.id})}" class="btn-sm btn-edit">Edit</a>
-                            <button type="button" class="btn-sm btn-del" th:attr="onclick='openDeleteModal(' + ${p.id} + ', \'' + ${p.name} + '\')'">Delete</button>
+                            <a th:href="@{/admin/products/edit/{id}(id=${p.id}, page=${currentPage}, keyword=${keyword}, brand=${brand}, stock=${stock}, sort=${sort})}"
+                                class="btn-sm btn-edit">Edit</a>
+                            <button type="button" class="btn-sm btn-del"
+                                th:attr="data-product-id=${p.id},data-product-name=${p.name}"
+                                onclick="openDeleteModal(this.dataset.productId, this.dataset.productName)">Delete</button>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(products)}">
+                        <td colspan="6" style="text-align:center;color:var(--text-muted);padding:28px 18px;">
+                            No products match the current search/filter.
                         </td>
                     </tr>
                 </tbody>
             </table>
+
+            <div class="pagination-wrapper" th:if="${totalPages != null and totalPages > 1}">
+                <a th:if="${currentPage > 0}"
+                    th:href="@{/admin/products(page=${currentPage - 1}, keyword=${keyword}, brand=${brand}, stock=${stock}, sort=${sort})}">&#8249;</a>
+                <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
+                    <span th:if="${i == currentPage}" class="active" th:text="${i + 1}"></span>
+                    <a th:unless="${i == currentPage}"
+                        th:href="@{/admin/products(page=${i}, keyword=${keyword}, brand=${brand}, stock=${stock}, sort=${sort})}"
+                        th:text="${i + 1}"></a>
+                </th:block>
+                <a th:if="${currentPage < totalPages - 1}"
+                    th:href="@{/admin/products(page=${currentPage + 1}, keyword=${keyword}, brand=${brand}, stock=${stock}, sort=${sort})}">&#8250;</a>
+            </div>
         </div>
     </div>
 
@@ -88,6 +274,11 @@
 
     <form id="deleteForm" method="post" style="display:none;">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <input type="hidden" name="page" th:value="${currentPage}" />
+        <input type="hidden" name="keyword" th:value="${keyword}" />
+        <input type="hidden" name="brand" th:value="${brand}" />
+        <input type="hidden" name="stock" th:value="${stock}" />
+        <input type="hidden" name="sort" th:value="${sort}" />
     </form>
 
     <div class="toast-container" th:if="${toast}">

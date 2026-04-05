@@ -52,7 +52,7 @@ public class CartController {
             HttpSession session, RedirectAttributes ra) {
         cartService.addItem(getEmail(auth), session, id);
         cartService.syncCartCount(session, getEmail(auth));
-        ra.addFlashAttribute("toast", "Added to cart! ðŸ›’");
+        ra.addFlashAttribute("toast", "Added to cart successfully.");
         return "redirect:/product/" + id;
     }
 
@@ -111,7 +111,9 @@ public class CartController {
     public String checkout(Authentication auth, HttpSession session, Model model) {
         String email = getEmail(auth);
         List<CartItem> cart = cartService.getCart(email, session);
-        if (cart.isEmpty()) return "redirect:/cart";
+        if (cart.isEmpty()) {
+            return "redirect:/cart";
+        }
         model.addAttribute("cart", cart);
         model.addAttribute("totalAmount", cartService.calculateTotal(cart));
         model.addAttribute("count", cart.stream().mapToInt(CartItem::getQuantity).sum());
@@ -120,10 +122,10 @@ public class CartController {
 
     @PostMapping("/confirm")
     public String confirm(Authentication auth, HttpSession session, RedirectAttributes ra) {
-        String name    = (String) session.getAttribute("name");
-        String phone   = (String) session.getAttribute("phone");
+        String name = (String) session.getAttribute("name");
+        String phone = (String) session.getAttribute("phone");
         String address = (String) session.getAttribute("address");
-        String email   = getEmail(auth);
+        String email = getEmail(auth);
         List<CartItem> cart = cartService.getCart(email, session);
 
         if (cart.isEmpty() || name == null || phone == null || address == null) {
@@ -145,4 +147,3 @@ public class CartController {
         return "success";
     }
 }
-

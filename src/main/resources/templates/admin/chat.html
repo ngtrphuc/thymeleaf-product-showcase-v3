@@ -82,25 +82,35 @@
     </style>
 </head>
 <body>
-    <!-- CSRF token cho JS -->
     <input type="hidden" id="csrf-token" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
     <input type="hidden" id="csrf-header" th:value="${_csrf.headerName}">
 
     <div class="admin-layout">
         <div class="sidebar-admin">
             <div class="brand">⚙ Admin Panel</div>
-            <a href="/admin">📊 Dashboard</a>
-            <a href="/admin/products">📱 Products</a>
-            <a href="/admin/orders">📦 Orders</a>
-            <a href="/admin/chat" class="active" style="display:flex;align-items:center;">
-                💬 Chat
-                <span id="admin-chat-badge" class="chat-badge">0</span>
+            <a href="/admin" class="admin-nav-link">
+                <span class="admin-nav-icon">📊</span>
+                <span class="admin-nav-body"><span class="admin-nav-label">Dashboard</span></span>
+            </a>
+            <a href="/admin/products" class="admin-nav-link">
+                <span class="admin-nav-icon">📱</span>
+                <span class="admin-nav-body"><span class="admin-nav-label">Products</span></span>
+            </a>
+            <a href="/admin/orders" class="admin-nav-link">
+                <span class="admin-nav-icon">📦</span>
+                <span class="admin-nav-body"><span class="admin-nav-label">Orders</span></span>
+            </a>
+            <a href="/admin/chat" class="admin-nav-link active">
+                <span class="admin-nav-icon">💬</span>
+                <span class="admin-nav-body">
+                    <span class="admin-nav-label">Chat</span>
+                    <span id="admin-chat-badge" class="chat-badge">0</span>
+                </span>
             </a>
             <a href="/" style="margin-top:auto;border-top:1px solid var(--glass-border);padding-top:16px;">🏠︎ HOME</a>
         </div>
 
         <div class="admin-content" style="padding:0;display:flex;height:100vh;overflow:hidden;">
-
             <div style="width:260px;border-right:1px solid var(--glass-border);display:flex;flex-direction:column;overflow:hidden;">
                 <div style="padding:20px 16px 12px;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;border-bottom:1px solid var(--glass-border);">
                     Conversations
