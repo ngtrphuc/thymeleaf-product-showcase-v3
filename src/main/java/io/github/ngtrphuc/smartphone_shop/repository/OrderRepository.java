@@ -2,6 +2,7 @@ package io.github.ngtrphuc.smartphone_shop.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,8 +18,17 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items ORDER BY o.createdAt DESC")
     List<Order> findAllByOrderByCreatedAtDesc();
 
-    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items ORDER BY o.createdAt DESC")
+    @Query("SELECT o FROM Order o ORDER BY o.createdAt DESC")
     List<Order> findRecentOrders(Pageable pageable);
+
+    @Query(
+            value = "SELECT o.id FROM Order o ORDER BY o.createdAt DESC",
+            countQuery = "SELECT COUNT(o) FROM Order o"
+    )
+    Page<Long> findOrderIdsByCreatedAtDesc(Pageable pageable);
+
+    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items WHERE o.id IN :ids")
+    List<Order> findAllWithItemsByIdIn(@Param("ids") List<Long> ids);
 
     @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.status != 'cancelled'")
     Double sumRevenueExcludingCancelled();

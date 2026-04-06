@@ -115,6 +115,19 @@ button {
   z-index: 100;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.header-actions form {
+  margin: 0;
+}
+
 .home-animated {
   display: flex;
   align-items: center;
@@ -266,6 +279,12 @@ button {
   white-space: nowrap;
 }
 
+.header-action--profile {
+  --header-action-expanded: clamp(220px, 28vw, 360px);
+  --header-action-overshoot: calc(var(--header-action-expanded) + 20px);
+  --header-action-relax: calc(var(--header-action-expanded) + 6px);
+}
+
 .header-action:hover,
 .header-action:focus-visible,
 .header-action.header-action--active {
@@ -293,6 +312,19 @@ button {
   color: var(--accent) !important;
 }
 
+.header-action--danger {
+  background: rgba(255, 77, 109, 0.1) !important;
+  border-color: rgba(255, 77, 109, 0.24) !important;
+  color: #ff8fa3 !important;
+}
+
+.header-action--danger .header-action__icon {
+  background: none;
+  background-size: auto;
+  -webkit-text-fill-color: currentColor;
+  color: currentColor;
+}
+
 .header-action__icon {
   display: inline-flex;
   align-items: center;
@@ -301,6 +333,37 @@ button {
   font-size: 16px;
   line-height: 1;
   flex-shrink: 0;
+  background: linear-gradient(90deg, #ffffff 0%, #00d4ff 50%, #ffffff 100%);
+  background-size: 200% auto;
+  background-position: 0% center;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.header-action--neutral {
+  color: var(--text) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+.header-action--neutral .header-action__icon {
+  background: none;
+  background-size: auto;
+  -webkit-text-fill-color: currentColor;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.header-action--neutral:hover,
+.header-action--neutral:focus-visible,
+.header-action--neutral.header-action--active {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.22) !important;
+}
+
+.header-action--neutral:hover .header-action__icon,
+.header-action--neutral:focus-visible .header-action__icon,
+.header-action--neutral.header-action--active .header-action__icon {
+  color: #ffffff;
 }
 
 .header-action__label {
@@ -308,6 +371,7 @@ button {
   transform: translateX(-8px);
   transition: opacity 0.84s ease 0.14s, transform 1.34s cubic-bezier(0.16, 1, 0.3, 1) 0.14s;
   font-weight: 600;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -317,10 +381,63 @@ button {
 }
 
 @media (max-width: 900px) {
-  .header-action--profile:hover,
-  .header-action--profile:focus-visible,
-  .header-action--profile.header-action--active {
-    max-width: 200px;
+  .header {
+    padding: 14px 18px;
+    align-items: center;
+    gap: 12px 16px;
+  }
+
+  .header-actions {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .header-actions::-webkit-scrollbar {
+    display: none;
+  }
+
+  .header-actions .header-action {
+    flex-shrink: 0;
+    will-change: max-width;
+  }
+
+  .header-actions .header-action--profile {
+    --header-action-expanded: min(320px, calc(100vw - 160px));
+    --header-action-overshoot: calc(var(--header-action-expanded) + 18px);
+    --header-action-relax: calc(var(--header-action-expanded) + 4px);
+  }
+
+  .header-actions .header-action--profile:hover,
+  .header-actions .header-action--profile:focus-visible,
+  .header-actions .header-action--profile.header-action--active {
+    max-width: var(--header-action-expanded);
+  }
+}
+
+@media (max-width: 640px) {
+  .header {
+    padding: 12px 14px;
+  }
+
+  .home-animated {
+    font-size: 15px;
+    letter-spacing: 1px;
+  }
+
+  .header-actions .header-action {
+    --header-action-expanded: 124px;
+    padding: 0 10px;
+  }
+
+  .header-actions .header-action--profile {
+    --header-action-expanded: min(240px, calc(100vw - 176px));
+    --header-action-overshoot: calc(var(--header-action-expanded) + 12px);
+    --header-action-relax: calc(var(--header-action-expanded) + 3px);
   }
 }
 
@@ -360,6 +477,21 @@ button {
   background: rgba(255, 77, 109, 0.12);
   color: #ffd7de;
   border-color: rgba(255, 77, 109, 0.22);
+}
+
+.header-action.btn-logout-link.header-action--danger {
+  background: rgba(255, 77, 109, 0.1);
+  color: #ff8fa3;
+  border-color: rgba(255, 77, 109, 0.24);
+}
+
+.header-action.btn-logout-link.header-action--danger:hover,
+.header-action.btn-logout-link.header-action--danger:focus-visible,
+.header-action.btn-logout-link.header-action--danger.header-action--active {
+  background: rgba(255, 77, 109, 0.18);
+  color: #ffd7de;
+  border-color: rgba(255, 77, 109, 0.34);
+  box-shadow: 0 10px 24px rgba(255, 77, 109, 0.18);
 }
 
 footer {
@@ -1346,6 +1478,12 @@ footer {
   color: var(--text-muted);
 }
 
+.auth-label-icon {
+  color: #ffffff;
+  margin-right: 6px;
+  -webkit-text-fill-color: currentColor;
+}
+
 .form-group input {
   width: 100%;
   background: rgba(255, 255, 255, 0.04);
@@ -1548,6 +1686,39 @@ footer {
   min-width: 20px;
   font-size: 18px;
   line-height: 1;
+  background: linear-gradient(90deg, #ffffff 0%, #00d4ff 50%, #ffffff 100%);
+  background-size: 200% auto;
+  background-position: 0% center;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.admin-nav-icon svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.admin-nav-icon--svg {
+  background: none;
+  background-size: auto;
+  -webkit-text-fill-color: currentColor;
+  color: #8feaff;
+  filter: drop-shadow(0 0 10px rgba(0, 212, 255, 0.18));
+}
+
+.sidebar-admin .admin-nav-link:hover .admin-nav-icon,
+.sidebar-admin .admin-nav-link:focus-visible .admin-nav-icon,
+.sidebar-admin .admin-nav-link.active .admin-nav-icon {
+  background: none;
+  background-size: auto;
+  -webkit-text-fill-color: currentColor;
+  color: currentColor;
 }
 
 .admin-nav-body {
@@ -2367,5 +2538,7 @@ input.filter-input::-webkit-inner-spin-button {
 }
 
 input.filter-input[type=number] {
+  appearance: textfield;
   -moz-appearance: textfield;
 }
+

@@ -1,19 +1,35 @@
 package io.github.ngtrphuc.smartphone_shop.service;
 
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import io.github.ngtrphuc.smartphone_shop.model.CartItem;
 import io.github.ngtrphuc.smartphone_shop.model.Order;
 import io.github.ngtrphuc.smartphone_shop.model.OrderItem;
+import io.github.ngtrphuc.smartphone_shop.model.Product;
 import io.github.ngtrphuc.smartphone_shop.repository.OrderRepository;
 import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
-import jakarta.transaction.Transactional;
 
 @Service
 public class OrderService {
+
+    private static final Set<String> ALLOWED_STATUSES = Set.of(
+            "pending", "processing", "shipped", "delivered", "cancelled"
+    );
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+()\\-\\s]{6,30}$");
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
@@ -23,13 +39,30 @@ public class OrderService {
         this.productRepository = productRepository;
     }
 
+    @Transactional
     public Order createOrder(String userEmail, String name, String phone,
             String address, List<CartItem> cartItems, double total) {
+        if (cartItems == null || cartItems.isEmpty()) {
+            throw new OrderValidationException("Your cart is empty.");
+        }
+
+        Map<Long, Integer> requestedQuantities = extractCartQuantities(cartItems);
+        Map<Long, Product> lockedProducts = loadProductsForUpdate(requestedQuantities.keySet());
+        validateRequestedStock(requestedQuantities, lockedProducts);
+
+        String normalizedName = normalizeRequiredText(
+                name, "Customer name is required.", "Customer name is too long.", 120);
+        String normalizedPhone = normalizeRequiredText(
+                phone, "Phone number is required.", "Phone number is too long.", 30);
+        String normalizedAddress = normalizeRequiredText(
+                address, "Shipping address is required.", "Shipping address is too long.", 255);
+        validatePhoneNumber(normalizedPhone);
+
         Order order = new Order();
         order.setUserEmail(userEmail);
-        order.setCustomerName(name);
-        order.setPhoneNumber(phone);
-        order.setShippingAddress(address);
+        order.setCustomerName(normalizedName);
+        order.setPhoneNumber(normalizedPhone);
+        order.setShippingAddress(normalizedAddress);
         order.setTotalAmount(total);
         order.setStatus("pending");
 
@@ -41,16 +74,9 @@ public class OrderService {
             oi.setPrice(item.getPrice());
             oi.setQuantity(item.getQuantity());
             order.getItems().add(oi);
-
-            Long productId = item.getId();
-            if (productId != null) {
-                productRepository.findById(productId).ifPresent(p -> {
-                    int newStock = Math.max(0, p.getStock() - item.getQuantity());
-                    p.setStock(newStock);
-                    productRepository.save(p);
-                });
-            }
         }
+
+        applyStockDelta(lockedProducts, requestedQuantities, -1, false);
         return orderRepository.save(order);
     }
 
@@ -62,8 +88,33 @@ public class OrderService {
         return orderRepository.findAllByOrderByCreatedAtDesc();
     }
 
+    public List<Order> getAdminOrdersPage(int page, int limit) {
+        int safePage = Math.max(0, page);
+        int safeLimit = Math.max(1, limit);
+        List<Long> orderIds = orderRepository.findOrderIdsByCreatedAtDesc(PageRequest.of(safePage, safeLimit))
+                .getContent();
+        if (orderIds.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, Integer> sortOrder = new LinkedHashMap<>();
+        for (int index = 0; index < orderIds.size(); index++) {
+            sortOrder.put(orderIds.get(index), index);
+        }
+
+        return orderRepository.findAllWithItemsByIdIn(orderIds).stream()
+                .sorted(Comparator.comparingInt(order -> sortOrder.getOrDefault(order.getId(), Integer.MAX_VALUE)))
+                .toList();
+    }
+
     public List<Order> getRecentOrders(int limit) {
         return orderRepository.findRecentOrders(PageRequest.of(0, limit));
+    }
+
+    public List<Order> getRecentOrders(int page, int limit) {
+        int safePage = Math.max(0, page);
+        int safeLimit = Math.max(1, limit);
+        return orderRepository.findRecentOrders(PageRequest.of(safePage, safeLimit));
     }
 
     public double getTotalRevenue() {
@@ -76,63 +127,159 @@ public class OrderService {
         return result != null ? result : 0L;
     }
 
+    public long countOrders() {
+        return orderRepository.count();
+    }
+
     @Transactional
     public void updateStatus(long orderId, String newStatus) {
-        orderRepository.findById(orderId).ifPresent(o -> {
-            String oldStatus = o.getStatus();
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderValidationException("Order not found."));
 
-            if ("cancelled".equals(oldStatus) && !"cancelled".equals(newStatus)) {
-                o.getItems().forEach(item -> {
-                    Long productId = item.getProductId();
-                    if (productId == null) {
-                        return;
-                    }
-                    productRepository.findById(productId).ifPresent(p -> {
-                        int newStock = Math.max(0, p.getStock() - item.getQuantity());
-                        p.setStock(newStock);
-                        productRepository.save(p);
-                    });
-                });
-            }
+        String oldStatus = normalizeStatus(order.getStatus());
+        String targetStatus = normalizeStatus(newStatus);
+        if (!ALLOWED_STATUSES.contains(targetStatus)) {
+            throw new OrderValidationException("Unsupported order status.");
+        }
+        if (Objects.equals(oldStatus, targetStatus)) {
+            return;
+        }
 
-            if (!"cancelled".equals(oldStatus) && "cancelled".equals(newStatus)) {
-                o.getItems().forEach(item -> {
-                    Long productId = item.getProductId();
-                    if (productId == null) {
-                        return;
-                    }
-                    productRepository.findById(productId).ifPresent(p -> {
-                        p.setStock(p.getStock() + item.getQuantity());
-                        productRepository.save(p);
-                    });
-                });
-            }
+        Map<Long, Integer> itemQuantities = extractOrderQuantities(order.getItems());
+        if ("cancelled".equals(oldStatus) && !"cancelled".equals(targetStatus)) {
+            Map<Long, Product> lockedProducts = loadProductsForUpdate(itemQuantities.keySet());
+            validateRequestedStock(itemQuantities, lockedProducts);
+            applyStockDelta(lockedProducts, itemQuantities, -1, false);
+        } else if (!"cancelled".equals(oldStatus) && "cancelled".equals(targetStatus)) {
+            Map<Long, Product> lockedProducts = loadProductsForUpdate(itemQuantities.keySet());
+            applyStockDelta(lockedProducts, itemQuantities, 1, true);
+        }
 
-            o.setStatus(newStatus);
-            orderRepository.save(o);
-        });
+        order.setStatus(targetStatus);
+        orderRepository.save(order);
     }
 
     @Transactional
     public boolean cancelOrder(long orderId, String userEmail) {
         return orderRepository.findById(orderId)
                 .filter(o -> o.getUserEmail().equals(userEmail))
-                .filter(o -> "pending".equals(o.getStatus()) || "processing".equals(o.getStatus()))
+                .filter(o -> {
+                    String status = normalizeStatus(o.getStatus());
+                    return "pending".equals(status) || "processing".equals(status);
+                })
                 .map(o -> {
-                    o.getItems().forEach(item -> {
-                        Long productId = item.getProductId();
-                        if (productId == null) {
-                            return;
-                        }
-                        productRepository.findById(productId).ifPresent(p -> {
-                            p.setStock(p.getStock() + item.getQuantity());
-                            productRepository.save(p);
-                        });
-                    });
+                    Map<Long, Integer> itemQuantities = extractOrderQuantities(o.getItems());
+                    Map<Long, Product> lockedProducts = loadProductsForUpdate(itemQuantities.keySet());
+                    applyStockDelta(lockedProducts, itemQuantities, 1, true);
                     o.setStatus("cancelled");
                     orderRepository.save(o);
                     return true;
                 })
                 .orElse(false);
+    }
+
+    private Map<Long, Integer> extractCartQuantities(List<CartItem> items) {
+        Map<Long, Integer> quantities = new LinkedHashMap<>();
+        for (CartItem item : items) {
+            Long productId = item.getId();
+            if (productId == null) {
+                continue;
+            }
+            int quantity = item.getQuantity();
+            if (quantity <= 0) {
+                throw new OrderValidationException("Invalid item quantity in cart.");
+            }
+            quantities.put(productId, quantities.getOrDefault(productId, 0) + quantity);
+        }
+        if (quantities.isEmpty()) {
+            throw new OrderValidationException("Your cart is empty.");
+        }
+        return quantities;
+    }
+
+    private Map<Long, Integer> extractOrderQuantities(List<OrderItem> items) {
+        Map<Long, Integer> quantities = new LinkedHashMap<>();
+        for (OrderItem item : items) {
+            Long productId = item.getProductId();
+            if (productId == null) {
+                continue;
+            }
+            quantities.put(productId, quantities.getOrDefault(productId, 0) + item.getQuantity());
+        }
+        return quantities;
+    }
+
+    private Map<Long, Product> loadProductsForUpdate(Iterable<Long> productIds) {
+        Set<Long> ids = new LinkedHashSet<>();
+        for (Long id : productIds) {
+            if (id != null) {
+                ids.add(id);
+            }
+        }
+        if (ids.isEmpty()) {
+            return Map.of();
+        }
+        return productRepository.findAllByIdInForUpdate(ids).stream()
+                .filter(product -> product.getId() != null)
+                .collect(Collectors.toMap(Product::getId, product -> product));
+    }
+
+    private void validateRequestedStock(Map<Long, Integer> requestedQuantities, Map<Long, Product> products) {
+        for (Map.Entry<Long, Integer> entry : requestedQuantities.entrySet()) {
+            Product product = products.get(entry.getKey());
+            if (product == null) {
+                throw new OrderValidationException("One of the products in your cart is no longer available.");
+            }
+
+            int requested = entry.getValue();
+            int available = Optional.ofNullable(product.getStock()).orElse(0);
+            if (requested > available) {
+                throw new OrderValidationException(product.getName() + " only has " + available + " item(s) left in stock.");
+            }
+        }
+    }
+
+    private void applyStockDelta(Map<Long, Product> products, Map<Long, Integer> quantities,
+            int direction, boolean allowMissingProducts) {
+        for (Map.Entry<Long, Integer> entry : quantities.entrySet()) {
+            Product product = products.get(entry.getKey());
+            if (product == null) {
+                if (allowMissingProducts) {
+                    continue;
+                }
+                throw new OrderValidationException("One of the products in this order is no longer available.");
+            }
+
+            int currentStock = Optional.ofNullable(product.getStock()).orElse(0);
+            int nextStock = currentStock + (entry.getValue() * direction);
+            if (nextStock < 0) {
+                throw new OrderValidationException(product.getName() + " does not have enough stock to continue.");
+            }
+            product.setStock(nextStock);
+        }
+    }
+
+    private String normalizeStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return "pending";
+        }
+        return status.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizeRequiredText(String value, String emptyMessage, String tooLongMessage, int maxLength) {
+        String normalized = value == null ? "" : value.trim().replaceAll("\\s+", " ");
+        if (normalized.isBlank()) {
+            throw new OrderValidationException(emptyMessage);
+        }
+        if (normalized.length() > maxLength) {
+            throw new OrderValidationException(tooLongMessage);
+        }
+        return normalized;
+    }
+
+    private void validatePhoneNumber(String phone) {
+        if (!PHONE_PATTERN.matcher(phone).matches()) {
+            throw new OrderValidationException("Phone number format is invalid.");
+        }
     }
 }

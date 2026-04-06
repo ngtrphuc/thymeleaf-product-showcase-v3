@@ -1567,6 +1567,27 @@ footer {
   padding: 32px;
   background: var(--bg);
   min-height: 100vh;
+  position: relative;
+  transform-origin: var(--admin-nav-origin-x, 40px) var(--admin-nav-origin-y, 40px);
+}
+
+.admin-content.admin-content--nav-enter {
+  animation: adminContentFromSidebar 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes adminContentFromSidebar {
+  0% {
+    opacity: 0;
+    transform: translate3d(-22px, -6px, 0) scale(0.74);
+  }
+  58% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1.03);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
 }
 
 .stat-grid {
@@ -2351,5 +2372,7 @@ input.filter-input::-webkit-inner-spin-button {
 }
 
 input.filter-input[type=number] {
+  appearance: textfield;
   -moz-appearance: textfield;
 }
+

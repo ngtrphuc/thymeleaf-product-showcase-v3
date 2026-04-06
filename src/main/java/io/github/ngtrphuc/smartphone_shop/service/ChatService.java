@@ -1,7 +1,10 @@
 package io.github.ngtrphuc.smartphone_shop.service;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,6 +19,8 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class ChatService {
+    private static final long SSE_TIMEOUT_MS = 300_000L;
+    private static final int MAX_MESSAGE_LENGTH = 1000;
 
     private final ChatMessageRepository chatMessageRepository;
 
@@ -27,16 +32,17 @@ public class ChatService {
     }
 
     public SseEmitter subscribeUser(String email) {
-        SseEmitter emitter = new SseEmitter(300_000L);
-        userEmitters.computeIfAbsent(email, k -> new CopyOnWriteArrayList<>()).add(emitter);
-        emitter.onCompletion(() -> removeUserEmitter(email, emitter));
-        emitter.onTimeout(() -> removeUserEmitter(email, emitter));
-        emitter.onError(e -> removeUserEmitter(email, emitter));
+        String normalizedEmail = normalizeConversationEmail(email);
+        SseEmitter emitter = new SseEmitter(SSE_TIMEOUT_MS);
+        userEmitters.computeIfAbsent(normalizedEmail, k -> new CopyOnWriteArrayList<>()).add(emitter);
+        emitter.onCompletion(() -> removeUserEmitter(normalizedEmail, emitter));
+        emitter.onTimeout(() -> removeUserEmitter(normalizedEmail, emitter));
+        emitter.onError(e -> removeUserEmitter(normalizedEmail, emitter));
         return emitter;
     }
 
     public SseEmitter subscribeAdmin() {
-        SseEmitter emitter = new SseEmitter(300_000L);
+        SseEmitter emitter = new SseEmitter(SSE_TIMEOUT_MS);
         adminEmitters.add(emitter);
         emitter.onCompletion(() -> adminEmitters.remove(emitter));
         emitter.onTimeout(() -> adminEmitters.remove(emitter));
@@ -46,33 +52,35 @@ public class ChatService {
 
     @Transactional
     public ChatMessage saveUserMessage(String email, String content) {
+        String normalizedEmail = normalizeConversationEmail(email);
         ChatMessage msg = new ChatMessage();
-        msg.setUserEmail(email);
-        msg.setContent(content);
+        msg.setUserEmail(normalizedEmail);
+        msg.setContent(normalizeMessageContent(content));
         msg.setSenderRole("USER");
         msg.setReadByAdmin(false);
         msg.setReadByUser(true);
         ChatMessage saved = chatMessageRepository.save(msg);
-        pushToAdmins(email, saved);
+        pushToAdmins(normalizedEmail, saved);
         return saved;
     }
 
     @Transactional
     public ChatMessage saveAdminMessage(String userEmail, String content) {
+        String normalizedEmail = normalizeConversationEmail(userEmail);
         ChatMessage msg = new ChatMessage();
-        msg.setUserEmail(userEmail);
-        msg.setContent(content);
+        msg.setUserEmail(normalizedEmail);
+        msg.setContent(normalizeMessageContent(content));
         msg.setSenderRole("ADMIN");
         msg.setReadByAdmin(true);
         msg.setReadByUser(false);
         ChatMessage saved = chatMessageRepository.save(msg);
-        pushToUser(userEmail, saved);
-        pushToAdmins(userEmail, saved);
+        pushToUser(normalizedEmail, saved);
+        pushToAdmins(normalizedEmail, saved);
         return saved;
     }
 
     public List<ChatMessage> getHistory(String email) {
-        return chatMessageRepository.findByUserEmailOrderByCreatedAtAsc(email);
+        return chatMessageRepository.findByUserEmailOrderByCreatedAtAsc(normalizeConversationEmail(email));
     }
 
     public List<String> getAllConversationEmails() {
@@ -80,11 +88,19 @@ public class ChatService {
     }
 
     public long countUnreadByAdmin(String email) {
-        return chatMessageRepository.countUnreadByAdmin(email);
+        return chatMessageRepository.countUnreadByAdmin(normalizeConversationEmail(email));
+    }
+
+    public Map<String, Long> getUnreadCountsByAdminConversation() {
+        Map<String, Long> unreadCounts = new LinkedHashMap<>();
+        for (ChatMessageRepository.UnreadCountView row : chatMessageRepository.countUnreadByAdminGrouped()) {
+            unreadCounts.put(row.getUserEmail(), row.getUnreadCount());
+        }
+        return unreadCounts;
     }
 
     public long countUnreadByUser(String email) {
-        return chatMessageRepository.countUnreadByUser(email);
+        return chatMessageRepository.countUnreadByUser(normalizeConversationEmail(email));
     }
 
     public long countAllUnreadByAdmin() {
@@ -93,21 +109,22 @@ public class ChatService {
 
     @Transactional
     public void markReadByAdmin(String email) {
-        chatMessageRepository.markAllReadByAdmin(email);
+        chatMessageRepository.markAllReadByAdmin(normalizeConversationEmail(email));
     }
 
     @Transactional
     public void markReadByUser(String email) {
-        chatMessageRepository.markAllReadByUser(email);
+        chatMessageRepository.markAllReadByUser(normalizeConversationEmail(email));
     }
 
     private void pushToAdmins(String conversationEmail, ChatMessage msg) {
-        String payload = Objects.requireNonNull(buildPayload(msg, conversationEmail));
+        ChatPayload payload = buildPayload(msg, conversationEmail);
         List<SseEmitter> dead = new CopyOnWriteArrayList<>();
         for (SseEmitter emitter : adminEmitters) {
             try {
-                emitter.send(SseEmitter.event().name("message").data(payload));
+                sendMessageEvent(emitter, payload);
             } catch (IOException e) {
+                emitter.complete();
                 dead.add(emitter);
             }
         }
@@ -119,41 +136,66 @@ public class ChatService {
         if (emitters == null) {
             return;
         }
-        String payload = Objects.requireNonNull(buildPayload(msg, email));
+        ChatPayload payload = buildPayload(msg, email);
         List<SseEmitter> dead = new CopyOnWriteArrayList<>();
         for (SseEmitter emitter : emitters) {
             try {
-                emitter.send(SseEmitter.event().name("message").data(payload));
+                sendMessageEvent(emitter, payload);
             } catch (IOException e) {
+                emitter.complete();
                 dead.add(emitter);
             }
         }
         emitters.removeAll(dead);
+        if (emitters.isEmpty()) {
+            userEmitters.remove(email, emitters);
+        }
     }
 
     private void removeUserEmitter(String email, SseEmitter emitter) {
         List<SseEmitter> emitters = userEmitters.get(email);
         if (emitters != null) {
             emitters.remove(emitter);
+            if (emitters.isEmpty()) {
+                userEmitters.remove(email, emitters);
+            }
         }
     }
 
-    private String buildPayload(ChatMessage msg, String conversationEmail) {
-        return "{\"id\":" + msg.getId()
-                + ",\"userEmail\":\"" + escapeJson(conversationEmail) + "\""
-                + ",\"content\":\"" + escapeJson(msg.getContent()) + "\""
-                + ",\"senderRole\":\"" + msg.getSenderRole() + "\""
-                + ",\"createdAt\":\"" + msg.getCreatedAt() + "\""
-                + "}";
+    private String normalizeMessageContent(String content) {
+        String normalized = content == null ? "" : content.trim();
+        if (normalized.isBlank()) {
+            throw new IllegalArgumentException("Message content cannot be empty.");
+        }
+        if (normalized.length() > MAX_MESSAGE_LENGTH) {
+            throw new IllegalArgumentException("Message content is too long.");
+        }
+        return normalized;
     }
 
-    private String escapeJson(String s) {
-        if (s == null) {
-            return "";
+    private String normalizeConversationEmail(String email) {
+        String normalized = email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
+        if (normalized.isBlank()) {
+            throw new IllegalArgumentException("Conversation email cannot be empty.");
         }
-        return s.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r");
+        return normalized;
+    }
+
+    private void sendMessageEvent(SseEmitter emitter, ChatPayload payload) throws IOException {
+        emitter.send(SseEmitter.event()
+                .name("message")
+                .data(Objects.requireNonNull(payload)));
+    }
+
+    private ChatPayload buildPayload(ChatMessage msg, String conversationEmail) {
+        return new ChatPayload(
+                msg.getId(),
+                conversationEmail,
+                msg.getContent(),
+                msg.getSenderRole(),
+                msg.getCreatedAt());
+    }
+
+    private record ChatPayload(Long id, String userEmail, String content, String senderRole, LocalDateTime createdAt) {
     }
 }

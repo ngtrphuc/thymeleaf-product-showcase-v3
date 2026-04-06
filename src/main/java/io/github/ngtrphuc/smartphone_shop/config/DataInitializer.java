@@ -1,6 +1,7 @@
 package io.github.ngtrphuc.smartphone_shop.config;
 
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -8,6 +9,7 @@ import io.github.ngtrphuc.smartphone_shop.model.Product;
 import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
 
 @Configuration
+@Profile("dev")
 public class DataInitializer {
 
     @Bean
@@ -104,9 +106,7 @@ public class DataInitializer {
     private Result upsertProduct(ProductRepository repo, String name, Double price, String img,
             String os, String ram, String cpu, String speed, String storage,
             String size, String res, String battery, String charging, String desc) {
-        Product p = repo.findByNameContainingIgnoreCase(name).stream()
-                .filter(it -> it.getName() != null && it.getName().equalsIgnoreCase(name))
-                .findFirst()
+        Product p = repo.findFirstByNameIgnoreCase(name)
                 .orElseGet(Product::new);
         boolean isNew = p.getId() == null;
 

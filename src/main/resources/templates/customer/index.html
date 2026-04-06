@@ -64,6 +64,412 @@
             margin-left: 6px;
             vertical-align: middle;
         }
+
+        #selectLabel {
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .custom-option.active {
+            background: rgba(0, 212, 255, 0.08);
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .custom-option:not(.active):hover {
+            background: rgba(0, 212, 255, 0.16);
+            color: #ffffff;
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: inset 0 0 0 1px rgba(0, 212, 255, 0.4), 0 18px 30px rgba(0, 0, 0, 0.42);
+        }
+
+        .custom-option.active:hover {
+            background: rgba(0, 212, 255, 0.08);
+            color: var(--accent);
+            transform: none;
+            box-shadow: none;
+        }
+
+        html.is-paginating .pagination-wrapper a {
+            pointer-events: none;
+        }
+
+        html {
+            overflow-y: scroll;
+        }
+
+        .main-layout {
+            width: 100%;
+            max-width: 1460px;
+        }
+
+        .catalog-panel {
+            --catalog-gap: 22px;
+            --catalog-card-height: 316px;
+            --catalog-rows: 3;
+            flex: 1 1 0;
+            width: 100%;
+            max-width: 1088px;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .catalog-page {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            min-width: 0;
+            padding: 24px;
+            min-height: calc((var(--catalog-card-height) * var(--catalog-rows)) + (var(--catalog-gap) * (var(--catalog-rows) - 1)) + 48px);
+            border-radius: 0;
+            border: 0;
+            background: transparent;
+            box-shadow: none;
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .catalog-page::before {
+            content: none;
+        }
+
+        .catalog-page::after {
+            content: none;
+        }
+
+        .catalog-grid {
+            position: relative;
+            z-index: 1;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-auto-rows: var(--catalog-card-height);
+            gap: var(--catalog-gap);
+            align-items: start;
+            align-content: start;
+            min-width: 0;
+        }
+
+        @media (max-width: 1100px) {
+            .catalog-panel {
+                --catalog-gap: 18px;
+                --catalog-card-height: 308px;
+                --catalog-rows: 4;
+                max-width: none;
+            }
+
+            .catalog-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 700px) {
+            .catalog-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .catalog-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .book-flip-stage {
+            position: relative;
+            width: 100%;
+            max-width: 100%;
+            isolation: isolate;
+        }
+
+        .book-flip-stage::before {
+            content: none;
+        }
+
+        .book-flip-underlay,
+        .book-flip-sheet {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 0;
+            display: block;
+        }
+
+        .book-flip-underlay {
+            z-index: 1;
+            opacity: 0.7;
+            will-change: transform, opacity;
+        }
+
+        .book-flip-underlay::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, rgba(4, 8, 18, 0.3), transparent 18%, transparent 82%, rgba(4, 8, 18, 0.14));
+            pointer-events: none;
+        }
+
+        .book-flip-sheet {
+            content: "";
+            z-index: 2;
+            will-change: opacity, transform;
+        }
+
+        .book-flip-underlay .catalog-page,
+        .book-flip-sheet .catalog-page {
+            width: 100%;
+            min-width: 100%;
+            max-width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .book-flip-underlay .catalog-grid,
+        .book-flip-sheet .catalog-grid {
+            width: 100%;
+        }
+
+        .book-flip-underlay .card-wrapper,
+        .book-flip-sheet .card-wrapper {
+            transform-style: preserve-3d;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            will-change: auto;
+        }
+
+        .book-flip-stage.is-active .book-flip-underlay,
+        .book-flip-stage.is-active .book-flip-sheet,
+        .book-flip-stage.is-active .book-flip-underlay .card-wrapper,
+        .book-flip-stage.is-active .book-flip-sheet .card-wrapper {
+            will-change: transform, opacity;
+        }
+
+        .book-flip-stage .book-flip-underlay .card-wrapper,
+        .book-flip-stage .book-flip-sheet .card-wrapper {
+            transform-origin: center center;
+        }
+
+        .book-flip-stage.forward .book-flip-underlay .card-wrapper {
+            opacity: 0;
+            transform: perspective(1000px) rotateY(-78deg) scale(0.96);
+        }
+
+        .book-flip-stage.backward .book-flip-underlay .card-wrapper {
+            opacity: 0;
+            transform: perspective(1000px) rotateY(78deg) scale(0.96);
+        }
+
+        .book-flip-sheet .card-wrapper {
+            opacity: 1;
+            transform: perspective(1000px) rotateY(0deg) scale(1);
+        }
+
+        .book-flip-stage.forward.is-active .book-flip-sheet .card-wrapper {
+            animation: catalogCardFlipOutForward 320ms cubic-bezier(0.23, 0.72, 0.28, 1) forwards;
+            animation-delay: calc(var(--flip-order, 0) * 18ms);
+        }
+
+        .book-flip-stage.backward.is-active .book-flip-sheet .card-wrapper {
+            animation: catalogCardFlipOutBackward 320ms cubic-bezier(0.23, 0.72, 0.28, 1) forwards;
+            animation-delay: calc(var(--flip-order, 0) * 18ms);
+        }
+
+        .book-flip-stage.forward.is-active .book-flip-underlay .card-wrapper {
+            animation: catalogCardFlipInForward 420ms cubic-bezier(0.2, 0.76, 0.24, 1) forwards;
+            animation-delay: calc(90ms + (var(--flip-order, 0) * 18ms));
+        }
+
+        .book-flip-stage.backward.is-active .book-flip-underlay .card-wrapper {
+            animation: catalogCardFlipInBackward 420ms cubic-bezier(0.2, 0.76, 0.24, 1) forwards;
+            animation-delay: calc(90ms + (var(--flip-order, 0) * 18ms));
+        }
+
+        .book-flip-stage.is-active .book-flip-sheet {
+            animation: catalogLayerFadeOut 420ms ease forwards;
+        }
+
+        .book-flip-stage.is-active .book-flip-underlay {
+            animation: catalogLayerSettle 460ms ease forwards;
+        }
+
+        @keyframes catalogLayerSettle {
+            0% {
+                opacity: 0.72;
+                transform: translateY(4px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes catalogLayerFadeOut {
+            0% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.14;
+            }
+        }
+
+        @keyframes catalogCardFlipOutForward {
+            0% {
+                opacity: 1;
+                transform: perspective(1000px) rotateY(0deg) scale(1);
+            }
+
+            55% {
+                opacity: 1;
+                transform: perspective(1000px) rotateY(52deg) scale(0.985);
+            }
+
+            100% {
+                opacity: 0;
+                transform: perspective(1000px) rotateY(78deg) scale(0.96);
+            }
+        }
+
+        @keyframes catalogCardFlipInForward {
+            0% {
+                opacity: 0;
+                transform: perspective(1000px) rotateY(-78deg) scale(0.96);
+            }
+
+            55% {
+                opacity: 1;
+                transform: perspective(1000px) rotateY(16deg) scale(0.99);
+            }
+
+            100% {
+                opacity: 1;
+                transform: perspective(1000px) rotateY(0deg) scale(1);
+            }
+        }
+
+        @keyframes catalogCardFlipOutBackward {
+            0% {
+                opacity: 1;
+                transform: perspective(1000px) rotateY(0deg) scale(1);
+            }
+
+            55% {
+                opacity: 1;
+                transform: perspective(1000px) rotateY(-52deg) scale(0.985);
+            }
+
+            100% {
+                opacity: 0;
+                transform: perspective(1000px) rotateY(-78deg) scale(0.96);
+            }
+        }
+
+        @keyframes catalogCardFlipInBackward {
+            0% {
+                opacity: 0;
+                transform: perspective(1000px) rotateY(78deg) scale(0.96);
+            }
+
+            55% {
+                opacity: 1;
+                transform: perspective(1000px) rotateY(-16deg) scale(0.99);
+            }
+
+            100% {
+                opacity: 1;
+                transform: perspective(1000px) rotateY(0deg) scale(1);
+            }
+        }
+
+        .catalog-grid>.card-wrapper {
+            height: var(--catalog-card-height);
+            display: flex;
+            flex-direction: column;
+            padding: 22px 20px 18px;
+            box-sizing: border-box;
+            background: transparent !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .catalog-grid>.card-wrapper>a {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1 1 0;
+            min-height: 0;
+            width: 100%;
+        }
+
+        .catalog-grid>.card-wrapper img {
+            flex-shrink: 0;
+            height: 160px;
+            width: 100%;
+            object-fit: contain;
+            margin-bottom: 16px;
+        }
+
+        .catalog-grid>.card-wrapper h3 {
+            flex-shrink: 0;
+            min-height: 38px;
+            font-size: 14px;
+            line-height: 1.35;
+            margin: 0;
+            display: -webkit-box;
+            line-clamp: 2;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            width: 100%;
+            text-align: center;
+        }
+
+        .catalog-grid>.card-wrapper .price {
+            flex-shrink: 0;
+            font-size: 17px;
+            line-height: 1.2;
+            margin: 6px 0 0;
+        }
+
+        .catalog-grid>.card-wrapper .view-details {
+            display: inline-block;
+            margin: auto 0 0;
+            padding-top: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .catalog-grid>.card-wrapper::before {
+            content: none;
+        }
+
+        .catalog-grid>.card-wrapper:hover {
+            border: 0 !important;
+            box-shadow: none !important;
+        }
+
+        .catalog-pagination.pagination-wrapper {
+            grid-column: auto;
+            margin: 0;
+            align-self: center;
+            padding: 0 8px;
+        }
+
+        .catalog-pagination .disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .catalog-pagination .slot-empty {
+            opacity: 0.3;
+        }
     </style>
     <script th:inline="none">
         function syncCustomRanges() {
@@ -92,19 +498,23 @@
     <div id="page-config" th:attr="data-current-page=${currentPage},data-page-size=${pageSize}"></div>
     <div class="header">
         <a href="/" class="home-animated">&#127968; HOME</a>
-        <div style="display:flex;align-items:center;gap:10px;">
+        <div class="header-actions">
             <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header header-action">
                 <span class="header-action__icon">&#128273;</span>
                 <span class="header-action__label">Log In</span>
             </a>
             <th:block sec:authorize="isAuthenticated()">
+                <a sec:authorize="hasRole('USER')" href="/my-orders" class="btn-header header-action header-action--neutral">
+                    <span class="header-action__icon">&#129534;</span>
+                    <span class="header-action__label">Orders</span>
+                </a>
+                <a sec:authorize="hasRole('USER')" href="/cart" class="btn-header header-action header-action--neutral">
+                    <span class="header-action__icon">&#128722;</span>
+                    <span class="header-action__label">Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)</span>
+                </a>
                 <a sec:authorize="hasRole('USER')" th:href="@{/profile}" class="btn-header header-action header-action--profile">
                     <span class="header-action__icon">&#128100;</span>
                     <span class="header-action__label" sec:authentication="name"></span>
-                </a>
-                <a sec:authorize="hasRole('USER')" href="/my-orders" class="btn-header header-action">
-                    <span class="header-action__icon">&#128203;</span>
-                    <span class="header-action__label">Orders</span>
                 </a>
                 <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header header-action header-action--accent"
                     style="color:#00d4ff !important;border-color:rgba(0,212,255,0.25) !important;">
@@ -112,17 +522,12 @@
                     <span class="header-action__label">Admin</span>
                 </a>
                 <form th:action="@{/logout}" method="post" style="display:inline;margin:0;">
-                    <button type="submit" class="btn-logout-link header-action">
-                        <span class="header-action__icon">&#128682;</span>
+                    <button type="submit" class="btn-logout-link header-action header-action--danger">
+                        <span class="header-action__icon">&#x23FB;</span>
                         <span class="header-action__label">Log Out</span>
                     </button>
                 </form>
             </th:block>
-            <a sec:authorize="hasRole('USER')" href="/cart" class="btn-header header-action header-action--accent"
-                style="color:#00d4ff !important;border-color:rgba(0,212,255,0.25) !important;">
-                <span class="header-action__icon">&#128722;</span>
-                <span class="header-action__label">Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)</span>
-            </a>
         </div>
     </div>
 
@@ -329,33 +734,43 @@
             </div>
         </div>
 
-        <div class="container">
-            <div th:each="p : ${products}" class="card card-wrapper"
-                th:classappend="${p.stock != null and p.stock <= 0} ? ' out-of-stock' : ''">
-                <span th:if="${p.stock != null and p.stock <= 0}" class="badge-out-of-stock">Out of Stock</span>
-                <a th:href="@{/product/{id}(id=${p.id}, page=${currentPage}, pageSize=${pageSize}, keyword=${keyword}, sort=${sort}, brand=${brand}, priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax}, batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax}, screenSize=${screenSize})}"
-                    style="text-decoration:none;color:inherit;">
-                    <img th:src="@{${p.imageUrl}}" alt="phone">
-                    <h3 th:text="${p.name}"></h3>
-                    <p class="price"
-                        th:text="${p.price != null ? #numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT') : '0'} + ' JPY'">
-                    </p>
-                    <span class="view-details"
-                        th:text="${p.stock != null and p.stock <= 0} ? 'Out of Stock' : 'View Details'"></span>
-                </a>
+        <div class="catalog-panel">
+            <div class="catalog-page">
+                <div class="catalog-grid">
+                    <div th:each="p : ${products}" class="card card-wrapper"
+                        th:classappend="${p.stock != null and p.stock <= 0} ? ' out-of-stock' : ''">
+                        <span th:if="${p.stock != null and p.stock <= 0}" class="badge-out-of-stock">Out of Stock</span>
+                        <a th:href="@{/product/{id}(id=${p.id}, page=${currentPage}, pageSize=${pageSize}, keyword=${keyword}, sort=${sort}, brand=${brand}, priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax}, batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax}, screenSize=${screenSize})}"
+                            style="text-decoration:none;color:inherit;">
+                            <img th:src="@{${p.imageUrl}}" alt="phone">
+                            <h3 th:text="${p.name}"></h3>
+                            <p class="price"
+                                th:text="${p.price != null ? #numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT') : '0'} + ' JPY'">
+                            </p>
+                            <span class="view-details"
+                                th:text="${p.stock != null and p.stock <= 0} ? 'Out of Stock' : 'View Details'"></span>
+                        </a>
+                    </div>
+                </div>
             </div>
 
-            <div class="pagination-wrapper" th:if="${totalPages != null and totalPages > 1}">
+            <div class="pagination-wrapper catalog-pagination" th:if="${totalPages != null and totalPages > 1}"
+                th:with="startPage=${T(java.lang.Math).max(0, T(java.lang.Math).min(currentPage - 1, totalPages - 3))}">
                 <a th:if="${currentPage > 0}"
                     th:href="@{/(page=${currentPage - 1}, pageSize=${pageSize}, keyword=${keyword}, sort=${sort}, brand=${brand}, priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax}, batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax}, screenSize=${screenSize})}">&#8249;</a>
-                <th:block th:each="i : ${#numbers.sequence(0, totalPages - 1)}">
-                    <span th:if="${i == currentPage}" class="active" th:text="${i + 1}"></span>
-                    <a th:unless="${i == currentPage}"
+                <span th:unless="${currentPage > 0}" class="disabled">&#8249;</span>
+
+                <th:block th:each="offset : ${#numbers.sequence(0, 2)}" th:with="i=${startPage + offset}">
+                    <span th:if="${i >= totalPages}" class="disabled slot-empty">&#160;</span>
+                    <span th:if="${i < totalPages and i == currentPage}" class="active" th:text="${i + 1}"></span>
+                    <a th:if="${i < totalPages and i != currentPage}"
                         th:href="@{/(page=${i}, pageSize=${pageSize}, keyword=${keyword}, sort=${sort}, brand=${brand}, priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax}, batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax}, screenSize=${screenSize})}"
                         th:text="${i + 1}"></a>
                 </th:block>
+
                 <a th:if="${currentPage < totalPages - 1}"
                     th:href="@{/(page=${currentPage + 1}, pageSize=${pageSize}, keyword=${keyword}, sort=${sort}, brand=${brand}, priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax}, batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax}, screenSize=${screenSize})}">&#8250;</a>
+                <span th:unless="${currentPage < totalPages - 1}" class="disabled">&#8250;</span>
             </div>
         </div>
     </div>
@@ -381,8 +796,8 @@
             const sortInput = document.getElementById('sortValue');
             const selectLabel = document.getElementById('selectLabel');
             const customSelect = document.getElementById('customSelect');
-            const currentPage = pageConfig ? Number(pageConfig.dataset.currentPage || '0') : 0;
-            const currentPageSize = pageConfig ? Number(pageConfig.dataset.pageSize || desktopPageSize) : desktopPageSize;
+            let currentPage = pageConfig ? Number(pageConfig.dataset.currentPage || '0') : 0;
+            let currentPageSize = pageConfig ? Number(pageConfig.dataset.pageSize || desktopPageSize) : desktopPageSize;
 
             function desiredPageSize() {
                 return window.innerWidth <= compactBreakpoint ? compactPageSize : desktopPageSize;
@@ -404,11 +819,20 @@
             }
 
             if (trigger && sortInput && customSelect) {
+                const syncActiveSortOption = (value) => {
+                    document.querySelectorAll('.custom-option').forEach(option => {
+                        option.classList.toggle('active', (option.dataset.value || '') === value);
+                    });
+                };
+
+                syncActiveSortOption(sortInput.value || '');
                 trigger.addEventListener('click', () => customSelect.classList.toggle('open'));
                 document.querySelectorAll('.custom-option').forEach(option => {
                     option.addEventListener('click', () => {
+                        const selectedValue = option.dataset.value || '';
                         selectLabel.textContent = option.textContent.trim();
-                        sortInput.value = option.dataset.value;
+                        sortInput.value = selectedValue;
+                        syncActiveSortOption(selectedValue);
                         customSelect.classList.remove('open');
                         document.getElementById('mainForm').submit();
                     });
@@ -417,11 +841,229 @@
                     if (!customSelect.contains(e.target)) customSelect.classList.remove('open');
                 });
             }
+
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            let isNavigating = false;
+
+            const pageFromHref = (href) => {
+                try {
+                    const url = new URL(href, window.location.origin);
+                    const parsed = Number(url.searchParams.get('page') || '0');
+                    return Number.isFinite(parsed) ? parsed : 0;
+                } catch (_) {
+                    return 0;
+                }
+            };
+
+            const syncCatalogPageHeight = () => {
+                const panel = document.querySelector('.catalog-panel');
+                const page = panel ? panel.querySelector('.catalog-page') : null;
+                if (!page) {
+                    return;
+                }
+
+                page.style.height = '';
+                page.style.minHeight = '';
+                const computedPage = window.getComputedStyle(page);
+                const cardHeight = parseFloat(computedPage.getPropertyValue('--catalog-card-height')) || 316;
+                const rows = parseFloat(computedPage.getPropertyValue('--catalog-rows')) || 3;
+                const rowGap = parseFloat(computedPage.getPropertyValue('--catalog-gap')) || 22;
+                const verticalPadding = (parseFloat(computedPage.paddingTop) || 0) + (parseFloat(computedPage.paddingBottom) || 0);
+                const targetHeight = (rows * cardHeight) + (Math.max(0, rows - 1) * rowGap) + verticalPadding;
+                page.style.minHeight = `${Math.ceil(targetHeight)}px`;
+                page.style.height = `${Math.ceil(targetHeight)}px`;
+            };
+
+            const playBookFlipTransition = (currentLayout, nextLayout, direction) => {
+                return new Promise((resolve) => {
+                    const parent = currentLayout.parentElement;
+                    if (!parent) {
+                        resolve(false);
+                        return;
+                    }
+
+                    const stage = document.createElement('div');
+                    stage.className = `book-flip-stage ${direction}`;
+                    const stageRect = currentLayout.getBoundingClientRect();
+                    const stageHeight = stageRect.height;
+                    stage.style.height = `${Math.ceil(stageHeight)}px`;
+                    stage.style.width = '100%';
+                    stage.style.maxWidth = '100%';
+                    parent.replaceChild(stage, currentLayout);
+
+                    const underlay = document.createElement('div');
+                    underlay.className = 'book-flip-underlay';
+
+                    const sheet = document.createElement('div');
+                    sheet.className = 'book-flip-sheet';
+
+                    const assignFlipOrder = (layout) => {
+                        const cards = Array.from(layout.querySelectorAll('.card-wrapper'));
+                        const orderedCards = direction === 'backward' ? [...cards].reverse() : cards;
+                        orderedCards.forEach((card, index) => {
+                            card.style.setProperty('--flip-order', String(index));
+                        });
+                        return cards.length;
+                    };
+
+                    currentLayout.style.width = '100%';
+                    currentLayout.style.minWidth = '100%';
+                    currentLayout.style.height = '100%';
+                    nextLayout.style.width = '100%';
+                    nextLayout.style.minWidth = '100%';
+                    nextLayout.style.height = '100%';
+                    nextLayout.style.minHeight = currentLayout.style.minHeight || `${stageHeight}px`;
+
+                    const outgoingCardCount = assignFlipOrder(currentLayout);
+                    const incomingCardCount = assignFlipOrder(nextLayout);
+
+                    underlay.appendChild(nextLayout);
+                    sheet.appendChild(currentLayout);
+                    stage.appendChild(underlay);
+                    stage.appendChild(sheet);
+
+                    let cleaned = false;
+                    const cleanup = () => {
+                        if (cleaned) return;
+                        cleaned = true;
+                        currentLayout.style.width = '';
+                        currentLayout.style.minWidth = '';
+                        currentLayout.style.height = '';
+                        nextLayout.style.width = '';
+                        nextLayout.style.minWidth = '';
+                        nextLayout.style.height = '';
+                        Array.from(nextLayout.querySelectorAll('.card-wrapper')).forEach(card => {
+                            card.style.removeProperty('--flip-order');
+                        });
+                        stage.replaceWith(nextLayout);
+                        resolve(true);
+                    };
+
+                    const totalCards = Math.max(outgoingCardCount, incomingCardCount);
+                    const totalDuration = 620 + (Math.max(0, totalCards - 1) * 18);
+
+                    underlay.addEventListener('animationend', cleanup, { once: true });
+                    requestAnimationFrame(() => stage.classList.add('is-active'));
+                    setTimeout(cleanup, totalDuration);
+                });
+            };
+
+            const applyPaginatedContent = async (href, direction) => {
+                if (prefersReducedMotion) {
+                    window.location.href = href;
+                    return;
+                }
+
+                const currentLayout = document.querySelector('.catalog-panel .catalog-page');
+                if (!currentLayout) {
+                    window.location.href = href;
+                    return;
+                }
+
+                const lockedHeight = currentLayout.getBoundingClientRect().height;
+                currentLayout.style.minHeight = `${Math.ceil(lockedHeight)}px`;
+                currentLayout.style.height = `${Math.ceil(lockedHeight)}px`;
+
+                const response = await fetch(href, {
+                    method: 'GET',
+                    credentials: 'same-origin',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!response.ok) {
+                    throw new Error(`Failed to load page ${response.status}`);
+                }
+
+                const html = await response.text();
+                const parsed = new DOMParser().parseFromString(html, 'text/html');
+                const incomingLayoutSource = parsed.querySelector('.catalog-panel .catalog-page');
+                if (!incomingLayoutSource) {
+                    throw new Error('Missing catalog page in response');
+                }
+                const incomingLayout = document.importNode(incomingLayoutSource, true);
+                const incomingPaginationSource = parsed.querySelector('.catalog-panel .pagination-wrapper');
+
+                await playBookFlipTransition(currentLayout, incomingLayout, direction);
+                incomingLayout.style.height = '';
+                incomingLayout.style.minHeight = '';
+
+                const incomingConfig = parsed.getElementById('page-config');
+                if (pageConfig && incomingConfig) {
+                    if (incomingConfig.dataset.currentPage != null) {
+                        pageConfig.dataset.currentPage = incomingConfig.dataset.currentPage;
+                        const parsedPage = Number(incomingConfig.dataset.currentPage || '0');
+                        currentPage = Number.isFinite(parsedPage) ? parsedPage : currentPage;
+                    }
+                    if (incomingConfig.dataset.pageSize != null) {
+                        pageConfig.dataset.pageSize = incomingConfig.dataset.pageSize;
+                        const parsedPageSize = Number(incomingConfig.dataset.pageSize || String(desktopPageSize));
+                        currentPageSize = Number.isFinite(parsedPageSize) ? parsedPageSize : currentPageSize;
+                    }
+                }
+
+                const currentPagination = document.querySelector('.catalog-panel .pagination-wrapper');
+                if (incomingPaginationSource) {
+                    const incomingPagination = document.importNode(incomingPaginationSource, true);
+                    if (currentPagination) {
+                        currentPagination.replaceWith(incomingPagination);
+                    } else {
+                        document.querySelector('.catalog-panel')?.appendChild(incomingPagination);
+                    }
+                } else if (currentPagination) {
+                    currentPagination.remove();
+                }
+
+                syncCatalogPageHeight();
+                history.pushState({ page: currentPage }, '', href);
+                bindPaginationFlip();
+            };
+
+            window.addEventListener('popstate', () => {
+                window.location.reload();
+            });
+
+            const bindPaginationFlip = () => {
+                document.querySelectorAll('.catalog-panel .pagination-wrapper a[href]').forEach(link => {
+                    if (link.dataset.flipBound === '1') {
+                        return;
+                    }
+                    link.dataset.flipBound = '1';
+                    link.addEventListener('click', async (event) => {
+                        if (isNavigating || event.defaultPrevented) return;
+                        if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                        if (link.target && link.target.toLowerCase() === '_blank') return;
+
+                        const href = link.getAttribute('href');
+                        if (!href || href.startsWith('#')) return;
+
+                        event.preventDefault();
+                        isNavigating = true;
+                        document.documentElement.classList.add('is-paginating');
+                        const targetPage = pageFromHref(href);
+                        const direction = targetPage >= currentPage ? 'forward' : 'backward';
+
+                        try {
+                            await applyPaginatedContent(href, direction);
+                        } catch (_) {
+                            window.location.href = href;
+                            return;
+                        } finally {
+                            isNavigating = false;
+                            document.documentElement.classList.remove('is-paginating');
+                        }
+                    });
+                });
+            };
+
+            bindPaginationFlip();
+            syncCatalogPageHeight();
             syncResponsivePageSize();
             let resizeTimer;
             window.addEventListener('resize', () => {
                 clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(syncResponsivePageSize, 180);
+                resizeTimer = setTimeout(() => {
+                    syncCatalogPageHeight();
+                    syncResponsivePageSize();
+                }, 180);
             });
             setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 3200);
         });
@@ -430,3 +1072,4 @@
 </body>
 
 </html>
+

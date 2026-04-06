@@ -1,5 +1,6 @@
 package io.github.ngtrphuc.smartphone_shop.config;
 
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -73,6 +74,9 @@ public class SecurityConfig {
                         response.sendRedirect("/login");
                     }
                 })
+                )
+                .headers(headers -> headers
+                .referrerPolicy(referrer -> referrer.policy(ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
                 )
                 .sessionManagement(session -> session
                 .sessionFixation().changeSessionId()

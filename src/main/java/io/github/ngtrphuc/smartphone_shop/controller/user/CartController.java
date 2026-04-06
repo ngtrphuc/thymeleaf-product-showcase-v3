@@ -15,6 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import io.github.ngtrphuc.smartphone_shop.model.CartItem;
 import io.github.ngtrphuc.smartphone_shop.repository.UserRepository;
 import io.github.ngtrphuc.smartphone_shop.service.CartService;
+import io.github.ngtrphuc.smartphone_shop.service.OrderValidationException;
 import io.github.ngtrphuc.smartphone_shop.service.OrderService;
 import jakarta.servlet.http.HttpSession;
 
@@ -47,7 +48,7 @@ public class CartController {
         return "cart";
     }
 
-    @GetMapping("/add")
+    @PostMapping("/add")
     public String add(@RequestParam long id, Authentication auth,
             HttpSession session, RedirectAttributes ra) {
         cartService.addItem(getEmail(auth), session, id);
@@ -56,21 +57,21 @@ public class CartController {
         return "redirect:/product/" + id;
     }
 
-    @GetMapping("/increase/{id}")
+    @PostMapping("/increase/{id}")
     public String increase(@PathVariable long id, Authentication auth, HttpSession session) {
         cartService.increaseItem(getEmail(auth), session, id);
         cartService.syncCartCount(session, getEmail(auth));
         return "redirect:/cart";
     }
 
-    @GetMapping("/decrease/{id}")
+    @PostMapping("/decrease/{id}")
     public String decrease(@PathVariable long id, Authentication auth, HttpSession session) {
         cartService.decreaseItem(getEmail(auth), session, id);
         cartService.syncCartCount(session, getEmail(auth));
         return "redirect:/cart";
     }
 
-    @GetMapping("/remove/{id}")
+    @PostMapping("/remove/{id}")
     public String remove(@PathVariable long id, Authentication auth, HttpSession session) {
         cartService.removeItem(getEmail(auth), session, id);
         cartService.syncCartCount(session, getEmail(auth));
@@ -83,7 +84,7 @@ public class CartController {
             return "redirect:/cart";
         }
         if (auth != null) {
-            userRepository.findByEmail(auth.getName()).ifPresent(u -> model.addAttribute("user", u));
+            userRepository.findByEmailIgnoreCase(auth.getName()).ifPresent(u -> model.addAttribute("user", u));
         }
         return "shipping";
     }
@@ -95,14 +96,17 @@ public class CartController {
             @RequestParam(required = false) String savedAddress,
             @RequestParam(required = false) String address,
             HttpSession session) {
-        String finalAddress = "new".equals(addressOption) ? address
-                : (savedAddress != null && !savedAddress.isBlank() ? savedAddress : address);
-        if (customerName.isBlank() || phoneNumber.isBlank()
-                || finalAddress == null || finalAddress.isBlank()) {
+        String normalizedName = normalizeInline(customerName);
+        String normalizedPhone = normalizeInline(phoneNumber);
+        String normalizedSavedAddress = normalizeInline(savedAddress);
+        String normalizedAddress = normalizeInline(address);
+        String finalAddress = "new".equals(addressOption) ? normalizedAddress
+                : (!normalizedSavedAddress.isBlank() ? normalizedSavedAddress : normalizedAddress);
+        if (normalizedName.isBlank() || normalizedPhone.isBlank() || finalAddress.isBlank()) {
             return "redirect:/cart/shipping";
         }
-        session.setAttribute("name", customerName);
-        session.setAttribute("phone", phoneNumber);
+        session.setAttribute("name", normalizedName);
+        session.setAttribute("phone", normalizedPhone);
         session.setAttribute("address", finalAddress);
         return "redirect:/cart/checkout";
     }
@@ -132,18 +136,27 @@ public class CartController {
             return "redirect:/cart/shipping";
         }
 
-        orderService.createOrder(email, name, phone, address, cart, cartService.calculateTotal(cart));
-        cartService.clearCart(email, session);
-        session.removeAttribute("name");
-        session.removeAttribute("phone");
-        session.removeAttribute("address");
+        try {
+            orderService.createOrder(email, name, phone, address, cart, cartService.calculateTotal(cart));
+            cartService.clearCart(email, session);
+            session.removeAttribute("name");
+            session.removeAttribute("phone");
+            session.removeAttribute("address");
 
-        ra.addFlashAttribute("orderSuccess", true);
-        return "redirect:/cart/success";
+            ra.addFlashAttribute("orderSuccess", true);
+            return "redirect:/cart/success";
+        } catch (OrderValidationException ex) {
+            ra.addFlashAttribute("toast", ex.getMessage());
+            return "redirect:/cart/checkout";
+        }
     }
 
     @GetMapping("/success")
     public String success() {
         return "success";
+    }
+
+    private String normalizeInline(String value) {
+        return value == null ? "" : value.trim().replaceAll("\\s+", " ");
     }
 }

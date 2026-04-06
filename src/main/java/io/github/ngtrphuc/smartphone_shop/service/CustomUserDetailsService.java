@@ -1,5 +1,8 @@
 package io.github.ngtrphuc.smartphone_shop.service;
+
 import java.util.List;
+import java.util.Locale;
+
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -15,12 +18,13 @@ public class CustomUserDetailsService implements UserDetailsService {
     
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userRepository.findByEmail(email)
+        String normalizedEmail = email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
+        return userRepository.findByEmailIgnoreCase(normalizedEmail)
                 .map(user -> new org.springframework.security.core.userdetails.User(
                         user.getEmail(),
                         user.getPassword(),
                         List.of(new SimpleGrantedAuthority(user.getRole()))
                 ))
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + normalizedEmail));
     }
 }

@@ -37,7 +37,7 @@ public class ProfileController {
     @GetMapping
     public String profile(Authentication auth, HttpSession session, Model model) {
         String email = auth.getName();
-        User user = userRepository.findByEmail(email).orElseThrow();
+        User user = userRepository.findByEmailIgnoreCase(email).orElseThrow();
         List<Order> allOrders = orderService.getOrdersByUser(email);
         List<Order> deliveredOrders = allOrders.stream()
                 .filter(o -> "delivered".equals(o.getStatus())).toList();
@@ -58,15 +58,23 @@ public class ProfileController {
             @RequestParam String phoneNumber,
             @RequestParam String defaultAddress,
             RedirectAttributes ra) {
-        userRepository.findByEmail(auth.getName()).ifPresent(user -> {
-            user.setFullName(fullName);
-            user.setPhoneNumber(phoneNumber);
-            user.setDefaultAddress(defaultAddress);
+        String normalizedFullName = normalizeInline(fullName);
+        if (normalizedFullName.isBlank()) {
+            ra.addFlashAttribute("toast", "Full name cannot be empty.");
+            return "redirect:/profile";
+        }
+
+        userRepository.findByEmailIgnoreCase(auth.getName()).ifPresent(user -> {
+            user.setFullName(normalizedFullName);
+            user.setPhoneNumber(normalizeInline(phoneNumber));
+            user.setDefaultAddress(normalizeInline(defaultAddress));
             userRepository.save(user);
         });
         ra.addFlashAttribute("toast", "Profile updated!");
         return "redirect:/profile";
     }
+
+    private String normalizeInline(String value) {
+        return value == null ? "" : value.trim().replaceAll("\\s+", " ");
+    }
 }
-
-

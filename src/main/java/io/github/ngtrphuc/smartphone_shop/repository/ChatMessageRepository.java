@@ -11,6 +11,11 @@ import io.github.ngtrphuc.smartphone_shop.model.ChatMessage;
 
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
 
+    interface UnreadCountView {
+        String getUserEmail();
+        long getUnreadCount();
+    }
+
     List<ChatMessage> findByUserEmailOrderByCreatedAtAsc(String userEmail);
 
     @Query(value = """
@@ -22,6 +27,14 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
 
     @Query("SELECT COUNT(m) FROM ChatMessage m WHERE m.userEmail = :email AND m.readByAdmin = false AND m.senderRole = 'USER'")
     long countUnreadByAdmin(@Param("email") String email);
+
+    @Query("""
+            SELECT m.userEmail AS userEmail, COUNT(m) AS unreadCount
+            FROM ChatMessage m
+            WHERE m.readByAdmin = false AND m.senderRole = 'USER'
+            GROUP BY m.userEmail
+            """)
+    List<UnreadCountView> countUnreadByAdminGrouped();
 
     @Query("SELECT COUNT(m) FROM ChatMessage m WHERE m.userEmail = :email AND m.readByUser = false AND m.senderRole = 'ADMIN'")
     long countUnreadByUser(@Param("email") String email);

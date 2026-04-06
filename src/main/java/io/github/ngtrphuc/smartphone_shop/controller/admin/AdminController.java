@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import io.github.ngtrphuc.smartphone_shop.model.Product;
 import io.github.ngtrphuc.smartphone_shop.repository.OrderRepository;
 import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
+import io.github.ngtrphuc.smartphone_shop.service.OrderValidationException;
 import io.github.ngtrphuc.smartphone_shop.service.OrderService;
 
 @Controller
@@ -24,6 +25,8 @@ import io.github.ngtrphuc.smartphone_shop.service.OrderService;
 public class AdminController {
 
     private static final int ADMIN_PAGE_SIZE = 10;
+    private static final int DASHBOARD_ORDER_PAGE_SIZE = 10;
+    private static final int ADMIN_ORDER_PAGE_SIZE = 10;
     private final ProductRepository productRepository;
     private final OrderRepository orderRepository;
     private final OrderService orderService;
@@ -35,12 +38,20 @@ public class AdminController {
     }
 
     @GetMapping
-    public String dashboard(Model model) {
+    public String dashboard(@RequestParam(defaultValue = "0") int page, Model model) {
+        long totalOrders = orderRepository.count();
         model.addAttribute("totalProducts", productRepository.count());
         model.addAttribute("totalItemsSold", orderService.getTotalItemsSold());
-        model.addAttribute("totalOrders", orderService.getAllOrders().size());
+        model.addAttribute("totalOrders", totalOrders);
         model.addAttribute("totalRevenue", orderService.getTotalRevenue());
-        model.addAttribute("recentOrders", orderService.getRecentOrders(10));
+
+        int totalPages = totalOrders == 0 ? 0 : (int) Math.ceil((double) totalOrders / DASHBOARD_ORDER_PAGE_SIZE);
+        int safePage = totalPages == 0 ? 0 : Math.max(0, Math.min(page, totalPages - 1));
+
+        model.addAttribute("recentOrders", orderService.getRecentOrders(safePage, DASHBOARD_ORDER_PAGE_SIZE));
+        model.addAttribute("currentPage", safePage);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("dashboardOrderCount", totalOrders);
         return "admin/dashboard";
     }
 
@@ -64,7 +75,9 @@ public class AdminController {
             @RequestParam(defaultValue = "all") String stock,
             @RequestParam(defaultValue = "id_asc") String sort,
             Model model) {
-        model.addAttribute("product", new Product());
+        if (!model.containsAttribute("product")) {
+            model.addAttribute("product", new Product());
+        }
         addProductListState(model, page, keyword, brand, stock, sort);
         return "admin/product-form";
     }
@@ -80,7 +93,9 @@ public class AdminController {
             RedirectAttributes redirectAttributes) {
         return productRepository.findById(id)
                 .map(product -> {
-                    model.addAttribute("product", product);
+                    if (!model.containsAttribute("product")) {
+                        model.addAttribute("product", product);
+                    }
                     addProductListState(model, page, keyword, brand, stock, sort);
                     return "admin/product-form";
                 })
@@ -99,6 +114,17 @@ public class AdminController {
             @RequestParam(name = "returnStock", defaultValue = "all") String stock,
             @RequestParam(name = "returnSort", defaultValue = "id_asc") String sort,
             RedirectAttributes redirectAttributes) {
+        try {
+            normalizeAndValidateProduct(product);
+        } catch (IllegalArgumentException ex) {
+            redirectAttributes.addFlashAttribute("toast", ex.getMessage());
+            redirectAttributes.addFlashAttribute("product", product);
+            addProductListState(redirectAttributes, page, keyword, brand, stock, sort);
+            return product.getId() != null
+                    ? "redirect:/admin/products/edit/" + product.getId()
+                    : "redirect:/admin/products/new";
+        }
+
         boolean isUpdate = product.getId() != null;
         productRepository.save(product);
         redirectAttributes.addFlashAttribute("toast",
@@ -127,17 +153,30 @@ public class AdminController {
     }
 
     @GetMapping("/orders")
-    public String orders(Model model) {
-        model.addAttribute("orders", orderRepository.findAllByOrderByCreatedAtDesc());
+    public String orders(@RequestParam(defaultValue = "0") int page, Model model) {
+        long totalOrders = orderService.countOrders();
+        int totalPages = totalOrders == 0 ? 0 : (int) Math.ceil((double) totalOrders / ADMIN_ORDER_PAGE_SIZE);
+        int safePage = totalPages == 0 ? 0 : Math.max(0, Math.min(page, totalPages - 1));
+
+        model.addAttribute("orders", orderService.getAdminOrdersPage(safePage, ADMIN_ORDER_PAGE_SIZE));
+        model.addAttribute("currentPage", safePage);
+        model.addAttribute("totalPages", totalPages);
+        model.addAttribute("orderCount", totalOrders);
         return "admin/orders";
     }
 
     @PostMapping("/orders/{id}/status")
     public String updateOrderStatus(@PathVariable long id,
             @RequestParam String status,
+            @RequestParam(defaultValue = "0") int page,
             RedirectAttributes redirectAttributes) {
-        orderService.updateStatus(id, status);
-        redirectAttributes.addFlashAttribute("toast", "Order status updated.");
+        try {
+            orderService.updateStatus(id, status);
+            redirectAttributes.addFlashAttribute("toast", "Order status updated.");
+        } catch (OrderValidationException ex) {
+            redirectAttributes.addFlashAttribute("toast", ex.getMessage());
+        }
+        redirectAttributes.addAttribute("page", Math.max(page, 0));
         return "redirect:/admin/orders";
     }
 
@@ -182,8 +221,8 @@ public class AdminController {
     private List<Product> applyAdminSort(List<Product> products, String sort) {
         Comparator<Product> comparator = switch (sort) {
             case "id_desc" -> Comparator.comparing((Product p) -> p.getId() == null ? Long.MIN_VALUE : p.getId()).reversed();
-            case "name_asc" -> Comparator.comparing(p -> normalizeText(p.getName()) == null ? "" : normalizeText(p.getName()));
-            case "name_desc" -> Comparator.comparing((Product p) -> normalizeText(p.getName()) == null ? "" : normalizeText(p.getName())).reversed();
+            case "name_asc" -> Comparator.comparing((Product p) -> normalizeNameForSort(p.getName()));
+            case "name_desc" -> Comparator.comparing((Product p) -> normalizeNameForSort(p.getName())).reversed();
             case "price_asc" -> Comparator.comparing(p -> p.getPrice() == null ? Double.MAX_VALUE : p.getPrice());
             case "price_desc" -> Comparator.comparing((Product p) -> p.getPrice() == null ? Double.MIN_VALUE : p.getPrice()).reversed();
             case "stock_asc" -> Comparator.comparing(p -> p.getStock() == null ? Integer.MAX_VALUE : p.getStock());
@@ -252,6 +291,10 @@ public class AdminController {
         return value.trim();
     }
 
+    private String normalizeNameForSort(String name) {
+        return name == null ? "" : name.trim().toLowerCase(Locale.ROOT);
+    }
+
     private String normalizeStock(String stock) {
         return switch (stock) {
             case "in_stock", "low_stock", "out_of_stock" -> stock;
@@ -293,5 +336,58 @@ public class AdminController {
         if (!"id_asc".equals(normalizedSort)) {
             redirectAttributes.addAttribute("sort", normalizedSort);
         }
+    }
+
+    private void normalizeAndValidateProduct(Product product) {
+        product.setName(normalizeRequiredField(product.getName(), "Product name is required.", "Product name is too long.", 160));
+        product.setImageUrl(normalizeOptionalField(product.getImageUrl(), "Image URL is too long.", 255));
+        product.setOs(normalizeOptionalField(product.getOs(), "OS is too long.", 80));
+        product.setRam(normalizeOptionalField(product.getRam(), "RAM is too long.", 80));
+        product.setChipset(normalizeOptionalField(product.getChipset(), "Chipset is too long.", 120));
+        product.setSpeed(normalizeOptionalField(product.getSpeed(), "Frequency is too long.", 80));
+        product.setStorage(normalizeOptionalField(product.getStorage(), "Storage is too long.", 80));
+        product.setSize(normalizeOptionalField(product.getSize(), "Screen size is too long.", 80));
+        product.setResolution(normalizeOptionalField(product.getResolution(), "Resolution is too long.", 120));
+        product.setBattery(normalizeOptionalField(product.getBattery(), "Battery is too long.", 80));
+        product.setCharging(normalizeOptionalField(product.getCharging(), "Charging power is too long.", 80));
+        product.setDescription(normalizeOptionalField(product.getDescription(), "Description is too long.", 1000));
+
+        Double price = product.getPrice();
+        if (price == null || price < 0) {
+            throw new IllegalArgumentException("Price must be zero or greater.");
+        }
+
+        Integer stock = product.getStock();
+        if (stock == null || stock < 0) {
+            throw new IllegalArgumentException("Stock must be zero or greater.");
+        }
+
+        String imageUrl = product.getImageUrl();
+        if (imageUrl != null
+                && !(imageUrl.startsWith("/") || imageUrl.startsWith("http://") || imageUrl.startsWith("https://"))) {
+            throw new IllegalArgumentException("Image URL must start with '/' or http(s)://.");
+        }
+    }
+
+    private String normalizeRequiredField(String value, String emptyMessage, String tooLongMessage, int maxLength) {
+        String normalized = normalizeOptionalField(value, tooLongMessage, maxLength);
+        if (normalized == null) {
+            throw new IllegalArgumentException(emptyMessage);
+        }
+        return normalized;
+    }
+
+    private String normalizeOptionalField(String value, String tooLongMessage, int maxLength) {
+        if (value == null) {
+            return null;
+        }
+        String normalized = value.trim().replaceAll("\\s+", " ");
+        if (normalized.isBlank()) {
+            return null;
+        }
+        if (normalized.length() > maxLength) {
+            throw new IllegalArgumentException(tooLongMessage);
+        }
+        return normalized;
     }
 }

@@ -8,33 +8,33 @@
 <body>
     <div class="header">
         <a href="/" class="home-animated">&#x1F3E0;&#xFE0E; HOME</a>
-        <div style="display:flex;align-items:center;gap:10px;">
-            <a sec:authorize="isAuthenticated()" href="/profile" class="btn-header header-action header-action--profile header-action--accent header-action--active">
-                <span class="header-action__icon">&#x1F464;</span>
-                <span class="header-action__label" sec:authentication="name"></span>
-            </a>
-            <a sec:authorize="hasRole('USER')" href="/my-orders" class="btn-header header-action">
-                <span class="header-action__icon">&#x1F4CB;</span>
+        <div class="header-actions">
+            <a sec:authorize="hasRole('USER')" href="/my-orders" class="btn-header header-action header-action--neutral">
+                <span class="header-action__icon">&#129534;</span>
                 <span class="header-action__label">Orders</span>
             </a>
-            <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display:inline;">
-                <button type="submit" class="btn-logout-link header-action">
-                    <span class="header-action__icon">&#x1F6AA;</span>
-                    <span class="header-action__label">Log Out</span>
-                </button>
-            </form>
             <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header header-action">
                 <span class="header-action__icon">&#x1F511;</span>
                 <span class="header-action__label">Log In</span>
+            </a>
+            <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header header-action header-action--neutral">
+                <span class="header-action__icon">&#x1F6D2;</span>
+                <span class="header-action__label">Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)</span>
+            </a>
+            <a sec:authorize="isAuthenticated()" href="/profile" class="btn-header header-action header-action--profile header-action--accent header-action--active">
+                <span class="header-action__icon">&#x1F464;</span>
+                <span class="header-action__label" sec:authentication="name"></span>
             </a>
             <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header header-action header-action--accent">
                 <span class="header-action__icon">&#9881;</span>
                 <span class="header-action__label">Admin</span>
             </a>
-            <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header header-action">
-                <span class="header-action__icon">&#x1F6D2;</span>
-                <span class="header-action__label">Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)</span>
-            </a>
+            <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display:inline;">
+                <button type="submit" class="btn-logout-link header-action header-action--danger">
+                    <span class="header-action__icon">&#x23FB;</span>
+                    <span class="header-action__label">Log Out</span>
+                </button>
+            </form>
         </div>
     </div>
 

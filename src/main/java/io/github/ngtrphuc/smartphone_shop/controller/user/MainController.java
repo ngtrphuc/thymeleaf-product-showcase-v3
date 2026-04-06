@@ -3,6 +3,7 @@ package io.github.ngtrphuc.smartphone_shop.controller.user;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.PatternSyntaxException;
 
@@ -69,9 +70,9 @@ public class MainController {
                 blankToNull(keyword), resolvedPriceMin, resolvedPriceMax);
 
         if (brand != null && !brand.isBlank()) {
-            final String b = brand.toLowerCase();
+            final String b = brand.toLowerCase(Locale.ROOT);
             all = all.stream()
-                    .filter(p -> p.getName() != null && p.getName().toLowerCase().contains(b))
+                    .filter(p -> inferBrand(p).equals(b))
                     .toList();
         }
 
@@ -122,17 +123,11 @@ public class MainController {
         if (sort == null) return products;
         return switch (sort) {
             case "name_asc" -> products.stream()
-                    .sorted((a, b) -> {
-                        String na = a.getName() != null ? a.getName() : "";
-                        String nb = b.getName() != null ? b.getName() : "";
-                        return na.compareToIgnoreCase(nb);
-                    }).toList();
+                    .sorted(Comparator.comparing(p -> normalizeNameForSort(p.getName())))
+                    .toList();
             case "name_desc" -> products.stream()
-                    .sorted((a, b) -> {
-                        String na = a.getName() != null ? a.getName() : "";
-                        String nb = b.getName() != null ? b.getName() : "";
-                        return nb.compareToIgnoreCase(na);
-                    }).toList();
+                    .sorted(Comparator.comparing((Product p) -> normalizeNameForSort(p.getName())).reversed())
+                    .toList();
             case "price_asc" -> products.stream()
                     .sorted(Comparator.comparingDouble(this::safePrice))
                     .toList();
@@ -182,7 +177,27 @@ public class MainController {
     private Double resolveMin(Double existing, Double fallback) { return existing != null ? existing : fallback; }
     private Double resolveMax(Double existing, Double fallback) { return existing != null ? existing : fallback; }
     private String blankToNull(String s) { return (s == null || s.isBlank()) ? null : s; }
+    private String normalizeNameForSort(String name) { return name == null ? "" : name.trim().toLowerCase(Locale.ROOT); }
     private double safePrice(Product product) { return Objects.requireNonNullElse(product.getPrice(), 0.0); }
+
+    private String inferBrand(Product product) {
+        String name = product != null ? product.getName() : null;
+        if (name == null || name.isBlank()) {
+            return "";
+        }
+        String normalized = name.trim().toLowerCase(Locale.ROOT);
+        if (normalized.startsWith("iphone")) return "apple";
+        if (normalized.startsWith("galaxy")) return "samsung";
+        if (normalized.startsWith("pixel")) return "google";
+        if (normalized.startsWith("oppo") || normalized.startsWith("find")) return "oppo";
+        if (normalized.startsWith("vivo")) return "vivo";
+        if (normalized.startsWith("xiaomi")) return "xiaomi";
+        if (normalized.startsWith("xperia") || normalized.startsWith("sony")) return "sony";
+        if (normalized.startsWith("rog") || normalized.startsWith("asus")) return "asus";
+        if (normalized.startsWith("redmagic") || normalized.startsWith("zte") || normalized.startsWith("nubia")) return "zte";
+        return normalized.split("\\s+")[0];
+    }
+
     private String buildBackUrl(MultiValueMap<String, String> requestParams) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/");
         requestParams.forEach((key, values) -> {

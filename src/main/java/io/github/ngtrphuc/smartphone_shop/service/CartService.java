@@ -1,6 +1,7 @@
 package io.github.ngtrphuc.smartphone_shop.service;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -42,8 +43,8 @@ public class CartService {
     public void syncCartCount(HttpSession session, String email) {
         int count;
         if (isLoggedIn(email)) {
-            count = cartItemRepository.findByUserEmail(email)
-                    .stream().mapToInt(CartItemEntity::getQuantity).sum();
+            count = getDbCart(email)
+                    .stream().mapToInt(CartItem::getQuantity).sum();
         } else {
             count = getSessionCart(session)
                     .stream().mapToInt(CartItem::getQuantity).sum();
@@ -58,29 +59,66 @@ public class CartService {
             return;
         }
 
+        List<Long> productIds = sessionCart.stream()
+                .map(CartItem::getId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        if (productIds.isEmpty()) {
+            session.removeAttribute("cart");
+            syncCartCount(session, email);
+            return;
+        }
+
+        Map<Long, Product> productMap = productRepository.findAllByIdIn(productIds)
+                .stream()
+                .filter(p -> p.getId() != null)
+                .collect(Collectors.toMap(Product::getId, p -> p));
+
+        Map<Long, CartItemEntity> existingByProductId = new LinkedHashMap<>();
+        for (CartItemEntity existing : cartItemRepository.findByUserEmail(email)) {
+            if (existing.getProductId() != null) {
+                existingByProductId.putIfAbsent(existing.getProductId(), existing);
+            }
+        }
+
         for (CartItem item : sessionCart) {
             Long itemId = item.getId();
             if (itemId == null) {
                 continue;
             }
-            Optional<CartItemEntity> existing
-                    = cartItemRepository.findByUserEmailAndProductId(email, itemId);
-            if (existing.isPresent()) {
-                CartItemEntity e = existing.get();
-                Product p = productRepository.findById(itemId).orElse(null);
-                int maxStock = (p != null && p.getStock() != null) ? p.getStock() : 99;
-                e.setQuantity(Math.min(e.getQuantity() + item.getQuantity(), maxStock));
-                cartItemRepository.save(e);
+            Product product = productMap.get(itemId);
+            int maxStock = product != null && product.getStock() != null ? product.getStock() : 0;
+            if (maxStock <= 0) {
+                continue;
+            }
+
+            int requestedQty = Math.max(item.getQuantity(), 0);
+            if (requestedQty == 0) {
+                continue;
+            }
+
+            CartItemEntity existing = existingByProductId.get(itemId);
+            if (existing != null) {
+                int mergedQty = Math.min(existing.getQuantity() + requestedQty, maxStock);
+                if (mergedQty != existing.getQuantity()) {
+                    existing.setQuantity(mergedQty);
+                    cartItemRepository.save(existing);
+                }
             } else {
-                cartItemRepository.save(new CartItemEntity(email, itemId, item.getQuantity()));
+                int initialQty = Math.min(requestedQty, maxStock);
+                if (initialQty > 0) {
+                    CartItemEntity created = new CartItemEntity(email, itemId, initialQty);
+                    cartItemRepository.save(created);
+                    existingByProductId.put(itemId, created);
+                }
             }
         }
         session.removeAttribute("cart");
-        session.setAttribute("cartCount",
-                cartItemRepository.findByUserEmail(email)
-                        .stream().mapToInt(CartItemEntity::getQuantity).sum());
+        syncCartCount(session, email);
     }
 
+    @Transactional
     public List<CartItem> getDbCart(String email) {
         List<CartItemEntity> entities = cartItemRepository.findByUserEmail(email);
         if (entities.isEmpty()) {
@@ -92,6 +130,13 @@ public class CartService {
                 .stream()
                 .filter(p -> p.getId() != null)
                 .collect(Collectors.toMap(Product::getId, p -> p));
+
+        List<CartItemEntity> orphanedItems = entities.stream()
+                .filter(entity -> !productMap.containsKey(entity.getProductId()))
+                .toList();
+        if (!orphanedItems.isEmpty()) {
+            cartItemRepository.deleteAll(orphanedItems);
+        }
 
         List<CartItem> result = entities.stream()
                 .map(e -> {
@@ -147,7 +192,10 @@ public class CartService {
     @Transactional
     public void increaseItem(String email, HttpSession session, long productId) {
         Product p = productRepository.findById(productId).orElse(null);
-        int maxStock = (p != null && p.getStock() != null) ? p.getStock() : 99;
+        int maxStock = (p != null && p.getStock() != null) ? p.getStock() : 0;
+        if (maxStock <= 0) {
+            return;
+        }
         if (isLoggedIn(email)) {
             cartItemRepository.findByUserEmailAndProductId(email, productId).ifPresent(e -> {
                 if (e.getQuantity() < maxStock) {
@@ -162,8 +210,8 @@ public class CartService {
                     .ifPresent(i -> {
                         if (i.getQuantity() < maxStock) {
                             i.setQuantity(i.getQuantity() + 1);
-                    
-                        }});
+                        }
+                    });
         }
     }
 

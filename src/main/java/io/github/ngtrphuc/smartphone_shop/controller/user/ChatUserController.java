@@ -44,7 +44,11 @@ public class ChatUserController {
     @PostMapping("/chat/send")
     public String sendUserMessage(Authentication auth, @RequestParam String content) {
         if (content == null || content.isBlank()) return "error";
-        chatService.saveUserMessage(auth.getName(), content.trim());
+        try {
+            chatService.saveUserMessage(auth.getName(), content);
+        } catch (IllegalArgumentException ex) {
+            return "error";
+        }
         return "ok";
     }
 

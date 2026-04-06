@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Chat Management</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script defer th:src="@{/js/admin-shell.js}"></script>
     <style>
         .chat-badge {
             display: none;
@@ -89,19 +90,26 @@
         <div class="sidebar-admin">
             <div class="brand">⚙ Admin Panel</div>
             <a href="/admin" class="admin-nav-link">
-                <span class="admin-nav-icon">📊</span>
+                <span class="admin-nav-icon">&#x1F4CA;&#xFE0E;</span>
                 <span class="admin-nav-body"><span class="admin-nav-label">Dashboard</span></span>
             </a>
             <a href="/admin/products" class="admin-nav-link">
-                <span class="admin-nav-icon">📱</span>
+                <span class="admin-nav-icon admin-nav-icon--svg" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                        <rect x="7" y="2.75" width="10" height="18.5" rx="2.8"></rect>
+                        <path d="M10 5.75h4"></path>
+                        <path d="M10.25 17.5h3.5"></path>
+                        <circle cx="12" cy="19.2" r="0.7" fill="currentColor" stroke="none"></circle>
+                    </svg>
+                </span>
                 <span class="admin-nav-body"><span class="admin-nav-label">Products</span></span>
             </a>
             <a href="/admin/orders" class="admin-nav-link">
-                <span class="admin-nav-icon">📦</span>
+                <span class="admin-nav-icon">&#x1F4E6;&#xFE0E;</span>
                 <span class="admin-nav-body"><span class="admin-nav-label">Orders</span></span>
             </a>
             <a href="/admin/chat" class="admin-nav-link active">
-                <span class="admin-nav-icon">💬</span>
+                <span class="admin-nav-icon">&#x1F4AC;&#xFE0E;</span>
                 <span class="admin-nav-body">
                     <span class="admin-nav-label">Chat</span>
                     <span id="admin-chat-badge" class="chat-badge">0</span>

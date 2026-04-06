@@ -31,13 +31,19 @@ public class AuthController {
     @PostMapping("/register")
     public String register(@RequestParam String email, @RequestParam String fullName,
                            @RequestParam String password, Model model) {
-        if (password.length() < 6) {
-            model.addAttribute("error", "Password must be at least 6 characters.");
+        boolean success;
+        try {
+            success = authService.register(email, fullName, password);
+        } catch (IllegalArgumentException ex) {
+            model.addAttribute("error", ex.getMessage());
+            model.addAttribute("email", email);
+            model.addAttribute("fullName", fullName);
             return "customer/auth/register";
         }
-        boolean success = authService.register(email, fullName, password);
         if (!success) {
             model.addAttribute("error", "Email already exists.");
+            model.addAttribute("email", email);
+            model.addAttribute("fullName", fullName);
             return "customer/auth/register";
         }
         return "redirect:/login?registered";

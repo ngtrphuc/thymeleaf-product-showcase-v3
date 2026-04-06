@@ -28,25 +28,23 @@ public class ChatAdminController {
     @GetMapping("/admin/chat")
     public String adminChatPage(Model model) {
         List<String> emails = chatService.getAllConversationEmails();
-        Map<String, Long> unreadCounts = new HashMap<>();
-        for (String email : emails) unreadCounts.put(email, chatService.countUnreadByAdmin(email));
-        model.addAttribute("emails", emails);
-        model.addAttribute("unreadCounts", unreadCounts);
         if (!emails.isEmpty()) {
             String first = emails.get(0);
+            chatService.markReadByAdmin(first);
             model.addAttribute("selectedEmail", first);
             model.addAttribute("history", chatService.getHistory(first));
-            chatService.markReadByAdmin(first);
         }
+        Map<String, Long> unreadCounts = new HashMap<>(chatService.getUnreadCountsByAdminConversation());
+        model.addAttribute("emails", emails);
+        model.addAttribute("unreadCounts", unreadCounts);
         return "chat";
     }
 
     @GetMapping("/admin/chat/{email}")
     public String adminChatConversation(@PathVariable String email, Model model) {
         List<String> emails = chatService.getAllConversationEmails();
-        Map<String, Long> unreadCounts = new HashMap<>();
-        for (String e : emails) unreadCounts.put(e, chatService.countUnreadByAdmin(e));
         chatService.markReadByAdmin(email);
+        Map<String, Long> unreadCounts = new HashMap<>(chatService.getUnreadCountsByAdminConversation());
         model.addAttribute("emails", emails);
         model.addAttribute("unreadCounts", unreadCounts);
         model.addAttribute("selectedEmail", email);
@@ -65,7 +63,11 @@ public class ChatAdminController {
     @Transactional
     public String sendAdminMessage(@RequestParam String userEmail, @RequestParam String content) {
         if (content == null || content.isBlank() || userEmail == null) return "error";
-        chatService.saveAdminMessage(userEmail, content.trim());
+        try {
+            chatService.saveAdminMessage(userEmail.trim(), content);
+        } catch (IllegalArgumentException ex) {
+            return "error";
+        }
         return "ok";
     }
 

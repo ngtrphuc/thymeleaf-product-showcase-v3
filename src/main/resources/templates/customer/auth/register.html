@@ -19,11 +19,11 @@
         <form method="post" th:action="@{/register}">
             <div class="form-group">
                 <label>Full Name</label>
-                <input type="text" name="fullName" placeholder="John Doe" required minlength="2">
+                <input type="text" name="fullName" placeholder="John Doe" required minlength="2" th:value="${fullName}">
             </div>
             <div class="form-group">
                 <label>Email</label>
-                <input type="email" name="email" placeholder="you@email.com" required>
+                <input type="email" name="email" placeholder="you@email.com" required th:value="${email}">
             </div>
             <div class="form-group">
                 <label>Password</label>
