@@ -16,7 +16,7 @@ import io.github.ngtrphuc.smartphone_shop.model.Product;
 import io.github.ngtrphuc.smartphone_shop.repository.CartItemRepository;
 import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
 import jakarta.servlet.http.HttpSession;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CartService {
@@ -183,7 +183,7 @@ public class CartService {
                 .map(e -> {
                     Product p = productMap.get(e.getProductId());
                     int stock = stockOf(p);
-                    if (p == null || stock <= 0 || removableItems.contains(e)) {
+                    if (stock <= 0 || removableItems.contains(e)) {
                         return null;
                     }
                     return new CartItem(e.getProductId(), p.getName(), p.getPrice(), e.getQuantity());

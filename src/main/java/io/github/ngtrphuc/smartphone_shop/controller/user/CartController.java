@@ -1,6 +1,7 @@
 package io.github.ngtrphuc.smartphone_shop.controller.user;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import org.springframework.security.core.Authentication;
@@ -14,33 +15,43 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import io.github.ngtrphuc.smartphone_shop.model.CartItem;
+import io.github.ngtrphuc.smartphone_shop.model.PaymentMethod;
 import io.github.ngtrphuc.smartphone_shop.repository.UserRepository;
 import io.github.ngtrphuc.smartphone_shop.service.CartService;
-import io.github.ngtrphuc.smartphone_shop.service.OrderValidationException;
 import io.github.ngtrphuc.smartphone_shop.service.OrderService;
+import io.github.ngtrphuc.smartphone_shop.service.OrderValidationException;
+import io.github.ngtrphuc.smartphone_shop.service.PaymentMethodService;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
 @RequestMapping("/cart")
 public class CartController {
+
     private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+()\\-\\s]{6,30}$");
     private static final int MAX_NAME_LENGTH = 120;
     private static final int MAX_PHONE_LENGTH = 30;
     private static final int MAX_ADDRESS_LENGTH = 255;
+    private static final int MAX_BANK_DETAIL_LENGTH = 200;
 
     private final CartService cartService;
     private final OrderService orderService;
     private final UserRepository userRepository;
+    private final PaymentMethodService paymentMethodService;
 
     public CartController(CartService cartService, OrderService orderService,
-            UserRepository userRepository) {
+            UserRepository userRepository, PaymentMethodService paymentMethodService) {
         this.cartService = cartService;
         this.orderService = orderService;
         this.userRepository = userRepository;
+        this.paymentMethodService = paymentMethodService;
     }
 
     private String getEmail(Authentication auth) {
-        return (auth != null) ? auth.getName() : null;
+        return auth != null ? auth.getName() : null;
+    }
+
+    private boolean isAuthenticatedUser(String email) {
+        return email != null && !"anonymousUser".equals(email);
     }
 
     @GetMapping
@@ -55,7 +66,7 @@ public class CartController {
 
     @PostMapping("/add")
     public String add(@RequestParam long id, Authentication auth,
-            HttpSession session, RedirectAttributes ra) {
+            HttpSession session, RedirectAttributes redirectAttributes) {
         CartService.AddItemResult result = cartService.addItem(getEmail(auth), session, id);
         cartService.syncCartCount(session, getEmail(auth));
         String toast = switch (result) {
@@ -63,7 +74,7 @@ public class CartController {
             case LIMIT_REACHED -> "You've already added the maximum available stock for this product.";
             case UNAVAILABLE -> "This product is unavailable right now.";
         };
-        ra.addFlashAttribute("toast", toast);
+        redirectAttributes.addFlashAttribute("toast", toast);
         return "redirect:/product/" + id;
     }
 
@@ -88,13 +99,89 @@ public class CartController {
         return "redirect:/cart";
     }
 
-    @GetMapping("/shipping")
-    public String shipping(Authentication auth, HttpSession session, Model model) {
-        if (cartService.getCart(getEmail(auth), session).isEmpty()) {
+    @GetMapping("/payment")
+    public String paymentPage(Authentication auth, HttpSession session, Model model) {
+        String email = getEmail(auth);
+        if (cartService.getCart(email, session).isEmpty()) {
             return "redirect:/cart";
         }
+
+        if (isAuthenticatedUser(email)) {
+            model.addAttribute("savedPaymentMethods", paymentMethodService.getUserPaymentMethods(email));
+        } else {
+            model.addAttribute("savedPaymentMethods", List.of());
+        }
+        return "payment-select";
+    }
+
+    @PostMapping("/select-payment")
+    public String selectPayment(@RequestParam(required = false) String paymentType,
+            @RequestParam(required = false) Long savedPaymentMethodId,
+            @RequestParam(required = false) String bankDetail,
+            Authentication auth,
+            HttpSession session,
+            RedirectAttributes redirectAttributes) {
         String email = getEmail(auth);
-        if (email != null && !"anonymousUser".equals(email)) {
+        if (cartService.getCart(email, session).isEmpty()) {
+            return "redirect:/cart";
+        }
+
+        String finalMethod;
+        String finalDetail = null;
+
+        if (savedPaymentMethodId != null) {
+            if (!isAuthenticatedUser(email)) {
+                redirectAttributes.addFlashAttribute("toast", "Please log in to use saved payment methods.");
+                return "redirect:/login";
+            }
+            PaymentMethod savedMethod = paymentMethodService.getUserPaymentMethods(email).stream()
+                    .filter(pm -> savedPaymentMethodId.equals(pm.getId()))
+                    .findFirst()
+                    .orElse(null);
+            if (savedMethod == null) {
+                redirectAttributes.addFlashAttribute("toast", "Invalid payment method selected.");
+                return "redirect:/cart/payment";
+            }
+            finalMethod = savedMethod.getType().name();
+            finalDetail = savedMethod.getDetail();
+        } else {
+            finalMethod = (paymentType == null || paymentType.isBlank())
+                    ? "CASH_ON_DELIVERY"
+                    : paymentType.trim().toUpperCase(Locale.ROOT);
+
+            if (!List.of("CASH_ON_DELIVERY", "BANK_TRANSFER", "PAYPAY").contains(finalMethod)) {
+                redirectAttributes.addFlashAttribute("toast", "Invalid payment method selected.");
+                return "redirect:/cart/payment";
+            }
+            if ("BANK_TRANSFER".equals(finalMethod)) {
+                String normalizedDetail = normalizeInline(bankDetail);
+                if (normalizedDetail.isBlank()) {
+                    redirectAttributes.addFlashAttribute("toast", "Please enter your bank account details.");
+                    return "redirect:/cart/payment";
+                }
+                if (normalizedDetail.length() > MAX_BANK_DETAIL_LENGTH) {
+                    redirectAttributes.addFlashAttribute("toast", "Bank account details are too long.");
+                    return "redirect:/cart/payment";
+                }
+                finalDetail = normalizedDetail;
+            }
+        }
+
+        session.setAttribute("paymentMethod", finalMethod);
+        session.setAttribute("paymentDetail", finalDetail);
+        return "redirect:/cart/shipping";
+    }
+
+    @GetMapping("/shipping")
+    public String shipping(Authentication auth, HttpSession session, Model model) {
+        String email = getEmail(auth);
+        if (cartService.getCart(email, session).isEmpty()) {
+            return "redirect:/cart";
+        }
+        if (session.getAttribute("paymentMethod") == null) {
+            return "redirect:/cart/payment";
+        }
+        if (isAuthenticatedUser(email)) {
             userRepository.findByEmailIgnoreCase(email).ifPresent(u -> model.addAttribute("user", u));
         }
         return "shipping";
@@ -107,29 +194,31 @@ public class CartController {
             @RequestParam(required = false) String savedAddress,
             @RequestParam(required = false) String address,
             HttpSession session,
-            RedirectAttributes ra) {
+            RedirectAttributes redirectAttributes) {
         String normalizedName = normalizeInline(customerName);
         String normalizedPhone = normalizeInline(phoneNumber);
         String normalizedSavedAddress = normalizeInline(savedAddress);
         String normalizedAddress = normalizeInline(address);
         String finalAddress = "new".equals(addressOption) ? normalizedAddress
                 : (!normalizedSavedAddress.isBlank() ? normalizedSavedAddress : normalizedAddress);
+
         if (normalizedName.isBlank() || normalizedPhone.isBlank() || finalAddress.isBlank()) {
-            ra.addFlashAttribute("toast", "Please complete your shipping details.");
+            redirectAttributes.addFlashAttribute("toast", "Please complete your shipping details.");
             return "redirect:/cart/shipping";
         }
         if (normalizedName.length() > MAX_NAME_LENGTH) {
-            ra.addFlashAttribute("toast", "Full name is too long.");
+            redirectAttributes.addFlashAttribute("toast", "Full name is too long.");
             return "redirect:/cart/shipping";
         }
         if (normalizedPhone.length() > MAX_PHONE_LENGTH || !PHONE_PATTERN.matcher(normalizedPhone).matches()) {
-            ra.addFlashAttribute("toast", "Phone number format is invalid.");
+            redirectAttributes.addFlashAttribute("toast", "Phone number format is invalid.");
             return "redirect:/cart/shipping";
         }
         if (finalAddress.length() > MAX_ADDRESS_LENGTH) {
-            ra.addFlashAttribute("toast", "Shipping address is too long.");
+            redirectAttributes.addFlashAttribute("toast", "Shipping address is too long.");
             return "redirect:/cart/shipping";
         }
+
         session.setAttribute("name", normalizedName);
         session.setAttribute("phone", normalizedPhone);
         session.setAttribute("address", finalAddress);
@@ -143,40 +232,54 @@ public class CartController {
         if (cart.isEmpty()) {
             return "redirect:/cart";
         }
+        String paymentMethod = (String) session.getAttribute("paymentMethod");
+        if (paymentMethod == null) {
+            return "redirect:/cart/payment";
+        }
+
         model.addAttribute("cart", cart);
         model.addAttribute("totalAmount", cartService.calculateTotal(cart));
         model.addAttribute("count", cart.stream().mapToInt(CartItem::getQuantity).sum());
+        model.addAttribute("paymentMethodDisplay", resolvePaymentDisplay(
+                paymentMethod,
+                (String) session.getAttribute("paymentDetail")));
         return "checkout";
     }
 
     @PostMapping("/confirm")
-    public String confirm(Authentication auth, HttpSession session, RedirectAttributes ra) {
+    public String confirm(Authentication auth, HttpSession session, RedirectAttributes redirectAttributes) {
         String name = (String) session.getAttribute("name");
         String phone = (String) session.getAttribute("phone");
         String address = (String) session.getAttribute("address");
+        String paymentMethod = (String) session.getAttribute("paymentMethod");
+        String paymentDetail = (String) session.getAttribute("paymentDetail");
         String email = getEmail(auth);
         List<CartItem> cart = cartService.getCart(email, session);
 
-        if (email == null || "anonymousUser".equals(email)) {
-            ra.addFlashAttribute("toast", "Please log in before placing an order.");
+        if (!isAuthenticatedUser(email)) {
+            redirectAttributes.addFlashAttribute("toast", "Please log in before placing an order.");
             return "redirect:/login";
         }
-
         if (cart.isEmpty() || name == null || phone == null || address == null) {
             return "redirect:/cart/shipping";
         }
+        if (paymentMethod == null) {
+            return "redirect:/cart/payment";
+        }
 
         try {
-            orderService.createOrder(email, name, phone, address, cart);
+            orderService.createOrder(email, name, phone, address, cart, paymentMethod, paymentDetail);
             cartService.clearCart(email, session);
             session.removeAttribute("name");
             session.removeAttribute("phone");
             session.removeAttribute("address");
+            session.removeAttribute("paymentMethod");
+            session.removeAttribute("paymentDetail");
 
-            ra.addFlashAttribute("orderSuccess", true);
+            redirectAttributes.addFlashAttribute("orderSuccess", true);
             return "redirect:/cart/success";
         } catch (OrderValidationException ex) {
-            ra.addFlashAttribute("toast", ex.getMessage());
+            redirectAttributes.addFlashAttribute("toast", ex.getMessage());
             return "redirect:/cart/checkout";
         }
     }
@@ -189,4 +292,15 @@ public class CartController {
     private String normalizeInline(String value) {
         return value == null ? "" : value.trim().replaceAll("\\s+", " ");
     }
+
+    private String resolvePaymentDisplay(String method, String detail) {
+        return switch (method) {
+            case "BANK_TRANSFER" -> (detail == null || detail.isBlank())
+                    ? "Bank Transfer"
+                    : "Bank Transfer - " + detail;
+            case "PAYPAY" -> "PayPay";
+            default -> "Cash on Delivery";
+        };
+    }
 }
+

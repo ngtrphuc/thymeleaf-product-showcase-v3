@@ -2,8 +2,8 @@ package io.github.ngtrphuc.smartphone_shop.service;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -95,5 +95,20 @@ class OrderServiceTest {
         assertEquals("Phone A Updated", created.getItems().getFirst().getProductName());
         assertEquals(250.0, created.getItems().getFirst().getPrice());
         assertEquals(3, product.getStock());
+    }
+
+    @Test
+    void createOrder_shouldRejectInvalidPaymentMethod() {
+        CartItem item = new CartItem(1L, "Phone A", 100.0, 1);
+
+        assertThrows(OrderValidationException.class, () ->
+                orderService.createOrder(
+                        "user@example.com",
+                        "John Doe",
+                        "0901234567",
+                        "Tokyo",
+                        List.of(item),
+                        "CRYPTO",
+                        null));
     }
 }

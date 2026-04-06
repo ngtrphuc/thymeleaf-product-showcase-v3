@@ -66,6 +66,9 @@
             <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">
                 &#x1F3E0;&#xFE0E; <span th:text="${order.shippingAddress}"></span>
             </div>
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">
+                &#x1F4B3; <span th:text="${order.paymentMethodDisplayName}"></span>
+            </div>
 
             <div class="order-items">
                 <div th:each="item : ${order.items}" class="order-item-row">

@@ -3,32 +3,47 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Smartphone Shop</title>
+    <title>Review Order - Smartphone Shop</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 
 <body>
     <div class="header">
-        <a href="/" class="home-animated">🏠︎ HOME</a>
+        <a href="/" class="home-animated">HOME</a>
     </div>
 
     <div class="checkout-box">
-        <div style="font-size: 50px; margin-bottom: 10px;">📦</div>
-        <h2 style="margin-top: 0;">Review Your Order</h2>
+        <h2 style="margin-top:0;font-family:'Syne',sans-serif;font-weight:700;">Review Your Order</h2>
+
+        <div style="display:flex;gap:6px;margin:16px 0 24px;">
+            <div style="flex:1;height:3px;border-radius:99px;background:var(--accent);"></div>
+            <div style="flex:1;height:3px;border-radius:99px;background:var(--accent);"></div>
+            <div style="flex:1;height:3px;border-radius:99px;background:var(--accent);opacity:0.5;"></div>
+        </div>
 
         <div class="summary-card">
-            <h3 style="font-size: 13px; color: #666666; margin-top: 0; text-transform: uppercase;">SHIPPING TO:</h3>
-            <p><strong>Name:</strong> <span th:text="${session.name}"></span></p>
-            <p><strong>Phone:</strong> <span th:text="${session.phone}"></span></p>
-            <p><strong>Address:</strong> <span th:text="${session.address}"></span></p>
+            <h3 style="font-size:11px;color:var(--text-muted);margin-top:0;text-transform:uppercase;letter-spacing:1px;font-weight:700;">Shipping To</h3>
+            <p style="font-size:14px;margin-bottom:4px;"><strong th:text="${session.name}"></strong></p>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:2px;">
+                <span th:text="${session.phone}"></span>
+            </p>
+            <p style="font-size:13px;color:var(--text-muted);">
+                <span th:text="${session.address}"></span>
+            </p>
 
-            <hr style="border: 0; border-top: 1px solid #d9d9d9; margin: 15px 0;">
+            <hr style="border:0;border-top:1px solid var(--glass-border);margin:16px 0;">
 
+            <h3 style="font-size:11px;color:var(--text-muted);margin-top:0;text-transform:uppercase;letter-spacing:1px;font-weight:700;">Payment Method</h3>
+            <p style="font-size:14px;font-weight:600;" th:text="${paymentMethodDisplay}">Cash on Delivery</p>
+
+            <hr style="border:0;border-top:1px solid var(--glass-border);margin:16px 0;">
+
+            <h3 style="font-size:11px;color:var(--text-muted);margin-top:0;text-transform:uppercase;letter-spacing:1px;font-weight:700;">Order Summary</h3>
             <div class="summary-line">
                 <span>Total Items:</span>
                 <strong th:text="${count}">0</strong>
             </div>
-            <div class="summary-line" style="margin-top: 15px;">
+            <div class="summary-line" style="margin-top:10px;">
                 <span>Total Amount:</span>
                 <strong class="price"
                     th:text="${totalAmount != null ? #numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT') + ' JPY' : '0 JPY'}">
@@ -36,15 +51,19 @@
             </div>
         </div>
 
-        <form th:action="@{/cart/confirm}" method="post" style="margin: 0;">
+        <form th:action="@{/cart/confirm}" method="post" style="margin:0;">
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <button type="submit" class="btn-confirm"
-                style="display: block; width: 100%; margin-bottom: 12px; cursor: pointer; border: none; font-size: 15px;">
-                Confirm &amp; Purchase
+                style="display:block;width:100%;margin-bottom:12px;cursor:pointer;border:none;font-size:15px;">
+                Confirm and Purchase
             </button>
         </form>
-        <a th:href="@{/cart/shipping}" class="btn-edit-link"
-            style="display: block; width: 100%; text-align: center; text-decoration: none;">Edit Shipping Info</a>
+
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:4px;">
+            <a th:href="@{/cart/shipping}" class="btn-edit-link" style="font-size:13px;">Edit Shipping</a>
+            <span style="color:var(--glass-border);">|</span>
+            <a th:href="@{/cart/payment}" class="btn-edit-link" style="font-size:13px;">Change Payment</a>
+        </div>
     </div>
 
     <div class="toast-container" th:if="${toast}">
@@ -57,7 +76,7 @@
     </script>
 
     <footer>
-        <div th:text="${shopname}" style="font-weight: bold; font-size: 20px;"></div>
+        <div th:text="${shopname}" style="font-weight:bold;font-size:20px;"></div>
         <div class="footer-address" th:text="${address}"></div>
     </footer>
     <div th:replace="~{fragments/chat-widget :: chatWidget}"></div>

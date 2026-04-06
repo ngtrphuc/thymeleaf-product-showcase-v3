@@ -1,8 +1,8 @@
 package io.github.ngtrphuc.smartphone_shop.service;
 
 import java.util.Comparator;
-import java.util.LinkedHashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -27,8 +27,9 @@ import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
 public class OrderService {
 
     private static final Set<String> ALLOWED_STATUSES = Set.of(
-            "pending", "processing", "shipped", "delivered", "cancelled"
-    );
+            "pending", "processing", "shipped", "delivered", "cancelled");
+    private static final Set<String> ALLOWED_PAYMENT_METHODS = Set.of(
+            "CASH_ON_DELIVERY", "BANK_TRANSFER", "PAYPAY");
     private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+()\\-\\s]{6,30}$");
 
     private final OrderRepository orderRepository;
@@ -41,13 +42,17 @@ public class OrderService {
 
     @Transactional
     public Order createOrder(String userEmail, String name, String phone,
-            String address, List<CartItem> cartItems) {
+            String address, List<CartItem> cartItems,
+            String paymentMethod, String paymentDetail) {
         if (userEmail == null || userEmail.isBlank()) {
             throw new OrderValidationException("Please log in before placing an order.");
         }
         if (cartItems == null || cartItems.isEmpty()) {
             throw new OrderValidationException("Your cart is empty.");
         }
+
+        String normalizedPaymentMethod = normalizePaymentMethod(paymentMethod);
+        String normalizedPaymentDetail = normalizePaymentDetail(normalizedPaymentMethod, paymentDetail);
 
         Map<Long, Integer> requestedQuantities = extractCartQuantities(cartItems);
         Map<Long, Product> lockedProducts = loadProductsForUpdate(requestedQuantities.keySet());
@@ -66,22 +71,30 @@ public class OrderService {
         order.setCustomerName(normalizedName);
         order.setPhoneNumber(normalizedPhone);
         order.setShippingAddress(normalizedAddress);
+        order.setPaymentMethod(normalizedPaymentMethod);
+        order.setPaymentDetail(normalizedPaymentDetail);
         order.setTotalAmount(calculateOrderTotal(cartItems, lockedProducts));
         order.setStatus("pending");
 
         for (CartItem item : cartItems) {
             Product product = lockedProducts.get(item.getId());
-            OrderItem oi = new OrderItem();
-            oi.setOrder(order);
-            oi.setProductId(item.getId());
-            oi.setProductName(product != null ? product.getName() : item.getName());
-            oi.setPrice(currentProductPrice(product));
-            oi.setQuantity(item.getQuantity());
-            order.getItems().add(oi);
+            OrderItem orderItem = new OrderItem();
+            orderItem.setOrder(order);
+            orderItem.setProductId(item.getId());
+            orderItem.setProductName(product != null ? product.getName() : item.getName());
+            orderItem.setPrice(currentProductPrice(product));
+            orderItem.setQuantity(item.getQuantity());
+            order.getItems().add(orderItem);
         }
 
         applyStockDelta(lockedProducts, requestedQuantities, -1, false);
         return orderRepository.save(order);
+    }
+
+    @Transactional
+    public Order createOrder(String userEmail, String name, String phone,
+            String address, List<CartItem> cartItems) {
+        return createOrder(userEmail, name, phone, address, cartItems, "CASH_ON_DELIVERY", null);
     }
 
     @Transactional(readOnly = true)
@@ -188,6 +201,31 @@ public class OrderService {
                     return true;
                 })
                 .orElse(false);
+    }
+
+    private String normalizePaymentMethod(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return "CASH_ON_DELIVERY";
+        }
+        String upper = raw.trim().toUpperCase(Locale.ROOT);
+        if (!ALLOWED_PAYMENT_METHODS.contains(upper)) {
+            throw new OrderValidationException("Invalid payment method.");
+        }
+        return upper;
+    }
+
+    private String normalizePaymentDetail(String method, String detail) {
+        if (!"BANK_TRANSFER".equals(method)) {
+            return null;
+        }
+        String normalized = detail == null ? "" : detail.trim().replaceAll("\\s+", " ");
+        if (normalized.isBlank()) {
+            throw new OrderValidationException("Bank account details are required for Bank Transfer.");
+        }
+        if (normalized.length() > 200) {
+            throw new OrderValidationException("Bank account details are too long.");
+        }
+        return normalized;
     }
 
     private Map<Long, Integer> extractCartQuantities(List<CartItem> items) {
@@ -312,3 +350,4 @@ public class OrderService {
         return price;
     }
 }
+

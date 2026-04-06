@@ -167,6 +167,7 @@
                         <span style="color:var(--text-muted);font-size:12px;margin-left:10px;" th:text="${#temporals.format(order.createdAt,'dd/MM/yyyy HH:mm')}"></span>
                         <div style="margin-top:5px;font-weight:600;" th:text="${order.customerName}"></div>
                         <div style="color:var(--text-muted);font-size:13px;">📞 <span th:text="${order.phoneNumber}"></span></div>
+                        <div style="color:var(--text-muted);font-size:12px;">Payment: <span th:text="${order.paymentMethodDisplayName}"></span></div>
                     </div>
                     <div style="text-align:right;">
                         <div th:if="${order.status == 'cancelled'}" class="badge badge-cancelled">

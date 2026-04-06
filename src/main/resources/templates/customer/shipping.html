@@ -8,15 +8,21 @@
 <body>
     <div class="header">
         <div class="header-actions">
-            <a href="/cart" class="btn-header header-action">
+            <a href="/cart/payment" class="btn-header header-action">
                 <span class="header-action__icon">&#9664;</span>
-                <span class="header-action__label">Back to Cart</span>
+                <span class="header-action__label">Back to Payment</span>
             </a>
         </div>
-        <span style="color:var(--text-muted);font-size:13px;">Checkout Step 1 of 2</span>
+        <span style="color:var(--text-muted);font-size:13px;">Checkout Step 2 of 3</span>
     </div>
 
     <div class="container">
+        <div style="display:flex;gap:6px;margin:0 auto 24px;max-width:440px;">
+            <div style="flex:1;height:3px;border-radius:99px;background:var(--accent);"></div>
+            <div style="flex:1;height:3px;border-radius:99px;background:var(--accent);opacity:0.5;"></div>
+            <div style="flex:1;height:3px;border-radius:99px;background:var(--glass-border);"></div>
+        </div>
+
         <h2 style="text-align:center;margin-bottom:32px;font-family:'Syne',sans-serif;font-weight:700;">Shipping Details</h2>
 
         <form th:action="@{/cart/process-shipping}" method="post" style="text-align:center;">
@@ -56,7 +62,7 @@
                 <input type="text" id="newAddressInput" name="address" placeholder="Street, City, Province..." minlength="10">
             </div>
 
-            <button type="submit" class="btn-submit">Continue to Summary &rarr;</button>
+            <button type="submit" class="btn-submit">Continue to Review &rarr;</button>
         </form>
     </div>
 

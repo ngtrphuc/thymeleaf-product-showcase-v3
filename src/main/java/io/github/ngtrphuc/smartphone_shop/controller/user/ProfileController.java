@@ -14,10 +14,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import io.github.ngtrphuc.smartphone_shop.model.CartItem;
 import io.github.ngtrphuc.smartphone_shop.model.Order;
+import io.github.ngtrphuc.smartphone_shop.model.PaymentMethod;
 import io.github.ngtrphuc.smartphone_shop.model.User;
 import io.github.ngtrphuc.smartphone_shop.repository.UserRepository;
 import io.github.ngtrphuc.smartphone_shop.service.CartService;
 import io.github.ngtrphuc.smartphone_shop.service.OrderService;
+import io.github.ngtrphuc.smartphone_shop.service.PaymentMethodService;
 import jakarta.servlet.http.HttpSession;
 
 @Controller
@@ -28,12 +30,14 @@ public class ProfileController {
     private final UserRepository userRepository;
     private final OrderService orderService;
     private final CartService cartService;
+    private final PaymentMethodService paymentMethodService;
 
     public ProfileController(UserRepository userRepository, OrderService orderService,
-            CartService cartService) {
+            CartService cartService, PaymentMethodService paymentMethodService) {
         this.userRepository = userRepository;
         this.orderService = orderService;
         this.cartService = cartService;
+        this.paymentMethodService = paymentMethodService;
     }
 
     @GetMapping
@@ -47,10 +51,13 @@ public class ProfileController {
                 .filter(o -> !"delivered".equals(o.getStatus())
                 && !"cancelled".equals(o.getStatus())).toList();
         List<CartItem> cartItems = cartService.getCart(email, session);
+        List<PaymentMethod> paymentMethods = paymentMethodService.getUserPaymentMethods(email);
+
         model.addAttribute("user", user);
         model.addAttribute("deliveredOrders", deliveredOrders);
         model.addAttribute("pendingOrders", pendingOrders);
         model.addAttribute("cartItems", cartItems);
+        model.addAttribute("paymentMethods", paymentMethods);
         return "profile";
     }
 
@@ -59,7 +66,7 @@ public class ProfileController {
             @RequestParam String fullName,
             @RequestParam String phoneNumber,
             @RequestParam String defaultAddress,
-            RedirectAttributes ra) {
+            RedirectAttributes redirectAttributes) {
         String normalizedFullName;
         String normalizedPhoneNumber;
         String normalizedAddress;
@@ -69,11 +76,11 @@ public class ProfileController {
             normalizedPhoneNumber = normalizeOptionalField(phoneNumber, "Phone number is too long.", 30);
             normalizedAddress = normalizeOptionalField(defaultAddress, "Address is too long.", 200);
         } catch (IllegalArgumentException ex) {
-            ra.addFlashAttribute("toast", ex.getMessage());
+            redirectAttributes.addFlashAttribute("toast", ex.getMessage());
             return "redirect:/profile";
         }
         if (normalizedPhoneNumber != null && !PHONE_PATTERN.matcher(normalizedPhoneNumber).matches()) {
-            ra.addFlashAttribute("toast", "Phone number format is invalid.");
+            redirectAttributes.addFlashAttribute("toast", "Phone number format is invalid.");
             return "redirect:/profile";
         }
 
@@ -84,7 +91,7 @@ public class ProfileController {
             userRepository.save(user);
             return true;
         }).orElse(false);
-        ra.addFlashAttribute("toast", updated ? "Profile updated!" : "Unable to update profile.");
+        redirectAttributes.addFlashAttribute("toast", updated ? "Profile updated!" : "Unable to update profile.");
         return "redirect:/profile";
     }
 
@@ -110,3 +117,4 @@ public class ProfileController {
         return normalized;
     }
 }
+

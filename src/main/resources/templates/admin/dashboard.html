@@ -148,6 +148,7 @@
                         <tr>
                             <th>#</th>
                             <th>Customer</th>
+                            <th>Payment</th>
                             <th>Total Amount</th>
                             <th>Status</th>
                             <th>Order Date</th>
@@ -155,11 +156,12 @@
                     </thead>
                     <tbody>
                         <tr th:if="${recentOrders == null or #lists.isEmpty(recentOrders)}">
-                            <td colspan="5" style="text-align:center;padding:20px;color:var(--text-muted);">No orders found.</td>
+                            <td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);">No orders found.</td>
                         </tr>
                         <tr th:each="o : ${recentOrders}">
                             <td style="font-family:'Syne',sans-serif;font-weight:700;" th:text="${o.id}"></td>
                             <td th:text="${o.customerName}"></td>
+                            <td style="font-size:12px;" th:text="${o.paymentMethodDisplayName}"></td>
                             <td style="color:var(--accent);font-weight:700;font-family:'Syne',sans-serif;" th:text="${#numbers.formatDecimal(o.totalAmount != null ? o.totalAmount : 0, 0, 'COMMA', 0, 'POINT')} + ' JPY'"></td>
                             <td><span class="badge" th:classappend="'badge-' + ${o.status}" th:text="${o.status}"></span></td>
                             <td style="color:var(--text-muted);font-size:12px;" th:text="${o.createdAt != null ? #temporals.format(o.createdAt, 'dd/MM/yyyy') : '-'}"></td>
