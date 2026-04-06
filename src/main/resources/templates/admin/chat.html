@@ -8,7 +8,7 @@
     <style>
         .chat-badge {
             display: none;
-            background: #ff4d6d;
+            background: #000000;
             color: white;
             border-radius: 50%;
             width: 18px;
@@ -54,7 +54,7 @@
             transition: 0.15s;
         }
         .conv-item:hover { background: var(--glass); color: var(--text); }
-        .conv-item.active { background: rgba(0,212,255,0.08); color: var(--accent); }
+        .conv-item.active { background: rgba(0,0,0,0.08); color: var(--accent); }
         .conv-info { flex: 1; min-width: 0; }
         .conv-email {
             font-weight: 600;
@@ -67,7 +67,7 @@
         .conv-unread.has-unread { color: var(--accent); opacity: 1; }
         .conv-badge {
             display: none;
-            background: #ff4d6d;
+            background: #000000;
             color: white;
             border-radius: 50%;
             width: 18px;
@@ -131,6 +131,7 @@
                     <a th:each="email : ${emails}"
                         th:href="@{/admin/chat/{e}(e=${email})}"
                         class="conv-item"
+                        th:attr="data-email=${email}"
                         th:classappend="${email == selectedEmail} ? ' active' : ''">
                         <div class="conv-info">
                             <div class="conv-email" th:text="${email}"></div>
@@ -211,6 +212,7 @@
             if (msg.userEmail === selectedEmail) {
                 appendMessage(msg.content, msg.senderRole, msg.createdAt);
             }
+            pollAdminUnread();
         });
 
         function appendMessage(content, role, timeStr) {
@@ -243,19 +245,43 @@
             return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
         }
 
+        function applyUnreadCounts(unreadMap) {
+            const safeMap = unreadMap && typeof unreadMap === 'object' ? unreadMap : {};
+            let totalUnread = 0;
+
+            document.querySelectorAll('.conv-item[data-email]').forEach(item => {
+                const email = (item.getAttribute('data-email') || '').toLowerCase();
+                const countRaw = safeMap[email] ?? safeMap[item.getAttribute('data-email')] ?? 0;
+                const count = Number(countRaw) || 0;
+                totalUnread += count;
+
+                const unreadText = item.querySelector('.conv-unread');
+                const unreadBadge = item.querySelector('.conv-badge');
+
+                if (unreadText) {
+                    unreadText.textContent = count > 0 ? `${count} unread` : 'No unread';
+                    unreadText.classList.toggle('has-unread', count > 0);
+                }
+                if (unreadBadge) {
+                    unreadBadge.textContent = count > 0 ? (count > 99 ? '99+' : String(count)) : '';
+                    unreadBadge.classList.toggle('visible', count > 0);
+                }
+            });
+
+            const badge = document.getElementById('admin-chat-badge');
+            if (!badge) return;
+            if (totalUnread > 0) {
+                badge.textContent = totalUnread > 99 ? '99+' : String(totalUnread);
+                badge.classList.add('visible');
+            } else {
+                badge.classList.remove('visible');
+            }
+        }
+
         function pollAdminUnread() {
-            fetch('/admin/chat/unread-count')
-                .then(r => r.json())
-                .then(count => {
-                    const badge = document.getElementById('admin-chat-badge');
-                    if (!badge) return;
-                    if (count > 0) {
-                        badge.textContent = count > 99 ? '99+' : count;
-                        badge.classList.add('visible');
-                    } else {
-                        badge.classList.remove('visible');
-                    }
-                })
+            fetch('/admin/chat/unread-counts')
+                .then(r => r.ok ? r.json() : Promise.reject(new Error('Unread API failed')))
+                .then(applyUnreadCounts)
                 .catch(() => {});
         }
         pollAdminUnread();
@@ -263,3 +289,4 @@
     </script>
 </body>
 </html>
+

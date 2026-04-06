@@ -9,13 +9,13 @@
     <div class="header">
         <a href="/" class="home-animated">&#x1F3E0;&#xFE0E; HOME</a>
         <div class="header-actions">
-            <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header header-action">
-                <span class="header-action__icon">&#x1F511;</span>
+            <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header header-action header-action--login">
+                <span class="header-action__icon header-action__icon--login" aria-hidden="true">&#128273;&#xFE0E;</span>
                 <span class="header-action__label">Log In</span>
             </a>
             <th:block sec:authorize="isAuthenticated()">
                 <a sec:authorize="hasRole('USER')" href="/my-orders" class="btn-header header-action header-action--neutral">
-                    <span class="header-action__icon">&#129534;</span>
+                    <span class="header-action__icon">&#129534;&#xFE0E;</span>
                     <span class="header-action__label">Orders</span>
                 </a>
                 <a sec:authorize="hasRole('USER')" href="/cart" class="btn-header header-action header-action--neutral">
@@ -69,7 +69,7 @@
                     <input type="hidden" name="id" th:value="${product.id}">
                     <button type="submit" class="btn-cart">Add to Cart</button>
                 </form>
-                <a sec:authorize="hasRole('ADMIN')" th:href="@{'/admin/products/edit/' + ${product.id}}" class="btn-cart" style="background:linear-gradient(135deg,#f39c12,#e67e22);">
+                <a sec:authorize="hasRole('ADMIN')" th:href="@{'/admin/products/edit/' + ${product.id}}" class="btn-cart" style="background:linear-gradient(135deg,#000000,#1a1a1a);">
                     Edit Product
                 </a>
                 <a th:href="${backUrl}" class="btn-back">Back</a>
@@ -91,3 +91,4 @@
     <div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
 </body>
 </html>
+

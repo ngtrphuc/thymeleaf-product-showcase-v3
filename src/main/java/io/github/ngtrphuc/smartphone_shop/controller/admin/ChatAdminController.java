@@ -28,15 +28,10 @@ public class ChatAdminController {
     @GetMapping("/admin/chat")
     public String adminChatPage(Model model) {
         List<String> emails = chatService.getAllConversationEmails();
-        if (!emails.isEmpty()) {
-            String first = emails.get(0);
-            chatService.markReadByAdmin(first);
-            model.addAttribute("selectedEmail", first);
-            model.addAttribute("history", chatService.getHistory(first));
-        }
         Map<String, Long> unreadCounts = new HashMap<>(chatService.getUnreadCountsByAdminConversation());
         model.addAttribute("emails", emails);
         model.addAttribute("unreadCounts", unreadCounts);
+        model.addAttribute("selectedEmail", null);
         return "chat";
     }
 
@@ -75,5 +70,11 @@ public class ChatAdminController {
     @ResponseBody
     public long adminUnreadCount() {
         return chatService.countAllUnreadByAdmin();
+    }
+
+    @GetMapping("/admin/chat/unread-counts")
+    @ResponseBody
+    public Map<String, Long> adminUnreadCounts() {
+        return new HashMap<>(chatService.getUnreadCountsByAdminConversation());
     }
 }

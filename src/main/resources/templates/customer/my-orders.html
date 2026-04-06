@@ -10,11 +10,11 @@
         <a href="/" class="home-animated">&#x1F3E0;&#xFE0E; HOME</a>
         <div class="header-actions">
             <a sec:authorize="hasRole('USER')" href="/my-orders" class="btn-header header-action header-action--neutral header-action--active">
-                <span class="header-action__icon">&#129534;</span>
+                <span class="header-action__icon">&#129534;&#xFE0E;</span>
                 <span class="header-action__label">Orders</span>
             </a>
-            <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header header-action">
-                <span class="header-action__icon">&#x1F511;</span>
+            <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header header-action header-action--login">
+                <span class="header-action__icon header-action__icon--login" aria-hidden="true">&#128273;&#xFE0E;</span>
                 <span class="header-action__label">Log In</span>
             </a>
             <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header header-action header-action--neutral">
@@ -86,7 +86,7 @@
             <div class="modal-desc">Are you sure you want to cancel this order?<br>Stock will be restored.</div>
             <div class="modal-order-id" id="modalOrderId"></div>
             <div class="modal-actions">
-                <button class="btn-modal-cancel" onclick="closeCancelModal()">Keep Order</button>
+                <button class="btn-modal-cancel keep-order-btn" onclick="closeCancelModal()">Keep Order</button>
                 <button class="btn-modal-confirm" onclick="confirmCancel()">Yes, Cancel</button>
             </div>
         </div>
@@ -137,3 +137,4 @@
     <div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
 </body>
 </html>
+

@@ -5,39 +5,42 @@
     <title>Log In</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
-<body>
-    <div class="header">
-        <a href="/" class="home-animated">&#x1F3E0;&#xFE0E; HOME</a>
-    </div>
-
-    <div class="auth-box">
-        <h2 style="text-align:center;margin-bottom:6px;font-family:'Syne',sans-serif;font-weight:800;">Welcome back</h2>
-        <p style="text-align:center;color:var(--text-muted);font-size:13px;margin-bottom:28px;">Sign in to your Smartphone Shop account</p>
-
-        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
-        <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
-        <div th:if="${param.registered}" class="alert alert-success">Registration successful! Please log in.</div>
-
-        <form method="post" th:action="@{/login}">
-            <div class="form-group">
-                <label><span class="auth-label-icon">&#x2709;&#xFE0E;</span> Email</label>
-                <input type="email" name="username" placeholder="abc@gmail.com" required>
+<body class="auth-neo-page">
+    <main class="auth-neo-shell">
+        <nav class="auth-neo-nav">
+            <a href="/" class="auth-neo-brand">&#x2726; Smartphone Shop</a>
+            <div class="auth-neo-switch">
+                <a href="/login" class="is-active">LogIn</a>
+                <a href="/register">Signup</a>
             </div>
-            <div class="form-group">
-                <label><span class="auth-label-icon">&#x1F512;&#xFE0E;</span> Password</label>
-                <input type="password" name="password" placeholder="••••••" required>
-            </div>
-            <button type="submit" class="btn-auth">Log In</button>
-        </form>
+        </nav>
 
-        <p style="text-align:center;margin-top:20px;font-size:13px;color:var(--text-muted);">
-            Don't have an account yet? <a href="/register" style="color:var(--accent);font-weight:700;">Register</a>
-        </p>
-    </div>
+        <section class="auth-neo-card">
+            <h1 class="auth-neo-title">Welcome Back</h1>
+            <p class="auth-neo-subtitle">Sign in to continue shopping with your account.</p>
 
-    <footer>
-        <div th:text="${shopname}" style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;letter-spacing:2px;"></div>
-        <div class="footer-address" th:text="${address}"></div>
-    </footer>
+            <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+            <div th:if="${message}" class="alert alert-success" th:text="${message}"></div>
+            <div th:if="${param.registered}" class="alert alert-success">Registration successful! Please log in.</div>
+
+            <form method="post" th:action="@{/login}" class="auth-neo-form">
+                <label class="auth-neo-label" for="login-email">Email</label>
+                <input id="login-email" type="email" name="username" placeholder="info@gmail.com" required>
+
+                <label class="auth-neo-label" for="login-password">Password</label>
+                <input id="login-password" type="password" name="password" placeholder="********" required>
+
+                <button type="submit" class="auth-neo-submit auth-neo-submit--login">
+                    <span>Log In</span>
+                </button>
+            </form>
+
+            <p class="auth-neo-note">
+                Don't have an account? <a href="/register">Create one</a>
+            </p>
+        </section>
+    </main>
 </body>
 </html>
+
+

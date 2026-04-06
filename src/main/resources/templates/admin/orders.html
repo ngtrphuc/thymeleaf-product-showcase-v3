@@ -8,7 +8,7 @@
     <style>
         .chat-badge {
             display: none;
-            background: #ff4d6d;
+            background: #000000;
             color: white;
             border-radius: 50%;
             width: 18px;
@@ -21,6 +21,82 @@
             flex-shrink: 0;
         }
         .chat-badge.visible { display: flex; }
+        .order-status-select {
+            width: 128px;
+            min-width: 128px;
+        }
+        .order-status-select .custom-select__trigger {
+            position: relative;
+            justify-content: center;
+            padding: 8px 30px 8px 12px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 10px;
+        }
+        .order-status-select .custom-select__label {
+            width: 100%;
+            text-align: center;
+        }
+        .order-status-select .arrow {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            margin-left: 0;
+        }
+        .order-status-select.open .arrow {
+            transform: translateY(-50%) rotate(180deg);
+        }
+        .order-status-select .custom-options {
+            z-index: 220;
+        }
+        .order-status-select .custom-option {
+            text-align: center;
+        }
+        .order-status-select[data-status="pending"] .custom-select__trigger {
+            color: #a16207;
+            border-color: rgba(245, 158, 11, 0.48);
+            background: rgba(245, 158, 11, 0.12);
+        }
+        .order-status-select[data-status="processing"] .custom-select__trigger {
+            color: #6d28d9;
+            border-color: rgba(139, 92, 246, 0.48);
+            background: rgba(139, 92, 246, 0.12);
+        }
+        .order-status-select[data-status="shipped"] .custom-select__trigger {
+            color: #166534;
+            border-color: rgba(34, 197, 94, 0.45);
+            background: rgba(34, 197, 94, 0.12);
+        }
+        .order-status-select[data-status="delivered"] .custom-select__trigger {
+            color: #1d4ed8;
+            border-color: rgba(59, 130, 246, 0.45);
+            background: rgba(59, 130, 246, 0.12);
+        }
+        .order-status-select .custom-option[data-value="pending"] { color: #a16207; }
+        .order-status-select .custom-option[data-value="processing"] { color: #6d28d9; }
+        .order-status-select .custom-option[data-value="shipped"] { color: #166534; }
+        .order-status-select .custom-option[data-value="delivered"] { color: #1d4ed8; }
+        .order-status-select .custom-option.active[data-value="pending"] {
+            background: rgba(245, 158, 11, 0.18);
+            color: #a16207;
+            font-weight: 700;
+        }
+        .order-status-select .custom-option.active[data-value="processing"] {
+            background: rgba(139, 92, 246, 0.18);
+            color: #6d28d9;
+            font-weight: 700;
+        }
+        .order-status-select .custom-option.active[data-value="shipped"] {
+            background: rgba(34, 197, 94, 0.18);
+            color: #166534;
+            font-weight: 700;
+        }
+        .order-status-select .custom-option.active[data-value="delivered"] {
+            background: rgba(59, 130, 246, 0.18);
+            color: #1d4ed8;
+            font-weight: 700;
+        }
     </style>
 </head>
 <body>
@@ -84,20 +160,27 @@
                         <div style="color:var(--text-muted);font-size:13px;">📞 <span th:text="${order.phoneNumber}"></span></div>
                     </div>
                     <div style="text-align:right;">
-                        <div th:if="${order.status == 'cancelled'}" class="badge-cancelled"
-                            style="padding:6px 12px;border-radius:8px;background:rgba(255,71,87,0.1);color:#ff4757;font-weight:700;font-size:12px;">
+                        <div th:if="${order.status == 'cancelled'}" class="badge badge-cancelled">
                             ✕ CANCELLED
                         </div>
                         <form th:unless="${order.status == 'cancelled'}" method="post"
                             th:action="@{/admin/orders/{id}/status(id=${order.id})}">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <input type="hidden" name="page" th:value="${currentPage}">
-                            <select name="status" class="status-sel" onchange="this.form.submit()">
-                                <option value="pending" th:selected="${order.status == 'pending'}">Pending</option>
-                                <option value="processing" th:selected="${order.status == 'processing'}">Processing</option>
-                                <option value="shipped" th:selected="${order.status == 'shipped'}">Shipped</option>
-                                <option value="delivered" th:selected="${order.status == 'delivered'}">Delivered</option>
-                            </select>
+                            <div class="custom-select order-status-select">
+                                <input type="hidden" name="status" th:value="${order.status}">
+                                <div class="custom-select__trigger">
+                                    <span class="custom-select__label"
+                                        th:text="${order.status == 'pending' ? 'Pending' : (order.status == 'processing' ? 'Processing' : (order.status == 'shipped' ? 'Shipped' : 'Delivered'))}">Pending</span>
+                                    <span class="arrow">&#9660;</span>
+                                </div>
+                                <div class="custom-options">
+                                    <div class="custom-option" data-value="pending">Pending</div>
+                                    <div class="custom-option" data-value="processing">Processing</div>
+                                    <div class="custom-option" data-value="shipped">Shipped</div>
+                                    <div class="custom-option" data-value="delivered">Delivered</div>
+                                </div>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -143,6 +226,71 @@
     <script>
         setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 3200);
 
+        function initOrderStatusSelects() {
+            const statusSelects = Array.from(document.querySelectorAll('.order-status-select'));
+            statusSelects.forEach(selectEl => {
+                if (selectEl.dataset.selectInited === '1') {
+                    return;
+                }
+                selectEl.dataset.selectInited = '1';
+
+                const form = selectEl.closest('form');
+                const hiddenInput = selectEl.querySelector('input[type="hidden"][name="status"]');
+                const trigger = selectEl.querySelector('.custom-select__trigger');
+                const label = selectEl.querySelector('.custom-select__label');
+                const options = Array.from(selectEl.querySelectorAll('.custom-option'));
+                if (!form || !hiddenInput || !trigger || !label || !options.length) {
+                    return;
+                }
+
+                const setValue = (value) => {
+                    const normalizedValue = value ?? '';
+                    let selected = options.find(option => (option.dataset.value || '') === normalizedValue);
+                    if (!selected) selected = options[0];
+                    hiddenInput.value = selected.dataset.value || '';
+                    label.textContent = selected.textContent.trim();
+                    selectEl.dataset.status = hiddenInput.value;
+                    options.forEach(option => option.classList.toggle('active', option === selected));
+                };
+                setValue(hiddenInput.value || '');
+
+                trigger.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    const wasOpen = selectEl.classList.contains('open');
+                    document.querySelectorAll('.order-status-select.open').forEach(opened => opened.classList.remove('open'));
+                    if (!wasOpen) selectEl.classList.add('open');
+                });
+
+                options.forEach(option => {
+                    option.addEventListener('click', (event) => {
+                        event.stopPropagation();
+                        setValue(option.dataset.value || '');
+                        selectEl.classList.remove('open');
+                        form.submit();
+                    });
+                });
+            });
+        }
+
+        function initOrderStatusCloseListener() {
+            if (document.documentElement.dataset.orderStatusSelectCloseBound === '1') {
+                return;
+            }
+            document.documentElement.dataset.orderStatusSelectCloseBound = '1';
+            document.addEventListener('click', (event) => {
+                document.querySelectorAll('.order-status-select.open').forEach(selectEl => {
+                    if (!selectEl.contains(event.target)) {
+                        selectEl.classList.remove('open');
+                    }
+                });
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    document.querySelectorAll('.order-status-select.open').forEach(selectEl => selectEl.classList.remove('open'));
+                }
+            });
+        }
+
         function pollAdminUnread() {
             fetch('/admin/chat/unread-count')
                 .then(r => r.json())
@@ -158,8 +306,11 @@
                 })
                 .catch(() => {});
         }
+        initOrderStatusCloseListener();
+        initOrderStatusSelects();
         pollAdminUnread();
         setInterval(pollAdminUnread, 10000);
     </script>
 </body>
 </html>
+

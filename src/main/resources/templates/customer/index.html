@@ -66,25 +66,25 @@
         }
 
         #selectLabel {
-            color: #ffffff;
+            color: var(--text);
             font-weight: 700;
         }
 
         .custom-option.active {
-            background: rgba(0, 212, 255, 0.08);
+            background: rgba(111, 90, 69, 0.12);
             color: var(--accent);
             font-weight: 700;
         }
 
         .custom-option:not(.active):hover {
-            background: rgba(0, 212, 255, 0.16);
-            color: #ffffff;
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: inset 0 0 0 1px rgba(0, 212, 255, 0.4), 0 18px 30px rgba(0, 0, 0, 0.42);
+            background: rgba(111, 90, 69, 0.18);
+            color: var(--text);
+            transform: translateY(-3px);
+            box-shadow: inset 0 0 0 1px rgba(111, 90, 69, 0.38), 0 10px 20px rgba(111, 90, 69, 0.14);
         }
 
         .custom-option.active:hover {
-            background: rgba(0, 212, 255, 0.08);
+            background: rgba(111, 90, 69, 0.12);
             color: var(--accent);
             transform: none;
             box-shadow: none;
@@ -208,7 +208,7 @@
             content: "";
             position: absolute;
             inset: 0;
-            background: linear-gradient(90deg, rgba(4, 8, 18, 0.3), transparent 18%, transparent 82%, rgba(4, 8, 18, 0.14));
+            background: linear-gradient(90deg, rgba(111, 90, 69, 0.22), transparent 18%, transparent 82%, rgba(111, 90, 69, 0.12));
             pointer-events: none;
         }
 
@@ -391,10 +391,10 @@
             flex-direction: column;
             padding: 22px 20px 18px;
             box-sizing: border-box;
-            background: transparent !important;
-            border: 0 !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
+            background: var(--surface) !important;
+            border: 1px solid var(--glass-border) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 14px 28px rgba(111, 90, 69, 0.1) !important;
         }
 
         .catalog-grid>.card-wrapper>a {
@@ -451,8 +451,8 @@
         }
 
         .catalog-grid>.card-wrapper:hover {
-            border: 0 !important;
-            box-shadow: none !important;
+            border-color: rgba(111, 90, 69, 0.36) !important;
+            box-shadow: 0 18px 34px rgba(111, 90, 69, 0.18) !important;
         }
 
         .catalog-pagination.pagination-wrapper {
@@ -499,25 +499,24 @@
     <div class="header">
         <a href="/" class="home-animated">&#127968; HOME</a>
         <div class="header-actions">
-            <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header header-action">
-                <span class="header-action__icon">&#128273;</span>
+            <a sec:authorize="!isAuthenticated()" href="/login" class="btn-header header-action header-action--login">
+                <span class="header-action__icon header-action__icon--login" aria-hidden="true">&#128273;&#xFE0E;</span>
                 <span class="header-action__label">Log In</span>
             </a>
             <th:block sec:authorize="isAuthenticated()">
                 <a sec:authorize="hasRole('USER')" href="/my-orders" class="btn-header header-action header-action--neutral">
-                    <span class="header-action__icon">&#129534;</span>
+                    <span class="header-action__icon">&#129534;&#xFE0E;</span>
                     <span class="header-action__label">Orders</span>
                 </a>
                 <a sec:authorize="hasRole('USER')" href="/cart" class="btn-header header-action header-action--neutral">
-                    <span class="header-action__icon">&#128722;</span>
+                    <span class="header-action__icon">&#128722;&#xFE0E;</span>
                     <span class="header-action__label">Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)</span>
                 </a>
                 <a sec:authorize="hasRole('USER')" th:href="@{/profile}" class="btn-header header-action header-action--profile">
-                    <span class="header-action__icon">&#128100;</span>
+                    <span class="header-action__icon">&#128100;&#xFE0E;</span>
                     <span class="header-action__label" sec:authentication="name"></span>
                 </a>
-                <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header header-action header-action--accent"
-                    style="color:#00d4ff !important;border-color:rgba(0,212,255,0.25) !important;">
+                <a sec:authorize="hasRole('ADMIN')" href="/admin" class="btn-header header-action header-action--accent">
                     <span class="header-action__icon">&#9881;</span>
                     <span class="header-action__label">Admin</span>
                 </a>

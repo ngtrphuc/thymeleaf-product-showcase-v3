@@ -23,8 +23,8 @@
             var duration = 3 * 1000;
             var end = Date.now() + duration;
             (function frame() {
-                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#00d4ff', '#7c4dff', '#00e676'] });
-                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#00d4ff', '#7c4dff', '#00e676'] });
+                confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#000000', '#1a1a1a', '#000000'] });
+                confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#000000', '#1a1a1a', '#000000'] });
                 if (Date.now() < end) { requestAnimationFrame(frame); }
             }());
         };
@@ -37,3 +37,4 @@
     <div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
 </body>
 </html>
+
