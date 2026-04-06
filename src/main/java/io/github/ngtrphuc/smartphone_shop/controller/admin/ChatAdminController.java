@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import io.github.ngtrphuc.smartphone_shop.service.ChatService;
@@ -32,19 +33,26 @@ public class ChatAdminController {
         model.addAttribute("emails", emails);
         model.addAttribute("unreadCounts", unreadCounts);
         model.addAttribute("selectedEmail", null);
-        return "chat";
+        return "admin/chat";
     }
 
     @GetMapping("/admin/chat/{email}")
     public String adminChatConversation(@PathVariable String email, Model model) {
+        try {
+            model.addAttribute("history", chatService.getHistory(email));
+        } catch (IllegalArgumentException ex) {
+            model.addAttribute("emails", chatService.getAllConversationEmails());
+            model.addAttribute("unreadCounts", new HashMap<>(chatService.getUnreadCountsByAdminConversation()));
+            model.addAttribute("selectedEmail", null);
+            model.addAttribute("toast", "Conversation not found.");
+            return "admin/chat";
+        }
         List<String> emails = chatService.getAllConversationEmails();
-        chatService.markReadByAdmin(email);
         Map<String, Long> unreadCounts = new HashMap<>(chatService.getUnreadCountsByAdminConversation());
         model.addAttribute("emails", emails);
         model.addAttribute("unreadCounts", unreadCounts);
         model.addAttribute("selectedEmail", email);
-        model.addAttribute("history", chatService.getHistory(email));
-        return "chat";
+        return "admin/chat";
     }
 
     @GetMapping(value = "/admin/chat/stream", produces = "text/event-stream")
@@ -56,14 +64,16 @@ public class ChatAdminController {
     @PostMapping("/admin/chat/send")
     @ResponseBody
     @Transactional
-    public String sendAdminMessage(@RequestParam String userEmail, @RequestParam String content) {
-        if (content == null || content.isBlank() || userEmail == null) return "error";
+    public ResponseEntity<String> sendAdminMessage(@RequestParam String userEmail, @RequestParam String content) {
+        if (content == null || content.isBlank() || userEmail == null) {
+            return ResponseEntity.badRequest().body("error");
+        }
         try {
             chatService.saveAdminMessage(userEmail.trim(), content);
         } catch (IllegalArgumentException ex) {
-            return "error";
+            return ResponseEntity.badRequest().body("error");
         }
-        return "ok";
+        return ResponseEntity.ok("ok");
     }
 
     @GetMapping("/admin/chat/unread-count")
@@ -76,5 +86,16 @@ public class ChatAdminController {
     @ResponseBody
     public Map<String, Long> adminUnreadCounts() {
         return new HashMap<>(chatService.getUnreadCountsByAdminConversation());
+    }
+
+    @PostMapping("/admin/chat/mark-read")
+    @ResponseBody
+    public ResponseEntity<String> markConversationRead(@RequestParam String userEmail) {
+        try {
+            chatService.markReadByAdmin(userEmail);
+            return ResponseEntity.ok("ok");
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body("error");
+        }
     }
 }

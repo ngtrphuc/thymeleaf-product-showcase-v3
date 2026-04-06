@@ -41,7 +41,10 @@ public class OrderService {
 
     @Transactional
     public Order createOrder(String userEmail, String name, String phone,
-            String address, List<CartItem> cartItems, double total) {
+            String address, List<CartItem> cartItems) {
+        if (userEmail == null || userEmail.isBlank()) {
+            throw new OrderValidationException("Please log in before placing an order.");
+        }
         if (cartItems == null || cartItems.isEmpty()) {
             throw new OrderValidationException("Your cart is empty.");
         }
@@ -63,15 +66,16 @@ public class OrderService {
         order.setCustomerName(normalizedName);
         order.setPhoneNumber(normalizedPhone);
         order.setShippingAddress(normalizedAddress);
-        order.setTotalAmount(total);
+        order.setTotalAmount(calculateOrderTotal(cartItems, lockedProducts));
         order.setStatus("pending");
 
         for (CartItem item : cartItems) {
+            Product product = lockedProducts.get(item.getId());
             OrderItem oi = new OrderItem();
             oi.setOrder(order);
             oi.setProductId(item.getId());
-            oi.setProductName(item.getName());
-            oi.setPrice(item.getPrice());
+            oi.setProductName(product != null ? product.getName() : item.getName());
+            oi.setPrice(currentProductPrice(product));
             oi.setQuantity(item.getQuantity());
             order.getItems().add(oi);
         }
@@ -80,14 +84,17 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    @Transactional(readOnly = true)
     public List<Order> getOrdersByUser(String email) {
         return orderRepository.findByUserEmailOrderByCreatedAtDesc(email);
     }
 
+    @Transactional(readOnly = true)
     public List<Order> getAllOrders() {
         return orderRepository.findAllByOrderByCreatedAtDesc();
     }
 
+    @Transactional(readOnly = true)
     public List<Order> getAdminOrdersPage(int page, int limit) {
         int safePage = Math.max(0, page);
         int safeLimit = Math.max(1, limit);
@@ -107,33 +114,38 @@ public class OrderService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
     public List<Order> getRecentOrders(int limit) {
         return orderRepository.findRecentOrders(PageRequest.of(0, limit));
     }
 
+    @Transactional(readOnly = true)
     public List<Order> getRecentOrders(int page, int limit) {
         int safePage = Math.max(0, page);
         int safeLimit = Math.max(1, limit);
         return orderRepository.findRecentOrders(PageRequest.of(safePage, safeLimit));
     }
 
+    @Transactional(readOnly = true)
     public double getTotalRevenue() {
         Double result = orderRepository.sumRevenueExcludingCancelled();
         return result != null ? result : 0.0;
     }
 
+    @Transactional(readOnly = true)
     public long getTotalItemsSold() {
         Long result = orderRepository.sumItemsSoldExcludingCancelled();
         return result != null ? result : 0L;
     }
 
+    @Transactional(readOnly = true)
     public long countOrders() {
         return orderRepository.count();
     }
 
     @Transactional
     public void updateStatus(long orderId, String newStatus) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdWithItemsForUpdate(orderId)
                 .orElseThrow(() -> new OrderValidationException("Order not found."));
 
         String oldStatus = normalizeStatus(order.getStatus());
@@ -161,7 +173,7 @@ public class OrderService {
 
     @Transactional
     public boolean cancelOrder(long orderId, String userEmail) {
-        return orderRepository.findById(orderId)
+        return orderRepository.findByIdWithItemsForUpdate(orderId)
                 .filter(o -> o.getUserEmail().equals(userEmail))
                 .filter(o -> {
                     String status = normalizeStatus(o.getStatus());
@@ -281,5 +293,22 @@ public class OrderService {
         if (!PHONE_PATTERN.matcher(phone).matches()) {
             throw new OrderValidationException("Phone number format is invalid.");
         }
+    }
+
+    private double calculateOrderTotal(List<CartItem> cartItems, Map<Long, Product> lockedProducts) {
+        return cartItems.stream()
+                .mapToDouble(item -> currentProductPrice(lockedProducts.get(item.getId())) * item.getQuantity())
+                .sum();
+    }
+
+    private double currentProductPrice(Product product) {
+        if (product == null) {
+            throw new OrderValidationException("One of the products in your order is no longer available.");
+        }
+        Double price = product.getPrice();
+        if (price == null || price < 0) {
+            throw new OrderValidationException(product.getName() + " has an invalid price.");
+        }
+        return price;
     }
 }

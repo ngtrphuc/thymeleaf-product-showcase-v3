@@ -17,10 +17,18 @@
             font-weight: 700;
             align-items: center;
             justify-content: center;
-            margin-left: auto;
+            position: absolute;
+            top: -6px;
+            right: -10px;
+            left: auto;
+            transform: none;
+            margin-left: 0;
             flex-shrink: 0;
+            pointer-events: none;
+            z-index: 2;
         }
         .chat-badge.visible { display: flex; }
+        .sidebar-admin .admin-nav-link .admin-nav-icon { position: relative; }
         .admin-toolbar {
             display: grid;
             grid-template-columns: minmax(240px, 1.4fr) repeat(3, minmax(160px, 0.8fr)) auto auto;
@@ -400,10 +408,11 @@
                 <span class="admin-nav-body"><span class="admin-nav-label">Orders</span></span>
             </a>
             <a href="/admin/chat" class="admin-nav-link">
-                <span class="admin-nav-icon">&#x1F4AC;&#xFE0E;</span>
+                <span class="admin-nav-icon">&#x1F4AC;&#xFE0E;
+                    <span id="admin-chat-badge" class="chat-badge">0</span>
+                </span>
                 <span class="admin-nav-body">
                     <span class="admin-nav-label">Chat</span>
-                    <span id="admin-chat-badge" class="chat-badge">0</span>
                 </span>
             </a>
             <a href="/" style="margin-top:auto;border-top:1px solid var(--glass-border);padding-top:16px;">🏠︎ HOME</a>

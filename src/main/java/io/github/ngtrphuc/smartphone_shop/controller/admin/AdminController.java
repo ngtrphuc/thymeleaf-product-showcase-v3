@@ -3,7 +3,11 @@ package io.github.ngtrphuc.smartphone_shop.controller.admin;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -15,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import io.github.ngtrphuc.smartphone_shop.model.Product;
+import io.github.ngtrphuc.smartphone_shop.repository.CartItemRepository;
 import io.github.ngtrphuc.smartphone_shop.repository.OrderRepository;
 import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
 import io.github.ngtrphuc.smartphone_shop.service.OrderValidationException;
@@ -28,11 +33,14 @@ public class AdminController {
     private static final int DASHBOARD_ORDER_PAGE_SIZE = 10;
     private static final int ADMIN_ORDER_PAGE_SIZE = 10;
     private final ProductRepository productRepository;
+    private final CartItemRepository cartItemRepository;
     private final OrderRepository orderRepository;
     private final OrderService orderService;
 
-    public AdminController(ProductRepository productRepository, OrderRepository orderRepository, OrderService orderService) {
+    public AdminController(ProductRepository productRepository, CartItemRepository cartItemRepository,
+            OrderRepository orderRepository, OrderService orderService) {
         this.productRepository = productRepository;
+        this.cartItemRepository = cartItemRepository;
         this.orderRepository = orderRepository;
         this.orderService = orderService;
     }
@@ -125,6 +133,13 @@ public class AdminController {
                     : "redirect:/admin/products/new";
         }
 
+        Long productId = product.getId();
+        if (productId != null && !productRepository.existsById(productId)) {
+            redirectAttributes.addFlashAttribute("toast", "Product not found.");
+            addProductListState(redirectAttributes, page, keyword, brand, stock, sort);
+            return "redirect:/admin/products";
+        }
+
         boolean isUpdate = product.getId() != null;
         productRepository.save(product);
         redirectAttributes.addFlashAttribute("toast",
@@ -146,6 +161,7 @@ public class AdminController {
             addProductListState(redirectAttributes, page, keyword, brand, stock, sort);
             return "redirect:/admin/products";
         }
+        cartItemRepository.deleteByProductId(id);
         productRepository.deleteById(id);
         redirectAttributes.addFlashAttribute("toast", "Product deleted successfully.");
         addProductListState(redirectAttributes, page, keyword, brand, stock, sort);
@@ -186,36 +202,66 @@ public class AdminController {
         String normalizedStock = normalizeStock(stock);
         String normalizedSort = normalizeSort(sort);
 
-        List<Product> allProducts = productRepository.findAll();
-        List<String> brands = allProducts.stream()
+        List<String> brands = productRepository.findAllNamesOrdered().stream()
                 .map(this::extractBrand)
                 .distinct()
                 .sorted(String.CASE_INSENSITIVE_ORDER)
                 .toList();
 
-        List<Product> filteredProducts = applyAdminFilters(allProducts, normalizedKeyword, normalizedBrand, normalizedStock);
-        List<Product> sortedProducts = applyAdminSort(filteredProducts, normalizedSort);
+        Long keywordId = parseKeywordId(normalizedKeyword);
+        int safeRequestedPage = Math.max(page, 0);
+        Integer minStock = resolveMinStock(normalizedStock);
+        Integer maxStock = resolveMaxStock(normalizedStock);
+        Sort requestedSort = Objects.requireNonNull(resolveAdminSort(normalizedSort));
 
-        int totalProducts = sortedProducts.size();
-        int totalPages = totalProducts == 0 ? 0 : (int) Math.ceil((double) totalProducts / ADMIN_PAGE_SIZE);
-        int safePage = totalPages == 0 ? 0 : Math.max(0, Math.min(page, totalPages - 1));
-        int fromIndex = Math.min(safePage * ADMIN_PAGE_SIZE, totalProducts);
-        int toIndex = Math.min(fromIndex + ADMIN_PAGE_SIZE, totalProducts);
+        List<Product> products;
+        int totalProducts;
+        int totalPages;
+        int safePage;
 
-        model.addAttribute("products", sortedProducts.subList(fromIndex, toIndex));
+        if (normalizedBrand == null) {
+            Page<Product> productPage = productRepository.findAdminProducts(
+                    normalizedKeyword,
+                    keywordId,
+                    minStock,
+                    maxStock,
+                    PageRequest.of(safeRequestedPage, ADMIN_PAGE_SIZE, requestedSort));
+            if (productPage.isEmpty() && safeRequestedPage > 0 && productPage.getTotalPages() > 0) {
+                productPage = productRepository.findAdminProducts(
+                        normalizedKeyword,
+                        keywordId,
+                        minStock,
+                        maxStock,
+                        PageRequest.of(productPage.getTotalPages() - 1, ADMIN_PAGE_SIZE, requestedSort));
+            }
+            products = productPage.getContent();
+            totalProducts = (int) productPage.getTotalElements();
+            totalPages = productPage.getTotalPages();
+            safePage = totalPages == 0 ? 0 : Math.max(0, Math.min(productPage.getNumber(), totalPages - 1));
+        } else {
+            List<Product> filteredProducts = productRepository.findAllAdminProducts(
+                    normalizedKeyword,
+                    keywordId,
+                    minStock,
+                    maxStock).stream()
+                    .filter(product -> normalizedBrand.equalsIgnoreCase(extractBrand(product)))
+                    .toList();
+            List<Product> sortedProducts = applyAdminSort(filteredProducts, normalizedSort);
+
+            totalProducts = sortedProducts.size();
+            totalPages = totalProducts == 0 ? 0 : (int) Math.ceil((double) totalProducts / ADMIN_PAGE_SIZE);
+            safePage = totalPages == 0 ? 0 : Math.max(0, Math.min(safeRequestedPage, totalPages - 1));
+            int fromIndex = Math.min(safePage * ADMIN_PAGE_SIZE, totalProducts);
+            int toIndex = Math.min(fromIndex + ADMIN_PAGE_SIZE, totalProducts);
+            products = sortedProducts.subList(fromIndex, toIndex);
+        }
+
+        model.addAttribute("products", products);
         model.addAttribute("currentPage", safePage);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("totalProducts", totalProducts);
         model.addAttribute("brands", brands);
         addProductListState(model, safePage, normalizedKeyword, normalizedBrand, normalizedStock, normalizedSort);
-    }
-
-    private List<Product> applyAdminFilters(List<Product> products, String keyword, String brand, String stock) {
-        return products.stream()
-                .filter(product -> matchesKeyword(product, keyword))
-                .filter(product -> brand == null || extractBrand(product).equalsIgnoreCase(brand))
-                .filter(product -> matchesStock(product, stock))
-                .toList();
     }
 
     private List<Product> applyAdminSort(List<Product> products, String sort) {
@@ -232,34 +278,12 @@ public class AdminController {
         return products.stream().sorted(comparator).toList();
     }
 
-    private boolean matchesKeyword(Product product, String keyword) {
-        if (keyword == null) {
-            return true;
-        }
-        return containsIgnoreCase(product.getName(), keyword)
-                || containsIgnoreCase(product.getDescription(), keyword)
-                || containsIgnoreCase(product.getOs(), keyword)
-                || containsIgnoreCase(product.getChipset(), keyword)
-                || containsIgnoreCase(product.getStorage(), keyword)
-                || (product.getId() != null && String.valueOf(product.getId()).contains(keyword));
-    }
-
-    private boolean matchesStock(Product product, String stock) {
-        int stockValue = product.getStock() == null ? 0 : product.getStock();
-        return switch (stock) {
-            case "in_stock" -> stockValue > 0;
-            case "low_stock" -> stockValue > 0 && stockValue <= 5;
-            case "out_of_stock" -> stockValue <= 0;
-            default -> true;
-        };
-    }
-
-    private boolean containsIgnoreCase(String source, String keyword) {
-        return source != null && source.toLowerCase(Locale.ROOT).contains(keyword.toLowerCase(Locale.ROOT));
-    }
-
     private String extractBrand(Product product) {
-        String name = normalizeText(product.getName());
+        return extractBrand(product != null ? product.getName() : null);
+    }
+
+    private String extractBrand(String productName) {
+        String name = normalizeText(productName);
         if (name == null) {
             return "Other";
         }
@@ -273,6 +297,48 @@ public class AdminController {
             case "huawei" -> "Huawei";
             case "google" -> "Google";
             default -> capitalize(firstToken);
+        };
+    }
+
+    private Long parseKeywordId(String keyword) {
+        if (keyword == null || !keyword.chars().allMatch(Character::isDigit)) {
+            return null;
+        }
+        try {
+            return Long.valueOf(keyword);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private Integer resolveMinStock(String stock) {
+        return switch (stock) {
+            case "in_stock", "low_stock" -> 1;
+            default -> null;
+        };
+    }
+
+    private Integer resolveMaxStock(String stock) {
+        return switch (stock) {
+            case "low_stock" -> 5;
+            case "out_of_stock" -> 0;
+            default -> null;
+        };
+    }
+
+    private Sort resolveAdminSort(String sort) {
+        if (sort == null) {
+            return Sort.by("id").ascending();
+        }
+        return switch (sort) {
+            case "id_desc" -> Sort.by("id").descending();
+            case "name_asc" -> Sort.by(Sort.Order.asc("name").ignoreCase());
+            case "name_desc" -> Sort.by(Sort.Order.desc("name").ignoreCase());
+            case "price_asc" -> Sort.by("price").ascending();
+            case "price_desc" -> Sort.by("price").descending();
+            case "stock_asc" -> Sort.by("stock").ascending().and(Sort.by("id").ascending());
+            case "stock_desc" -> Sort.by("stock").descending().and(Sort.by("id").ascending());
+            default -> Sort.by("id").ascending();
         };
     }
 
@@ -364,8 +430,8 @@ public class AdminController {
 
         String imageUrl = product.getImageUrl();
         if (imageUrl != null
-                && !(imageUrl.startsWith("/") || imageUrl.startsWith("http://") || imageUrl.startsWith("https://"))) {
-            throw new IllegalArgumentException("Image URL must start with '/' or http(s)://.");
+                && !(imageUrl.startsWith("/") || imageUrl.startsWith("https://"))) {
+            throw new IllegalArgumentException("Image URL must start with '/' or https://.");
         }
     }
 

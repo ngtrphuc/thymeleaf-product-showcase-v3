@@ -18,7 +18,7 @@ public class CartItemEntity {
     @Column(name = "product_id", nullable = false)
     private Long productId;
     @Column(nullable = false)
-    private Integer quantity = 1;
+    private int quantity = 1;
     public CartItemEntity() {}
     public CartItemEntity(String userEmail, Long productId, int quantity) {
         this.userEmail = userEmail;
@@ -31,6 +31,6 @@ public class CartItemEntity {
     public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
     public Long getProductId() { return productId; }
     public void setProductId(Long productId) { this.productId = productId; }
-    public Integer getQuantity() { return quantity; }
-    public void setQuantity(Integer quantity) { this.quantity = quantity; }
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
 }

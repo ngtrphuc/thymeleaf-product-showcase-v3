@@ -1681,6 +1681,7 @@ footer {
 }
 
 .sidebar-admin .admin-nav-link {
+  position: relative;
   min-height: 52px;
   padding: 12px 14px;
   margin: 4px 12px;

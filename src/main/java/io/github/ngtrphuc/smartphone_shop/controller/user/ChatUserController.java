@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,7 +27,6 @@ public class ChatUserController {
     @GetMapping("/chat/history")
     public List<Map<String, Object>> chatHistory(Authentication auth) {
         String email = auth.getName();
-        chatService.markReadByUser(email);
         return chatService.getHistory(email).stream().map(m -> {
             Map<String, Object> item = new HashMap<>();
             item.put("content", m.getContent());
@@ -42,14 +42,16 @@ public class ChatUserController {
     }
 
     @PostMapping("/chat/send")
-    public String sendUserMessage(Authentication auth, @RequestParam String content) {
-        if (content == null || content.isBlank()) return "error";
+    public ResponseEntity<String> sendUserMessage(Authentication auth, @RequestParam String content) {
+        if (content == null || content.isBlank()) {
+            return ResponseEntity.badRequest().body("error");
+        }
         try {
             chatService.saveUserMessage(auth.getName(), content);
         } catch (IllegalArgumentException ex) {
-            return "error";
+            return ResponseEntity.badRequest().body("error");
         }
-        return "ok";
+        return ResponseEntity.ok("ok");
     }
 
     @GetMapping("/chat/unread-count")
@@ -58,8 +60,8 @@ public class ChatUserController {
     }
 
     @PostMapping("/chat/mark-read")
-    public String markRead(Authentication auth) {
+    public ResponseEntity<String> markRead(Authentication auth) {
         chatService.markReadByUser(auth.getName());
-        return "ok";
+        return ResponseEntity.ok("ok");
     }
 }

@@ -12,6 +12,8 @@ public interface CartItemRepository extends JpaRepository<CartItemEntity, Long> 
     Optional<CartItemEntity> findByUserEmailAndProductId(String userEmail, Long productId);
     void deleteByUserEmail(String userEmail);
     void deleteByUserEmailAndProductId(String userEmail, Long productId);
+    void deleteByProductId(Long productId);
+
     @Modifying
     @Query("UPDATE CartItemEntity c SET c.quantity = :qty WHERE c.userEmail = :email AND c.productId = :productId")
     void updateQuantity(@Param("email") String email,

@@ -18,7 +18,7 @@
                     <span class="header-action__icon">&#129534;&#xFE0E;</span>
                     <span class="header-action__label">Orders</span>
                 </a>
-                <a sec:authorize="hasRole('USER')" href="/cart" class="btn-header header-action header-action--neutral">
+                <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header header-action header-action--neutral">
                     <span class="header-action__icon">&#x1F6D2;</span>
                     <span class="header-action__label">Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)</span>
                 </a>
@@ -31,6 +31,7 @@
                     <span class="header-action__label">Admin</span>
                 </a>
                 <form th:action="@{/logout}" method="post" style="display:inline;margin:0;">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                     <button type="submit" class="btn-logout-link header-action header-action--danger">
                         <span class="header-action__icon">&#x23FB;</span>
                         <span class="header-action__label">Log Out</span>
@@ -53,7 +54,7 @@
             <h3 class="detail-spec-title">Product Specifications</h3>
             <table class="spec-table">
                 <tr><td class="spec-label">OS</td><td class="spec-value" th:text="${product.os}"></td></tr>
-                <tr><td class="spec-label">Chipset</td><td class="spec-value" th:text="${product.Chipset}"></td></tr>
+                <tr><td class="spec-label">Chipset</td><td class="spec-value" th:text="${product.chipset}"></td></tr>
                 <tr><td class="spec-label">Frequency</td><td class="spec-value" th:text="${product.speed}"></td></tr>
                 <tr><td class="spec-label">RAM</td><td class="spec-value" th:text="${product.ram}"></td></tr>
                 <tr><td class="spec-label">Storage</td><td class="spec-value" th:text="${product.storage}"></td></tr>
@@ -64,7 +65,7 @@
             </table>
 
             <div class="action-buttons">
-                <form sec:authorize="hasRole('USER')" action="/cart/add" method="post" style="margin:0;">
+                <form sec:authorize="!hasRole('ADMIN')" action="/cart/add" method="post" style="margin:0;">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                     <input type="hidden" name="id" th:value="${product.id}">
                     <button type="submit" class="btn-cart">Add to Cart</button>

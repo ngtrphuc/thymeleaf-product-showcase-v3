@@ -30,6 +30,7 @@
                 <span class="header-action__label">Admin</span>
             </a>
             <form sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post" style="display:inline;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <button type="submit" class="btn-logout-link header-action header-action--danger">
                     <span class="header-action__icon">&#x23FB;</span>
                     <span class="header-action__label">Log Out</span>
@@ -44,6 +45,7 @@
         <div class="profile-card">
             <div class="section-title">Account Information</div>
             <form th:action="@{/profile/update}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                 <div class="info-grid">
                     <div class="info-group">
                         <label>Full Name</label>

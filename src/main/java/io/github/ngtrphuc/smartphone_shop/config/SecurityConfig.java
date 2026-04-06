@@ -1,27 +1,29 @@
 package io.github.ngtrphuc.smartphone_shop.config;
 
-import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
+import static org.springframework.security.config.Customizer.withDefaults;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
-import io.github.ngtrphuc.smartphone_shop.service.CustomUserDetailsService;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final CustomUserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
     private final LoginSuccessHandler loginSuccessHandler;
 
-    public SecurityConfig(CustomUserDetailsService userDetailsService,
+    public SecurityConfig(UserDetailsService userDetailsService,
             LoginSuccessHandler loginSuccessHandler) {
         this.userDetailsService = userDetailsService;
         this.loginSuccessHandler = loginSuccessHandler;
@@ -33,21 +35,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    public DaoAuthenticationProvider authProvider(PasswordEncoder passwordEncoder) {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
-        provider.setPasswordEncoder(passwordEncoder);
-        return provider;
-    }
-
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http,
-            DaoAuthenticationProvider authProvider) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .authenticationProvider(authProvider)
+                .userDetailsService(userDetailsService)
                 .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/css/**", "/images/**", "/js/**", "/fonts/**", "/actuator/health").permitAll()
-                .requestMatchers("/", "/product/**", "/register", "/login", "/admin/access-denied-admin").permitAll()
-                .requestMatchers("/cart/**", "/profile/**", "/my-orders/**", "/chat/**").hasRole("USER")
+                .requestMatchers("/css/**", "/images/**", "/js/**", "/fonts/**", "/actuator/health", "/favicon.ico").permitAll()
+                .requestMatchers("/", "/product/**", "/register", "/login", "/error", "/admin/access-denied-admin", "/cart/**").permitAll()
+                .requestMatchers("/profile/**", "/my-orders/**", "/chat/**").hasRole("USER")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
                 )
@@ -66,18 +60,39 @@ public class SecurityConfig {
                 )
                 .exceptionHandling(exception -> exception
                 .accessDeniedHandler((request, response, accessDeniedException) -> {
-                    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-                    if (auth != null && auth.getAuthorities().stream()
+                    Authentication currentAuth = SecurityContextHolder.getContext().getAuthentication();
+                    if (currentAuth == null
+                            || currentAuth instanceof AnonymousAuthenticationToken
+                            || !currentAuth.isAuthenticated()) {
+                        response.sendRedirect("/login");
+                    } else if (currentAuth.getAuthorities().stream()
                             .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
                         response.sendRedirect("/admin/access-denied-admin");
                     } else {
-                        response.sendRedirect("/login");
+                        response.sendRedirect("/");
                     }
                 })
                 )
-                .headers(headers -> headers
-                .referrerPolicy(referrer -> referrer.policy(ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
-                )
+                .headers(headers -> {
+                    headers.contentSecurityPolicy(csp -> csp.policyDirectives(
+                            "default-src 'self'; " +
+                            "script-src 'self' 'unsafe-inline'; " +
+                            "style-src 'self' 'unsafe-inline'; " +
+                            "img-src 'self' data: https:; " +
+                            "font-src 'self' data:; " +
+                            "connect-src 'self'; " +
+                            "object-src 'none'; " +
+                            "base-uri 'self'; " +
+                            "form-action 'self'; " +
+                            "frame-ancestors 'none'"));
+                    headers.contentTypeOptions(withDefaults());
+                    headers.frameOptions(frame -> frame.deny());
+                    headers.cacheControl(withDefaults());
+                    headers.addHeaderWriter(
+                            new StaticHeadersWriter("Permissions-Policy",
+                                    "camera=(), microphone=(), geolocation=(), payment=()"));
+                    headers.referrerPolicy(referrer -> referrer.policy(ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN));
+                })
                 .sessionManagement(session -> session
                 .sessionFixation().changeSessionId()
                 .maximumSessions(1)

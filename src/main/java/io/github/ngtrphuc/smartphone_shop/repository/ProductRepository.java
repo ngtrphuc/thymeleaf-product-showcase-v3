@@ -39,6 +39,50 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             @Param("priceMin") Double priceMin,
             @Param("priceMax") Double priceMax);
 
+    @Query("""
+        SELECT p FROM Product p
+        WHERE (
+                :keyword IS NULL
+                OR (:keywordId IS NOT NULL AND p.id = :keywordId)
+                OR LOWER(COALESCE(p.name, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR LOWER(COALESCE(p.description, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR LOWER(COALESCE(p.os, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR LOWER(COALESCE(p.chipset, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR LOWER(COALESCE(p.storage, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+              )
+          AND (:minStock IS NULL OR p.stock >= :minStock)
+          AND (:maxStock IS NULL OR p.stock <= :maxStock)
+        """)
+    Page<Product> findAdminProducts(
+            @Param("keyword") String keyword,
+            @Param("keywordId") Long keywordId,
+            @Param("minStock") Integer minStock,
+            @Param("maxStock") Integer maxStock,
+            Pageable pageable);
+
+    @Query("""
+        SELECT p FROM Product p
+        WHERE (
+                :keyword IS NULL
+                OR (:keywordId IS NOT NULL AND p.id = :keywordId)
+                OR LOWER(COALESCE(p.name, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR LOWER(COALESCE(p.description, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR LOWER(COALESCE(p.os, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR LOWER(COALESCE(p.chipset, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR LOWER(COALESCE(p.storage, '')) LIKE LOWER(CONCAT('%', :keyword, '%'))
+              )
+          AND (:minStock IS NULL OR p.stock >= :minStock)
+          AND (:maxStock IS NULL OR p.stock <= :maxStock)
+        """)
+    List<Product> findAllAdminProducts(
+            @Param("keyword") String keyword,
+            @Param("keywordId") Long keywordId,
+            @Param("minStock") Integer minStock,
+            @Param("maxStock") Integer maxStock);
+
+    @Query("SELECT p.name FROM Product p ORDER BY LOWER(p.name), p.id")
+    List<String> findAllNamesOrdered();
+
     List<Product> findByNameContainingIgnoreCase(String keyword);
     Optional<Product> findFirstByNameIgnoreCase(String name);
 

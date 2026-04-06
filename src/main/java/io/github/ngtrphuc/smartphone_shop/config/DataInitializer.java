@@ -4,6 +4,8 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.github.ngtrphuc.smartphone_shop.model.Product;
 import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
@@ -11,6 +13,8 @@ import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
 @Configuration
 @Profile("dev")
 public class DataInitializer {
+
+    private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
     @Bean
     public CommandLineRunner initDatabase(ProductRepository repository) {
@@ -96,9 +100,9 @@ public class DataInitializer {
             }
 
             if (inserted > 0 || updated > 0) {
-                System.out.println(">> Product catalog synced. Inserted: " + inserted + ", Updated: " + updated);
+                log.info("Product catalog synced. Inserted: {}, Updated: {}", inserted, updated);
             } else {
-                System.out.println(">> Product catalog already up to date.");
+                log.info("Product catalog already up to date.");
             }
         };
     }
@@ -112,7 +116,9 @@ public class DataInitializer {
 
         p.setName(name);
         p.setPrice(price);
-        p.setStock(10);
+        if (isNew || p.getStock() == null) {
+            p.setStock(10);
+        }
         p.setImageUrl(img);
         p.setOs(os);
         p.setRam(ram);

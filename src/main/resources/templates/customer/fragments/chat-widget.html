@@ -13,7 +13,13 @@
             cursor:pointer;z-index:9000;
             box-shadow:0 4px 20px rgba(0,0,0,0.35);
             transition:transform 0.2s,box-shadow 0.2s;">
-            <span id="chat-fab-icon" style="font-size:22px;line-height:1;">💬</span>
+            <span id="chat-fab-icon"
+                style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;color:#FFFFFF;line-height:1;">
+                <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path d="M4 5.5a2.5 2.5 0 0 1 2.5-2.5h11A2.5 2.5 0 0 1 20 5.5v7A2.5 2.5 0 0 1 17.5 15H10l-4 4v-4.2A2.5 2.5 0 0 1 4 12.5z"
+                        fill="currentColor" />
+                </svg>
+            </span>
             <span id="chat-unread-badge" style="display:none;position:absolute;top:-4px;right:-4px;
                      background:#000000;color:white;border-radius:50%;
                      width:20px;height:20px;font-size:11px;font-weight:700;
@@ -50,10 +56,14 @@
                         </div>
                     </div>
                 </div>
-                <button onclick="toggleChat()" style="background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer;
-                           padding:4px;line-height:1;transition:color 0.2s;"
-                    onmouseover="this.style.color='var(--text)'"
-                    onmouseout="this.style.color='var(--text-muted)'">✕</button>
+                <button onclick="toggleChat()" style="background:none;border:none;color:#FFFFFF;font-size:18px;cursor:pointer;
+                           padding:4px;line-height:1;display:flex;align-items:center;justify-content:center;transition:opacity 0.2s;"
+                    onmouseover="this.style.opacity='0.82'"
+                    onmouseout="this.style.opacity='1'">
+                    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+                    </svg>
+                </button>
             </div>
 
             <div id="chat-messages"
@@ -74,10 +84,14 @@
                            background:linear-gradient(135deg,var(--accent),var(--accent2));
                            border:none;cursor:pointer;flex-shrink:0;
                            display:flex;align-items:center;justify-content:center;
-                           font-size:16px;transition:transform 0.15s,box-shadow 0.15s;
+                           color:#FFFFFF;font-size:16px;transition:transform 0.15s,box-shadow 0.15s;
                            box-shadow:0 2px 10px rgba(0,0,0,0.25);"
                     onmouseover="this.style.transform='scale(1.08)'"
-                    onmouseout="this.style.transform='scale(1)'">➤</button>
+                    onmouseout="this.style.transform='scale(1)'">
+                    <svg width="17" height="17" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M3 20.5L22 12L3 3.5L5.5 11L13.5 12L5.5 13L3 20.5Z" fill="currentColor" />
+                    </svg>
+                </button>
             </div>
         </div>
 
@@ -86,14 +100,26 @@
                 transform: scale(1.08);
                 box-shadow: 0 6px 26px rgba(0, 0, 0, 0.45);
             }
-            #chat-messages::-webkit-scrollbar { width: 3px; }
+
+            #chat-messages::-webkit-scrollbar {
+                width: 3px;
+            }
+
             #chat-messages::-webkit-scrollbar-thumb {
                 background: rgba(255, 255, 255, 0.1);
                 border-radius: 3px;
             }
+
             @keyframes chatPopIn {
-                from { opacity: 0; transform: scale(0.88) translateY(16px); }
-                to   { opacity: 1; transform: scale(1) translateY(0); }
+                from {
+                    opacity: 0;
+                    transform: scale(0.88) translateY(16px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
+                }
             }
         </style>
 
@@ -101,6 +127,8 @@
             let chatOpen = false;
             let chatLoaded = false;
             let chatEvtSource = null;
+            const CHAT_BUBBLE_ICON = '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 5.5a2.5 2.5 0 0 1 2.5-2.5h11A2.5 2.5 0 0 1 20 5.5v7A2.5 2.5 0 0 1 17.5 15H10l-4 4v-4.2A2.5 2.5 0 0 1 4 12.5z" fill="currentColor" /></svg>';
+            const CHAT_CLOSE_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" /></svg>';
 
             function getCsrfToken() {
                 return document.getElementById('csrf-token').value;
@@ -130,7 +158,7 @@
                             badge.style.display = 'flex';
                         }
                     })
-                    .catch(() => {});
+                    .catch(() => { });
             })();
 
             function toggleChat() {
@@ -140,13 +168,13 @@
                 if (chatOpen) {
                     popup.style.display = 'flex';
                     popup.style.animation = 'chatPopIn 0.22s ease';
-                    icon.textContent = '✕';
+                    icon.innerHTML = CHAT_CLOSE_ICON;
                     clearUnreadBadge();
                     loadHistory();
                     if (!chatEvtSource) startSSE();
                 } else {
                     popup.style.display = 'none';
-                    icon.textContent = '💬';
+                    icon.innerHTML = CHAT_BUBBLE_ICON;
                 }
             }
 
@@ -157,12 +185,16 @@
                         const box = document.getElementById('chat-messages');
                         box.innerHTML = '';
                         if (msgs.length === 0) {
-                            box.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:30px 0;">👋 Hi! How can we help you?</div>';
+                            box.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:30px 0;">Hi! How can we help you?</div>';
                         } else {
                             msgs.forEach(m => appendBubble(m.content, m.senderRole, m.createdAt, false));
                         }
                         chatLoaded = true;
                         box.scrollTop = box.scrollHeight;
+                    })
+                    .catch(() => {
+                        const box = document.getElementById('chat-messages');
+                        box.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:13px;padding:30px 0;">Unable to load messages right now.</div>';
                     });
             }
 
@@ -185,9 +217,19 @@
                 const input = document.getElementById('chat-input');
                 const content = input.value.trim();
                 if (!content) return;
+                const originalValue = content;
                 input.value = '';
                 appendBubble(content, 'USER', new Date().toISOString(), true);
-                postWithCsrf('/chat/send', 'content=' + encodeURIComponent(content));
+                postWithCsrf('/chat/send', 'content=' + encodeURIComponent(content))
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Chat send failed');
+                        }
+                    })
+                    .catch(() => {
+                        input.value = originalValue;
+                        input.focus();
+                    });
             }
 
             function appendBubble(content, role, timeStr, scroll) {
@@ -244,4 +286,5 @@
         </script>
     </div>
 </body>
+
 </html>

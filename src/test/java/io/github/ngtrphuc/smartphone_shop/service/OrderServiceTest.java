@@ -1,7 +1,9 @@
 package io.github.ngtrphuc.smartphone_shop.service;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyCollection;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -39,10 +41,10 @@ class OrderServiceTest {
 
     @Test
     void updateStatus_shouldThrowWhenOrderNotFound() {
-        when(orderRepository.findById(99L)).thenReturn(Optional.empty());
+        when(orderRepository.findByIdWithItemsForUpdate(99L)).thenReturn(Optional.empty());
 
         assertThrows(OrderValidationException.class, () -> orderService.updateStatus(99L, "processing"));
-        verify(orderRepository).findById(99L);
+        verify(orderRepository).findByIdWithItemsForUpdate(99L);
         verifyNoMoreInteractions(orderRepository);
     }
 
@@ -51,10 +53,10 @@ class OrderServiceTest {
         Order order = new Order();
         order.setId(7L);
         order.setStatus("pending");
-        when(orderRepository.findById(7L)).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdWithItemsForUpdate(7L)).thenReturn(Optional.of(order));
 
         assertThrows(OrderValidationException.class, () -> orderService.updateStatus(7L, "invalid_status"));
-        verify(orderRepository).findById(7L);
+        verify(orderRepository).findByIdWithItemsForUpdate(7L);
         verifyNoMoreInteractions(orderRepository);
     }
 
@@ -63,12 +65,35 @@ class OrderServiceTest {
         Product product = new Product();
         product.setId(1L);
         product.setName("Phone A");
+        product.setPrice(100.0);
         product.setStock(5);
 
         CartItem item = new CartItem(1L, "Phone A", 100.0, 1);
         when(productRepository.findAllByIdInForUpdate(anyCollection())).thenReturn(List.of(product));
 
         assertThrows(OrderValidationException.class, () ->
-                orderService.createOrder("user@example.com", "John Doe", "abc123", "Tokyo", List.of(item), 100.0));
+                orderService.createOrder("user@example.com", "John Doe", "abc123", "Tokyo", List.of(item)));
+    }
+
+    @Test
+    @SuppressWarnings("null")
+    void createOrder_shouldRecalculatePricesFromCurrentCatalog() {
+        Product product = new Product();
+        product.setId(1L);
+        product.setName("Phone A Updated");
+        product.setPrice(250.0);
+        product.setStock(5);
+
+        CartItem staleCartItem = new CartItem(1L, "Phone A", 100.0, 2);
+        when(productRepository.findAllByIdInForUpdate(anyCollection())).thenReturn(List.of(product));
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0, Order.class));
+
+        Order created = orderService.createOrder(
+                "user@example.com", "John Doe", "0901234567", "Tokyo", List.of(staleCartItem));
+
+        assertEquals(500.0, created.getTotalAmount());
+        assertEquals("Phone A Updated", created.getItems().getFirst().getProductName());
+        assertEquals(250.0, created.getItems().getFirst().getPrice());
+        assertEquals(3, product.getStock());
     }
 }

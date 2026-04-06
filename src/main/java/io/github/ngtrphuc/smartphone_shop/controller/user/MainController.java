@@ -7,6 +7,9 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.PatternSyntaxException;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
@@ -66,28 +69,53 @@ public class MainController {
             }
         }
 
-        List<Product> all = productRepository.findAllWithFilters(
-                blankToNull(keyword), resolvedPriceMin, resolvedPriceMax);
-
-        if (brand != null && !brand.isBlank()) {
-            final String b = brand.toLowerCase(Locale.ROOT);
-            all = all.stream()
-                    .filter(p -> inferBrand(p).equals(b))
-                    .toList();
-        }
-
-        all = applySortInMemory(all, sort);
-        all = applyStringFilters(all, batteryRange, batteryMin, batteryMax, screenSize);
-
         int effectivePageSize = resolvePageSize(pageSize);
-        int totalElements = all.size();
-        int totalPages = totalElements == 0 ? 1 : (int) Math.ceil((double) totalElements / effectivePageSize);
-        int safePage = Math.max(0, Math.min(page, totalPages - 1));
+        int safeRequestedPage = Math.max(page, 0);
+        Sort requestedSort = Objects.requireNonNull(resolveSort(sort));
+        List<Product> products;
+        long totalElements;
+        int totalPages;
+        int safePage;
 
-        List<Product> products = all.stream()
-                .skip((long) safePage * effectivePageSize)
-                .limit(effectivePageSize)
-                .toList();
+        if (requiresInMemoryFiltering(brand, batteryRange, batteryMin, batteryMax, screenSize)) {
+            List<Product> all = productRepository.findAllWithFilters(
+                    blankToNull(keyword), resolvedPriceMin, resolvedPriceMax);
+
+            if (brand != null && !brand.isBlank()) {
+                final String normalizedBrand = brand.toLowerCase(Locale.ROOT);
+                all = all.stream()
+                        .filter(p -> inferBrand(p).equals(normalizedBrand))
+                        .toList();
+            }
+
+            all = applySortInMemory(all, sort);
+            all = applyStringFilters(all, batteryRange, batteryMin, batteryMax, screenSize);
+
+            totalElements = all.size();
+            totalPages = totalElements == 0 ? 1 : (int) Math.ceil((double) totalElements / effectivePageSize);
+            safePage = Math.max(0, Math.min(safeRequestedPage, totalPages - 1));
+            products = all.stream()
+                    .skip((long) safePage * effectivePageSize)
+                    .limit(effectivePageSize)
+                    .toList();
+        } else {
+            Page<Product> productPage = productRepository.findWithFilters(
+                    blankToNull(keyword),
+                    resolvedPriceMin,
+                    resolvedPriceMax,
+                    PageRequest.of(safeRequestedPage, effectivePageSize, requestedSort));
+            if (productPage.isEmpty() && safeRequestedPage > 0 && productPage.getTotalPages() > 0) {
+                productPage = productRepository.findWithFilters(
+                        blankToNull(keyword),
+                        resolvedPriceMin,
+                        resolvedPriceMax,
+                        PageRequest.of(productPage.getTotalPages() - 1, effectivePageSize, requestedSort));
+            }
+            products = productPage.getContent();
+            totalElements = productPage.getTotalElements();
+            totalPages = Math.max(productPage.getTotalPages(), 1);
+            safePage = Math.max(0, Math.min(productPage.getNumber(), totalPages - 1));
+        }
 
         model.addAttribute("products", products);
         model.addAttribute("currentPage", safePage);
@@ -179,6 +207,28 @@ public class MainController {
     private String blankToNull(String s) { return (s == null || s.isBlank()) ? null : s; }
     private String normalizeNameForSort(String name) { return name == null ? "" : name.trim().toLowerCase(Locale.ROOT); }
     private double safePrice(Product product) { return Objects.requireNonNullElse(product.getPrice(), 0.0); }
+
+    private boolean requiresInMemoryFiltering(String brand,
+            String batteryRange, Integer batteryMin, Integer batteryMax, String screenSize) {
+        return (brand != null && !brand.isBlank())
+                || (batteryRange != null && !batteryRange.isBlank())
+                || batteryMin != null
+                || batteryMax != null
+                || (screenSize != null && !screenSize.isBlank());
+    }
+
+    private Sort resolveSort(String sort) {
+        if (sort == null) {
+            return Sort.by("id").ascending();
+        }
+        return switch (sort) {
+            case "name_asc" -> Sort.by(Sort.Order.asc("name").ignoreCase());
+            case "name_desc" -> Sort.by(Sort.Order.desc("name").ignoreCase());
+            case "price_asc" -> Sort.by("price").ascending();
+            case "price_desc" -> Sort.by("price").descending();
+            default -> Sort.by("id").ascending();
+        };
+    }
 
     private String inferBrand(Product product) {
         String name = product != null ? product.getName() : null;

@@ -1,6 +1,7 @@
 package io.github.ngtrphuc.smartphone_shop.controller.user;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -22,6 +23,7 @@ import jakarta.servlet.http.HttpSession;
 @Controller
 @RequestMapping("/profile")
 public class ProfileController {
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+()\\-\\s]{6,30}$");
 
     private final UserRepository userRepository;
     private final OrderService orderService;
@@ -58,23 +60,53 @@ public class ProfileController {
             @RequestParam String phoneNumber,
             @RequestParam String defaultAddress,
             RedirectAttributes ra) {
-        String normalizedFullName = normalizeInline(fullName);
-        if (normalizedFullName.isBlank()) {
-            ra.addFlashAttribute("toast", "Full name cannot be empty.");
+        String normalizedFullName;
+        String normalizedPhoneNumber;
+        String normalizedAddress;
+        try {
+            normalizedFullName = normalizeRequiredField(
+                    fullName, "Full name cannot be empty.", "Full name is too long.", 100);
+            normalizedPhoneNumber = normalizeOptionalField(phoneNumber, "Phone number is too long.", 30);
+            normalizedAddress = normalizeOptionalField(defaultAddress, "Address is too long.", 200);
+        } catch (IllegalArgumentException ex) {
+            ra.addFlashAttribute("toast", ex.getMessage());
+            return "redirect:/profile";
+        }
+        if (normalizedPhoneNumber != null && !PHONE_PATTERN.matcher(normalizedPhoneNumber).matches()) {
+            ra.addFlashAttribute("toast", "Phone number format is invalid.");
             return "redirect:/profile";
         }
 
-        userRepository.findByEmailIgnoreCase(auth.getName()).ifPresent(user -> {
+        boolean updated = userRepository.findByEmailIgnoreCase(auth.getName()).map(user -> {
             user.setFullName(normalizedFullName);
-            user.setPhoneNumber(normalizeInline(phoneNumber));
-            user.setDefaultAddress(normalizeInline(defaultAddress));
+            user.setPhoneNumber(normalizedPhoneNumber);
+            user.setDefaultAddress(normalizedAddress);
             userRepository.save(user);
-        });
-        ra.addFlashAttribute("toast", "Profile updated!");
+            return true;
+        }).orElse(false);
+        ra.addFlashAttribute("toast", updated ? "Profile updated!" : "Unable to update profile.");
         return "redirect:/profile";
     }
 
-    private String normalizeInline(String value) {
-        return value == null ? "" : value.trim().replaceAll("\\s+", " ");
+    private String normalizeRequiredField(String value, String emptyMessage, String tooLongMessage, int maxLength) {
+        String normalized = normalizeOptionalField(value, tooLongMessage, maxLength);
+        if (normalized == null) {
+            throw new IllegalArgumentException(emptyMessage);
+        }
+        return normalized;
+    }
+
+    private String normalizeOptionalField(String value, String tooLongMessage, int maxLength) {
+        if (value == null) {
+            return null;
+        }
+        String normalized = value.trim().replaceAll("\\s+", " ");
+        if (normalized.isBlank()) {
+            return null;
+        }
+        if (normalized.length() > maxLength) {
+            throw new IllegalArgumentException(tooLongMessage);
+        }
+        return normalized;
     }
 }

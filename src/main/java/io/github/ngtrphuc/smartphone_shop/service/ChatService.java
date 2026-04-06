@@ -9,18 +9,21 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.regex.Pattern;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import io.github.ngtrphuc.smartphone_shop.model.ChatMessage;
 import io.github.ngtrphuc.smartphone_shop.repository.ChatMessageRepository;
-import jakarta.transaction.Transactional;
 
 @Service
 public class ChatService {
     private static final long SSE_TIMEOUT_MS = 300_000L;
     private static final int MAX_MESSAGE_LENGTH = 1000;
+    private static final int MAX_EMAIL_LENGTH = 100;
+    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
 
     private final ChatMessageRepository chatMessageRepository;
 
@@ -79,18 +82,22 @@ public class ChatService {
         return saved;
     }
 
+    @Transactional(readOnly = true)
     public List<ChatMessage> getHistory(String email) {
         return chatMessageRepository.findByUserEmailOrderByCreatedAtAsc(normalizeConversationEmail(email));
     }
 
+    @Transactional(readOnly = true)
     public List<String> getAllConversationEmails() {
         return chatMessageRepository.findDistinctUserEmailsOrderByLatest();
     }
 
+    @Transactional(readOnly = true)
     public long countUnreadByAdmin(String email) {
         return chatMessageRepository.countUnreadByAdmin(normalizeConversationEmail(email));
     }
 
+    @Transactional(readOnly = true)
     public Map<String, Long> getUnreadCountsByAdminConversation() {
         Map<String, Long> unreadCounts = new LinkedHashMap<>();
         for (ChatMessageRepository.UnreadCountView row : chatMessageRepository.countUnreadByAdminGrouped()) {
@@ -99,10 +106,12 @@ public class ChatService {
         return unreadCounts;
     }
 
+    @Transactional(readOnly = true)
     public long countUnreadByUser(String email) {
         return chatMessageRepository.countUnreadByUser(normalizeConversationEmail(email));
     }
 
+    @Transactional(readOnly = true)
     public long countAllUnreadByAdmin() {
         return chatMessageRepository.countAllUnreadByAdmin();
     }
@@ -177,6 +186,12 @@ public class ChatService {
         String normalized = email == null ? "" : email.trim().toLowerCase(Locale.ROOT);
         if (normalized.isBlank()) {
             throw new IllegalArgumentException("Conversation email cannot be empty.");
+        }
+        if (normalized.length() > MAX_EMAIL_LENGTH) {
+            throw new IllegalArgumentException("Conversation email is too long.");
+        }
+        if (!EMAIL_PATTERN.matcher(normalized).matches()) {
+            throw new IllegalArgumentException("Conversation email is invalid.");
         }
         return normalized;
     }

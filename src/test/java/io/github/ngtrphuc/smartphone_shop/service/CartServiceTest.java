@@ -1,16 +1,13 @@
 package io.github.ngtrphuc.smartphone_shop.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -46,7 +43,7 @@ class CartServiceTest {
     @Test
     void mergeSessionCartToDb_shouldClampByStockAndSkipOutOfStock() {
         MockHttpSession session = new MockHttpSession();
-        List<CartItem> sessionCart = new ArrayList<>();
+        List<CartItem> sessionCart = new java.util.ArrayList<>();
         sessionCart.add(new CartItem(1L, "Phone A", 100.0, 5));
         sessionCart.add(new CartItem(2L, "Phone B", 200.0, 2));
         session.setAttribute("cart", sessionCart);
@@ -84,6 +81,7 @@ class CartServiceTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     void getDbCart_shouldRemoveOrphanedItemsWhenProductNoLongerExists() {
         CartItemEntity orphan = new CartItemEntity("user@example.com", 99L, 2);
         when(cartItemRepository.findByUserEmail("user@example.com")).thenReturn(List.of(orphan));
@@ -92,15 +90,26 @@ class CartServiceTest {
         List<CartItem> cart = cartService.getDbCart("user@example.com");
 
         assertTrue(cart.isEmpty());
-        Object deletedArgument = org.mockito.Mockito.mockingDetails(cartItemRepository).getInvocations().stream()
-                .filter(invocation -> invocation.getMethod().getName().equals("deleteAll"))
-                .map(invocation -> invocation.getArgument(0))
-                .findFirst()
-                .orElseThrow();
-        Iterable<?> deletedItems = assertInstanceOf(Iterable.class, deletedArgument);
-        List<Object> deletedList = new ArrayList<>();
-        deletedItems.forEach(deletedList::add);
-        assertEquals(1, deletedList.size());
-        assertSame(orphan, deletedList.getFirst());
+        verify(cartItemRepository).deleteAll(List.of(orphan));
+    }
+
+    @Test
+    @SuppressWarnings("null")
+    void getDbCart_shouldClampQuantityWhenStockDrops() {
+        CartItemEntity entity = new CartItemEntity("user@example.com", 7L, 5);
+        Product product = new Product();
+        product.setId(7L);
+        product.setName("Phone C");
+        product.setPrice(300.0);
+        product.setStock(2);
+
+        when(cartItemRepository.findByUserEmail("user@example.com")).thenReturn(List.of(entity));
+        when(productRepository.findAllByIdIn(List.of(7L))).thenReturn(List.of(product));
+
+        List<CartItem> cart = cartService.getDbCart("user@example.com");
+
+        assertEquals(1, cart.size());
+        assertEquals(2, cart.getFirst().getQuantity());
+        verify(cartItemRepository).saveAll(List.of(entity));
     }
 }

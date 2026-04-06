@@ -1,6 +1,7 @@
 package io.github.ngtrphuc.smartphone_shop.controller.user;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -22,6 +23,10 @@ import jakarta.servlet.http.HttpSession;
 @Controller
 @RequestMapping("/cart")
 public class CartController {
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+()\\-\\s]{6,30}$");
+    private static final int MAX_NAME_LENGTH = 120;
+    private static final int MAX_PHONE_LENGTH = 30;
+    private static final int MAX_ADDRESS_LENGTH = 255;
 
     private final CartService cartService;
     private final OrderService orderService;
@@ -51,9 +56,14 @@ public class CartController {
     @PostMapping("/add")
     public String add(@RequestParam long id, Authentication auth,
             HttpSession session, RedirectAttributes ra) {
-        cartService.addItem(getEmail(auth), session, id);
+        CartService.AddItemResult result = cartService.addItem(getEmail(auth), session, id);
         cartService.syncCartCount(session, getEmail(auth));
-        ra.addFlashAttribute("toast", "Added to cart successfully.");
+        String toast = switch (result) {
+            case ADDED -> "Added to cart successfully.";
+            case LIMIT_REACHED -> "You've already added the maximum available stock for this product.";
+            case UNAVAILABLE -> "This product is unavailable right now.";
+        };
+        ra.addFlashAttribute("toast", toast);
         return "redirect:/product/" + id;
     }
 
@@ -83,8 +93,9 @@ public class CartController {
         if (cartService.getCart(getEmail(auth), session).isEmpty()) {
             return "redirect:/cart";
         }
-        if (auth != null) {
-            userRepository.findByEmailIgnoreCase(auth.getName()).ifPresent(u -> model.addAttribute("user", u));
+        String email = getEmail(auth);
+        if (email != null && !"anonymousUser".equals(email)) {
+            userRepository.findByEmailIgnoreCase(email).ifPresent(u -> model.addAttribute("user", u));
         }
         return "shipping";
     }
@@ -95,7 +106,8 @@ public class CartController {
             @RequestParam(required = false) String addressOption,
             @RequestParam(required = false) String savedAddress,
             @RequestParam(required = false) String address,
-            HttpSession session) {
+            HttpSession session,
+            RedirectAttributes ra) {
         String normalizedName = normalizeInline(customerName);
         String normalizedPhone = normalizeInline(phoneNumber);
         String normalizedSavedAddress = normalizeInline(savedAddress);
@@ -103,6 +115,19 @@ public class CartController {
         String finalAddress = "new".equals(addressOption) ? normalizedAddress
                 : (!normalizedSavedAddress.isBlank() ? normalizedSavedAddress : normalizedAddress);
         if (normalizedName.isBlank() || normalizedPhone.isBlank() || finalAddress.isBlank()) {
+            ra.addFlashAttribute("toast", "Please complete your shipping details.");
+            return "redirect:/cart/shipping";
+        }
+        if (normalizedName.length() > MAX_NAME_LENGTH) {
+            ra.addFlashAttribute("toast", "Full name is too long.");
+            return "redirect:/cart/shipping";
+        }
+        if (normalizedPhone.length() > MAX_PHONE_LENGTH || !PHONE_PATTERN.matcher(normalizedPhone).matches()) {
+            ra.addFlashAttribute("toast", "Phone number format is invalid.");
+            return "redirect:/cart/shipping";
+        }
+        if (finalAddress.length() > MAX_ADDRESS_LENGTH) {
+            ra.addFlashAttribute("toast", "Shipping address is too long.");
             return "redirect:/cart/shipping";
         }
         session.setAttribute("name", normalizedName);
@@ -132,12 +157,17 @@ public class CartController {
         String email = getEmail(auth);
         List<CartItem> cart = cartService.getCart(email, session);
 
+        if (email == null || "anonymousUser".equals(email)) {
+            ra.addFlashAttribute("toast", "Please log in before placing an order.");
+            return "redirect:/login";
+        }
+
         if (cart.isEmpty() || name == null || phone == null || address == null) {
             return "redirect:/cart/shipping";
         }
 
         try {
-            orderService.createOrder(email, name, phone, address, cart, cartService.calculateTotal(cart));
+            orderService.createOrder(email, name, phone, address, cart);
             cartService.clearCart(email, session);
             session.removeAttribute("name");
             session.removeAttribute("phone");

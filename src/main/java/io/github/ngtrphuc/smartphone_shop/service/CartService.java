@@ -21,6 +21,12 @@ import jakarta.transaction.Transactional;
 @Service
 public class CartService {
 
+    public enum AddItemResult {
+        ADDED,
+        LIMIT_REACHED,
+        UNAVAILABLE
+    }
+
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
 
@@ -29,15 +35,28 @@ public class CartService {
         this.productRepository = productRepository;
     }
 
-    @SuppressWarnings("unchecked")
     public List<CartItem> getSessionCart(HttpSession session) {
         Object obj = session.getAttribute("cart");
+        if (obj instanceof List<?> rawCart) {
+            if (rawCart.stream().allMatch(CartItem.class::isInstance)) {
+                List<CartItem> cart = rawCart.stream()
+                        .map(CartItem.class::cast)
+                        .collect(Collectors.toCollection(ArrayList::new));
+                session.setAttribute("cart", cart);
+                return cart;
+            }
+            List<CartItem> cart = new ArrayList<>();
+            session.setAttribute("cart", cart);
+            return cart;
+        }
         if (obj == null) {
             List<CartItem> cart = new ArrayList<>();
             session.setAttribute("cart", cart);
             return cart;
         }
-        return (List<CartItem>) obj;
+        List<CartItem> cart = new ArrayList<>();
+        session.setAttribute("cart", cart);
+        return cart;
     }
 
     public void syncCartCount(HttpSession session, String email) {
@@ -88,7 +107,7 @@ public class CartService {
                 continue;
             }
             Product product = productMap.get(itemId);
-            int maxStock = product != null && product.getStock() != null ? product.getStock() : 0;
+            int maxStock = stockOf(product);
             if (maxStock <= 0) {
                 continue;
             }
@@ -131,17 +150,40 @@ public class CartService {
                 .filter(p -> p.getId() != null)
                 .collect(Collectors.toMap(Product::getId, p -> p));
 
-        List<CartItemEntity> orphanedItems = entities.stream()
-                .filter(entity -> !productMap.containsKey(entity.getProductId()))
-                .toList();
-        if (!orphanedItems.isEmpty()) {
-            cartItemRepository.deleteAll(orphanedItems);
+        List<CartItemEntity> removableItems = new ArrayList<>();
+        List<CartItemEntity> adjustedItems = new ArrayList<>();
+        for (CartItemEntity entity : entities) {
+            Product product = productMap.get(entity.getProductId());
+            if (product == null) {
+                removableItems.add(entity);
+                continue;
+            }
+
+            int maxStock = stockOf(product);
+            if (maxStock <= 0) {
+                removableItems.add(entity);
+                continue;
+            }
+
+            int safeQuantity = Math.max(1, Math.min(entity.getQuantity(), maxStock));
+            if (safeQuantity != entity.getQuantity()) {
+                entity.setQuantity(safeQuantity);
+                adjustedItems.add(entity);
+            }
+        }
+
+        if (!removableItems.isEmpty()) {
+            cartItemRepository.deleteAll(removableItems);
+        }
+        if (!adjustedItems.isEmpty()) {
+            cartItemRepository.saveAll(adjustedItems);
         }
 
         List<CartItem> result = entities.stream()
                 .map(e -> {
                     Product p = productMap.get(e.getProductId());
-                    if (p == null) {
+                    int stock = stockOf(p);
+                    if (p == null || stock <= 0 || removableItems.contains(e)) {
                         return null;
                     }
                     return new CartItem(e.getProductId(), p.getName(), p.getPrice(), e.getQuantity());
@@ -152,14 +194,14 @@ public class CartService {
     }
 
     @Transactional
-    public void addItem(String email, HttpSession session, long productId) {
+    public AddItemResult addItem(String email, HttpSession session, long productId) {
         Product p = productRepository.findById(productId).orElse(null);
         if (p == null) {
-            return;
+            return AddItemResult.UNAVAILABLE;
         }
-        int maxStock = (p.getStock() != null) ? p.getStock() : 0;
+        int maxStock = stockOf(p);
         if (maxStock <= 0) {
-            return;
+            return AddItemResult.UNAVAILABLE;
         }
 
         if (isLoggedIn(email)) {
@@ -170,9 +212,12 @@ public class CartService {
                 if (e.getQuantity() < maxStock) {
                     e.setQuantity(e.getQuantity() + 1);
                     cartItemRepository.save(e);
+                    return AddItemResult.ADDED;
                 }
+                return AddItemResult.LIMIT_REACHED;
             } else {
                 cartItemRepository.save(new CartItemEntity(email, productId, 1));
+                return AddItemResult.ADDED;
             }
         } else {
             List<CartItem> cart = getSessionCart(session);
@@ -182,9 +227,12 @@ public class CartService {
             if (found != null) {
                 if (found.getQuantity() < maxStock) {
                     found.setQuantity(found.getQuantity() + 1);
+                    return AddItemResult.ADDED;
                 }
+                return AddItemResult.LIMIT_REACHED;
             } else {
                 cart.add(new CartItem(productId, p.getName(), p.getPrice(), 1));
+                return AddItemResult.ADDED;
             }
         }
     }
@@ -192,7 +240,7 @@ public class CartService {
     @Transactional
     public void increaseItem(String email, HttpSession session, long productId) {
         Product p = productRepository.findById(productId).orElse(null);
-        int maxStock = (p != null && p.getStock() != null) ? p.getStock() : 0;
+        int maxStock = stockOf(p);
         if (maxStock <= 0) {
             return;
         }
@@ -268,6 +316,12 @@ public class CartService {
         return cart.stream()
                 .mapToDouble(i -> Optional.ofNullable(i.getPrice()).orElse(0.0) * i.getQuantity())
                 .sum();
+    }
+
+    private int stockOf(Product product) {
+        return Optional.ofNullable(product)
+                .map(Product::getStock)
+                .orElse(0);
     }
 
     private boolean isLoggedIn(String email) {

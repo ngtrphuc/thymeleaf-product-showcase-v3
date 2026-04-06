@@ -17,10 +17,18 @@
             font-weight: 700;
             align-items: center;
             justify-content: center;
-            margin-left: auto;
+            position: absolute;
+            top: -6px;
+            right: -10px;
+            left: auto;
+            transform: none;
+            margin-left: 0;
             flex-shrink: 0;
+            pointer-events: none;
+            z-index: 2;
         }
         .chat-badge.visible { display: flex; }
+        .sidebar-admin .admin-nav-link .admin-nav-icon { position: relative; }
 
         .msg-admin { justify-content: flex-end; }
         .msg-user  { justify-content: flex-start; }
@@ -109,10 +117,11 @@
                 <span class="admin-nav-body"><span class="admin-nav-label">Orders</span></span>
             </a>
             <a href="/admin/chat" class="admin-nav-link active">
-                <span class="admin-nav-icon">&#x1F4AC;&#xFE0E;</span>
+                <span class="admin-nav-icon">&#x1F4AC;&#xFE0E;
+                    <span id="admin-chat-badge" class="chat-badge">0</span>
+                </span>
                 <span class="admin-nav-body">
                     <span class="admin-nav-label">Chat</span>
-                    <span id="admin-chat-badge" class="chat-badge">0</span>
                 </span>
             </a>
             <a href="/" style="margin-top:auto;border-top:1px solid var(--glass-border);padding-top:16px;">🏠︎ HOME</a>
@@ -206,14 +215,30 @@
             });
         }
 
+        function markAdminConversationRead(userEmail) {
+            if (!userEmail) return Promise.resolve();
+            return postWithCsrf('/admin/chat/mark-read', 'userEmail=' + encodeURIComponent(userEmail))
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Mark-read request failed');
+                    }
+                });
+        }
+
         const evtSource = new EventSource('/admin/chat/stream');
         evtSource.addEventListener('message', function (e) {
             const msg = JSON.parse(e.data);
             if (msg.userEmail === selectedEmail) {
                 appendMessage(msg.content, msg.senderRole, msg.createdAt);
+                if (msg.senderRole === 'USER') {
+                    markAdminConversationRead(selectedEmail)
+                        .finally(pollAdminUnread);
+                    return;
+                }
             }
             pollAdminUnread();
         });
+        window.addEventListener('beforeunload', () => evtSource.close());
 
         function appendMessage(content, role, timeStr) {
             if (!chatBox) return;
@@ -235,10 +260,20 @@
             const input = document.getElementById('msg-input');
             const content = input.value.trim();
             if (!content || !selectedEmail) return;
+            const originalValue = content;
             input.value = '';
             postWithCsrf('/admin/chat/send',
                 'userEmail=' + encodeURIComponent(selectedEmail) + '&content=' + encodeURIComponent(content)
-            );
+            )
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Send failed');
+                    }
+                })
+                .catch(() => {
+                    input.value = originalValue;
+                    input.focus();
+                });
         }
 
         function escHtml(s) {
@@ -286,6 +321,9 @@
         }
         pollAdminUnread();
         setInterval(pollAdminUnread, 10000);
+        if (selectedEmail) {
+            markAdminConversationRead(selectedEmail).finally(pollAdminUnread);
+        }
     </script>
 </body>
 </html>
