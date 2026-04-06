@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
     const stage = document.getElementById('success-celebration');
     if (!stage) return;
 
@@ -90,9 +90,8 @@ document.addEventListener('DOMContentLoaded', () => {
             window.setTimeout(() => spawnPiece(false), Math.random() * 220);
         }
     };
-
-    // 3 quick waves for a real confetti cannon feel
     burst();
     window.setTimeout(burst, 420);
     window.setTimeout(burst, 920);
 });
+

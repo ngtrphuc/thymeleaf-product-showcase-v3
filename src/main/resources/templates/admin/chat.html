@@ -93,6 +93,7 @@
 <body>
     <input type="hidden" id="csrf-token" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
     <input type="hidden" id="csrf-header" th:value="${_csrf.headerName}">
+    <input type="hidden" id="selected-email" th:value="${selectedEmail}">
 
     <div class="admin-layout">
         <div class="sidebar-admin">
@@ -193,8 +194,8 @@
         </div>
     </div>
 
-    <script th:inline="javascript">
-        const selectedEmail = /*[[${selectedEmail}]]*/ null;
+    <script>
+        const selectedEmail = document.getElementById('selected-email')?.value || null;
         const chatBox = document.getElementById('chat-box');
         if (chatBox) chatBox.scrollTop = chatBox.scrollHeight;
 

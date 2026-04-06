@@ -1,4 +1,4 @@
-@font-face {
+﻿@font-face {
   font-family: 'Syne';
   src: url('/fonts/Syne-VariableFont_wght.ttf') format('truetype');
   font-weight: 400 800;
@@ -2575,8 +2575,6 @@ input.filter-input[type=number] {
   appearance: textfield;
   -moz-appearance: textfield;
 }
-
-/* Off-white storefront + admin refresh */
 body {
   background: var(--bg);
   color: var(--text);
@@ -2796,8 +2794,6 @@ footer,
   border-color: rgba(0, 0, 0, 0.24);
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.18);
 }
-
-/* Sign-in flow style */
 .auth-shell {
   width: min(1080px, 100%);
   margin: 36px auto 56px;
@@ -2890,8 +2886,6 @@ footer,
   font-weight: 700;
   background: rgba(0, 0, 0, 0.12);
 }
-
-/* Animated list feel */
 @keyframes listRiseIn {
   from {
     opacity: 0;
@@ -2949,8 +2943,6 @@ footer,
     animation: none;
   }
 }
-
-/* Neo sign-in flow (scoped for auth pages) */
 body.auth-neo-page {
   min-height: 100vh;
   margin: 0;
@@ -3240,8 +3232,6 @@ body.auth-neo-page .alert-success {
     margin: 48px auto 20px;
   }
 }
-
-/* White/Black auth pages + header action colors */
 body.auth-neo-page {
   color: #000;
   background: #fff !important;
@@ -3390,8 +3380,6 @@ body.auth-neo-page .alert-success {
   color: #000 !important;
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12) !important;
 }
-
-/* Unified button color system */
 :root {
   --ui-btn-positive: #000000;
   --ui-btn-positive-hover: #1a1a1a;
@@ -3536,8 +3524,6 @@ body.auth-neo-page .alert-success {
 .header-action--profile.header-action--active .header-action__icon {
   color: #ffffff !important;
 }
-
-/* Final button rule: except Home and Logout, all buttons are black with white text/icon */
 .btn-search,
 .btn-apply,
 .btn-auth,
@@ -3640,8 +3626,6 @@ button:not(.btn-logout-link):not(.header-action--danger):not(.btn-home):hover {
   color: #ffffff !important;
   -webkit-text-fill-color: currentColor !important;
 }
-
-/* Force all cancel/delete buttons to red */
 .btn-cancel,
 .btn-del,
 .btn-remove,
@@ -3681,8 +3665,6 @@ button:not(.btn-logout-link):not(.header-action--danger):not(.btn-home):hover {
   color: #ffffff !important;
   -webkit-text-fill-color: currentColor !important;
 }
-
-/* Higher-specificity override to beat generic black button rule */
 button.btn-cancel:not(.btn-home):not(.header-action--danger):not(.btn-logout-link),
 button.btn-del:not(.btn-home):not(.header-action--danger):not(.btn-logout-link),
 button.btn-remove:not(.btn-home):not(.header-action--danger):not(.btn-logout-link),
@@ -3732,8 +3714,6 @@ a.btn-modal-confirm:active {
   border-color: #b71c1c !important;
   color: #ffffff !important;
 }
-
-/* Admin header link: force white icon/label on black button */
 .header a.header-action.header-action--accent[href="/admin"] {
   background: #000000 !important;
   border-color: #000000 !important;
@@ -3753,8 +3733,6 @@ a.btn-modal-confirm:active {
   border-color: #000000 !important;
   color: #ffffff !important;
 }
-
-/* Keep Order button should be black (exception from cancel/delete red rule) */
 button.btn-modal-cancel.keep-order-btn:not(.btn-home):not(.header-action--danger):not(.btn-logout-link) {
   background: #000000 !important;
   border-color: #000000 !important;
@@ -3768,8 +3746,6 @@ button.btn-modal-cancel.keep-order-btn:not(.btn-home):not(.header-action--danger
   border-color: #000000 !important;
   color: #ffffff !important;
 }
-
-/* Status color map override */
 .badge-pending {
   background: rgba(245, 158, 11, 0.16) !important;
   border-color: rgba(245, 158, 11, 0.45) !important;
@@ -3820,6 +3796,7 @@ button.btn-modal-cancel.keep-order-btn:not(.btn-home):not(.header-action--danger
 .badge-cancelled::before {
   background: #ef4444 !important;
 }
+
 
 
 
