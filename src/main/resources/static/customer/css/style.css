@@ -285,6 +285,12 @@ button {
   background: rgba(246, 236, 222, 0.9) !important;
 }
 
+.header-action--back {
+  --header-action-expanded: 190px;
+  --header-action-overshoot: calc(var(--header-action-expanded) + 18px);
+  --header-action-relax: calc(var(--header-action-expanded) + 5px);
+}
+
 .header-action--profile .header-action__icon {
   background: none;
   background-size: auto;
@@ -465,6 +471,12 @@ button {
   .header-actions .header-action {
     --header-action-expanded: 124px;
     padding: 0 10px;
+  }
+
+  .header-actions .header-action--back {
+    --header-action-expanded: 170px;
+    --header-action-overshoot: calc(var(--header-action-expanded) + 14px);
+    --header-action-relax: calc(var(--header-action-expanded) + 4px);
   }
 
   .header-actions .header-action--profile {
@@ -1435,6 +1447,62 @@ footer {
 
 .btn-edit-link:hover {
   color: var(--text);
+}
+
+/* Checkout review panel readability */
+.checkout-box--review {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.16);
+}
+
+.checkout-box--review h2 {
+  color: #111111;
+}
+
+.checkout-box--review .summary-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.1);
+}
+
+.checkout-box--review .summary-line {
+  color: rgba(0, 0, 0, 0.72);
+}
+
+.checkout-box--review .summary-line strong,
+.checkout-box--review .price {
+  color: #000000;
+}
+
+.success-card--thankyou {
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.16);
+}
+
+.success-card--thankyou h1 {
+  color: #111111;
+}
+
+.success-card--thankyou .success-message {
+  color: rgba(0, 0, 0, 0.74);
+  font-size: 14px;
+  line-height: 1.7;
+  margin-bottom: 28px;
+}
+
+.success-card--thankyou .btn-home {
+  background: #000000;
+  border-color: #000000;
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24);
+}
+
+.success-card--thankyou .btn-home:hover {
+  background: #111111;
+  border-color: #000000;
+  color: #ffffff;
 }
 
 .checkmark-circle {
@@ -3854,4 +3922,27 @@ button.btn-modal-cancel.keep-order-btn:not(.btn-home):not(.header-action--danger
 
 .badge-cancelled::before {
   background: #ef4444 !important;
+}
+
+/* Success page: Back to Shop button */
+.success-card--thankyou .btn-home {
+  background: #000000 !important;
+  border: 1px solid #000000 !important;
+  color: #ffffff !important;
+}
+
+.success-card--thankyou .btn-home:hover,
+.success-card--thankyou .btn-home:focus-visible {
+  background: #ffffff !important;
+  border-color: #000000 !important;
+  color: #000000 !important;
+}
+
+.paypay-icon-inline {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
 }

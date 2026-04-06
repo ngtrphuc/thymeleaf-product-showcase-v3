@@ -182,7 +182,13 @@ public class CartController {
             return "redirect:/cart/payment";
         }
         if (isAuthenticatedUser(email)) {
-            userRepository.findByEmailIgnoreCase(email).ifPresent(u -> model.addAttribute("user", u));
+            userRepository.findByEmailIgnoreCase(email).ifPresent(u -> {
+                model.addAttribute("user", u);
+                String savedAddress = normalizeInline(u.getDefaultAddress());
+                if (!savedAddress.isBlank()) {
+                    model.addAttribute("savedAddress", savedAddress);
+                }
+            });
         }
         return "shipping";
     }
@@ -303,4 +309,3 @@ public class CartController {
         };
     }
 }
-

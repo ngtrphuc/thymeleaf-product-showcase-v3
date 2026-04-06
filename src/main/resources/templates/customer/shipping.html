@@ -8,7 +8,7 @@
 <body>
     <div class="header">
         <div class="header-actions">
-            <a href="/cart/payment" class="btn-header header-action">
+            <a href="/cart/payment" class="btn-header header-action header-action--neutral header-action--back">
                 <span class="header-action__icon">&#9664;</span>
                 <span class="header-action__label">Back to Payment</span>
             </a>
@@ -36,28 +36,28 @@
                 <input type="tel" name="phoneNumber" th:value="${user != null ? user.phoneNumber : ''}" placeholder="e.g. 08012345678" required pattern="[0-9]{10,11}">
             </div>
 
-            <div th:if="${user != null and user.defaultAddress != null and !#strings.isEmpty(user.defaultAddress)}" style="max-width:440px;margin:0 auto 20px;">
+            <div th:if="${savedAddress != null and !#strings.isEmpty(savedAddress)}" style="max-width:440px;margin:0 auto 20px;">
                 <p style="font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text-muted);text-align:left;margin-bottom:12px;">Shipping Address</p>
                 <label class="option-card">
                     <input type="radio" name="addressOption" value="saved" checked onchange="toggleAddress(this.value)">
                     <div>
                         <div style="font-weight:600;font-size:14px;">Use saved address</div>
-                        <div style="color:var(--text-muted);font-size:13px;margin-top:4px;" th:text="${user.defaultAddress}"></div>
+                        <div style="color:var(--text-muted);font-size:13px;margin-top:4px;" th:text="${savedAddress}"></div>
                     </div>
                 </label>
                 <label class="option-card">
                     <input type="radio" name="addressOption" value="new" onchange="toggleAddress(this.value)">
                     <div style="font-weight:600;font-size:14px;">Ship to a new address</div>
                 </label>
-                <input type="hidden" name="savedAddress" th:value="${user.defaultAddress}">
+                <input type="hidden" name="savedAddress" th:value="${savedAddress}">
             </div>
 
-            <div th:if="${user == null or user.defaultAddress == null or #strings.isEmpty(user.defaultAddress)}" class="shipping-form-group">
+            <div th:if="${savedAddress == null or #strings.isEmpty(savedAddress)}" class="shipping-form-group">
                 <label>Shipping Address</label>
                 <input type="text" name="address" placeholder="Street, City, Province..." required minlength="10">
             </div>
 
-            <div id="newAddressFields" class="shipping-form-group">
+            <div id="newAddressFields" class="shipping-form-group" style="display:none;">
                 <label>New Shipping Address</label>
                 <input type="text" id="newAddressInput" name="address" placeholder="Street, City, Province..." minlength="10">
             </div>
@@ -70,6 +70,7 @@
         function toggleAddress(val) {
             const newFields = document.getElementById('newAddressFields');
             const newInput = document.getElementById('newAddressInput');
+            if (!newFields || !newInput) return;
             if (val === 'new') {
                 newFields.style.display = 'block';
                 newInput.required = true;
@@ -79,6 +80,13 @@
                 newInput.value = '';
             }
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const selected = document.querySelector('input[name="addressOption"]:checked');
+            if (selected) {
+                toggleAddress(selected.value);
+            }
+        });
     </script>
 
     <div class="toast-container" th:if="${toast}">
