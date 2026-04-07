@@ -369,6 +369,14 @@
             box-shadow: 0 14px 28px rgba(111, 90, 69, 0.24);
             filter: saturate(1.08);
         }
+        .admin-table td.admin-actions-cell {
+            white-space: nowrap;
+        }
+        .admin-table .admin-actions-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
         @media (max-width: 1200px) {
             .admin-toolbar {
                 grid-template-columns: repeat(2, minmax(220px, 1fr));
@@ -387,9 +395,9 @@
 <body>
     <div class="admin-layout">
         <div class="sidebar-admin">
-            <div class="brand">⚙ Admin Panel</div>
+            <div class="brand"><span class="icon-svg icon-admin" aria-hidden="true"></span> Admin Panel</div>
             <a href="/admin" class="admin-nav-link">
-                <span class="admin-nav-icon">&#x1F4CA;&#xFE0E;</span>
+                <span class="admin-nav-icon"><span class="icon-svg icon-dashboard" aria-hidden="true"></span></span>
                 <span class="admin-nav-body"><span class="admin-nav-label">Dashboard</span></span>
             </a>
             <a href="/admin/products" class="admin-nav-link active">
@@ -404,18 +412,19 @@
                 <span class="admin-nav-body"><span class="admin-nav-label">Products</span></span>
             </a>
             <a href="/admin/orders" class="admin-nav-link">
-                <span class="admin-nav-icon">&#x1F4E6;&#xFE0E;</span>
+                <span class="admin-nav-icon"><span class="icon-svg icon-package" aria-hidden="true"></span></span>
                 <span class="admin-nav-body"><span class="admin-nav-label">Orders</span></span>
             </a>
             <a href="/admin/chat" class="admin-nav-link">
-                <span class="admin-nav-icon">&#x1F4AC;&#xFE0E;
+                <span class="admin-nav-icon">
+                    <span class="icon-svg icon-chat" aria-hidden="true"></span>
                     <span id="admin-chat-badge" class="chat-badge">0</span>
                 </span>
                 <span class="admin-nav-body">
                     <span class="admin-nav-label">Chat</span>
                 </span>
             </a>
-            <a href="/" style="margin-top:auto;border-top:1px solid var(--glass-border);padding-top:16px;">🏠︎ HOME</a>
+            <a href="/" class="home-animated" style="margin-top:auto;border-top:1px solid var(--glass-border);padding-top:16px;"><span class="icon-svg icon-home" aria-hidden="true"></span> HOME</a>
         </div>
 
         <div class="admin-content">
@@ -506,12 +515,14 @@
                                 <span th:if="${p.stock != null and p.stock > 0}" style="color:var(--success);font-weight:600;" th:text="${p.stock}"></span>
                                 <span th:if="${p.stock == null or p.stock <= 0}" style="color:var(--accent3);font-weight:600;">Out</span>
                             </td>
-                            <td style="display:flex;gap:8px;align-items:center;">
-                                <a th:href="@{/admin/products/edit/{id}(id=${p.id}, page=${currentPage}, keyword=${keyword}, brand=${brand}, stock=${stock}, sort=${sort})}"
-                                    class="btn-sm btn-edit">Edit</a>
-                                <button type="button" class="btn-sm btn-del"
-                                    th:attr="data-product-id=${p.id},data-product-name=${p.name}"
-                                    onclick="openDeleteModal(this.dataset.productId, this.dataset.productName)">Delete</button>
+                            <td class="admin-actions-cell">
+                                <div class="admin-actions-group">
+                                    <a th:href="@{/admin/products/edit/{id}(id=${p.id}, page=${currentPage}, keyword=${keyword}, brand=${brand}, stock=${stock}, sort=${sort})}"
+                                        class="btn-sm btn-edit">Edit</a>
+                                    <button type="button" class="btn-sm btn-del"
+                                        th:attr="data-product-id=${p.id},data-product-name=${p.name}"
+                                        onclick="openDeleteModal(this.dataset.productId, this.dataset.productName)">Delete</button>
+                                </div>
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(products)}">
@@ -546,7 +557,7 @@
 
     <div class="modal-overlay" id="deleteModal">
         <div class="modal-box">
-            <div class="modal-icon">🗑️</div>
+            <div class="modal-icon"><span class="icon-svg icon-trash" aria-hidden="true"></span></div>
             <div class="modal-title">Delete Product?</div>
             <div class="modal-desc">This action cannot be undone. You are about to delete:</div>
             <div class="modal-product-name" id="modalProductName"></div>
@@ -846,5 +857,7 @@
     </script>
 </body>
 </html>
+
+
 
 

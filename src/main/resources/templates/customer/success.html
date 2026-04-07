@@ -10,17 +10,17 @@
     <div id="success-celebration" aria-hidden="true"></div>
 
     <div class="header">
-        <a href="/" class="home-animated">&#127968; HOME</a>
+        <a href="/" class="home-animated"><span class="icon-svg icon-home" aria-hidden="true"></span> HOME</a>
     </div>
 
     <div class="success-card success-card--thankyou">
-        <div class="checkmark-circle">&#10003;</div>
+        <div class="checkmark-circle"><span class="icon-svg icon-check" aria-hidden="true"></span></div>
         <h1 style="font-family:'Syne',sans-serif;font-weight:800;margin-bottom:12px;">Thank You!</h1>
         <p class="success-message">
             Your order has been placed successfully.<br>
             We will process it and contact you shortly.
         </p>
-        <a href="/" class="btn-home" style="display:inline-block;">Back to Shop</a>
+        <a href="/" class="home-animated" style="display:inline-flex;justify-content:center;"><span class="icon-svg icon-home" aria-hidden="true"></span> HOME</a>
     </div>
 
     <footer>
@@ -30,3 +30,4 @@
     <div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
 </body>
 </html>
+

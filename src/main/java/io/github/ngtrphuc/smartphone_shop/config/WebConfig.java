@@ -21,5 +21,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations("classpath:/static/customer/fonts/");
         registry.addResourceHandler("/js/**")
                 .addResourceLocations("classpath:/static/js/");
+        registry.addResourceHandler("/svg/**")
+                .addResourceLocations("classpath:/static/svg/");
     }
 }

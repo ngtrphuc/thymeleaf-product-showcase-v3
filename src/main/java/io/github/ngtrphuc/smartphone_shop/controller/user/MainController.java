@@ -10,6 +10,8 @@ import java.util.regex.PatternSyntaxException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.MultiValueMap;
@@ -20,6 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import io.github.ngtrphuc.smartphone_shop.model.Product;
 import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
+import io.github.ngtrphuc.smartphone_shop.service.WishlistService;
 
 @Controller
 public class MainController {
@@ -31,9 +34,11 @@ public class MainController {
     );
 
     private final ProductRepository productRepository;
+    private final WishlistService wishlistService;
 
-    public MainController(ProductRepository productRepository) {
+    public MainController(ProductRepository productRepository, WishlistService wishlistService) {
         this.productRepository = productRepository;
+        this.wishlistService = wishlistService;
     }
 
     @GetMapping("/")
@@ -50,6 +55,7 @@ public class MainController {
             @RequestParam(required = false) String screenSize,
             @RequestParam(required = false) Integer pageSize,
             @RequestParam(defaultValue = "0") int page,
+            Authentication authentication,
             Model model) {
 
         Double resolvedPriceMin = priceMin;
@@ -133,17 +139,21 @@ public class MainController {
         model.addAttribute("batteryMin", batteryMin);
         model.addAttribute("batteryMax", batteryMax);
         model.addAttribute("screenSize", screenSize);
+        model.addAttribute("wishlistedProductIds", resolveWishlistedProductIds(authentication));
         return "index";
     }
 
     @GetMapping("/product/{id}")
     public String productDetail(@PathVariable long id,
             @RequestParam MultiValueMap<String, String> requestParams,
+            Authentication authentication,
             Model model) {
         Product product = productRepository.findById(id).orElse(null);
         if (product == null) return "redirect:/";
         model.addAttribute("product", product);
         model.addAttribute("backUrl", buildBackUrl(requestParams));
+        model.addAttribute("wishlisted", isAuthenticatedUser(authentication)
+                && wishlistService.isWishlisted(authentication.getName(), id));
         return "detail";
     }
 
@@ -249,6 +259,10 @@ public class MainController {
     }
 
     private String buildBackUrl(MultiValueMap<String, String> requestParams) {
+        String from = firstNonBlank(requestParams.get("from"));
+        if ("wishlist".equalsIgnoreCase(from)) {
+            return "/wishlist";
+        }
         UriComponentsBuilder builder = UriComponentsBuilder.fromPath("/");
         requestParams.forEach((key, values) -> {
             if (key == null || key.isBlank() || values == null) {
@@ -261,6 +275,18 @@ public class MainController {
             }
         });
         return builder.build().encode().toUriString();
+    }
+
+    private String firstNonBlank(List<String> values) {
+        if (values == null) {
+            return null;
+        }
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
     }
 
     private int resolvePageSize(Integer pageSize) {
@@ -277,5 +303,18 @@ public class MainController {
         if (size == null) return 0;
         try { return Double.parseDouble(size.replaceAll("[^0-9.]", "")); }
         catch (NumberFormatException | PatternSyntaxException e) { return 0; }
+    }
+
+    private boolean isAuthenticatedUser(Authentication authentication) {
+        return authentication != null
+                && authentication.isAuthenticated()
+                && !(authentication instanceof AnonymousAuthenticationToken);
+    }
+
+    private java.util.Set<Long> resolveWishlistedProductIds(Authentication authentication) {
+        if (!isAuthenticatedUser(authentication)) {
+            return java.util.Set.of();
+        }
+        return wishlistService.getWishlistedProductIds(authentication.getName());
     }
 }

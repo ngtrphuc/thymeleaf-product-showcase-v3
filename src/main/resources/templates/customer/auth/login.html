@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <title>Log In</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script defer th:src="@{/js/auth-password-toggle.js}"></script>
 </head>
 <body class="auth-neo-page">
     <main class="auth-neo-shell">
         <nav class="auth-neo-nav">
-            <a href="/" class="auth-neo-brand">&#x2726; Smartphone Shop</a>
+            <a href="/" class="auth-neo-brand"><span class="icon-svg icon-spark" aria-hidden="true"></span> Smartphone Shop</a>
             <div class="auth-neo-switch">
                 <a href="/login" class="is-active">LogIn</a>
                 <a href="/register">Signup</a>
@@ -29,7 +30,15 @@
                 <input id="login-email" type="email" name="username" placeholder="info@gmail.com" required>
 
                 <label class="auth-neo-label" for="login-password">Password</label>
-                <input id="login-password" type="password" name="password" placeholder="********" required>
+                <div class="auth-neo-password-wrap">
+                    <input id="login-password" type="password" name="password" placeholder="********" required>
+                    <span class="auth-pass-toggle" role="button" tabindex="0"
+                        aria-label="Show password" aria-controls="login-password" aria-pressed="false"
+                        data-target="login-password">
+                        <span class="auth-pass-toggle__when-hidden icon-svg icon-eye" aria-hidden="true"></span>
+                        <span class="auth-pass-toggle__when-visible icon-svg icon-eye-off" aria-hidden="true"></span>
+                    </span>
+                </div>
 
                 <button type="submit" class="auth-neo-submit auth-neo-submit--login">
                     <span>Log In</span>

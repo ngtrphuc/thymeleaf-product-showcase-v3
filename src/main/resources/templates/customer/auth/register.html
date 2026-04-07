@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <title>Register</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script defer th:src="@{/js/auth-password-toggle.js}"></script>
 </head>
 <body class="auth-neo-page">
     <main class="auth-neo-shell">
         <nav class="auth-neo-nav">
-            <a href="/" class="auth-neo-brand">&#x2726; Smartphone Shop</a>
+            <a href="/" class="auth-neo-brand"><span class="icon-svg icon-spark" aria-hidden="true"></span> Smartphone Shop</a>
             <div class="auth-neo-switch">
                 <a href="/login">LogIn</a>
                 <a href="/register" class="is-active">Signup</a>
@@ -30,11 +31,19 @@
                 <input id="register-email" type="email" name="email" placeholder="info@gmail.com" required th:value="${email}">
 
                 <label class="auth-neo-label" for="register-password">Password</label>
-                <input id="register-password" type="password" name="password" placeholder="At least 6 characters" required minlength="6">
+                <div class="auth-neo-password-wrap">
+                    <input id="register-password" type="password" name="password" placeholder="At least 6 characters" required minlength="6">
+                    <span class="auth-pass-toggle" role="button" tabindex="0"
+                        aria-label="Show password" aria-controls="register-password" aria-pressed="false"
+                        data-target="register-password">
+                        <span class="auth-pass-toggle__when-hidden icon-svg icon-eye" aria-hidden="true"></span>
+                        <span class="auth-pass-toggle__when-visible icon-svg icon-eye-off" aria-hidden="true"></span>
+                    </span>
+                </div>
 
                 <button type="submit" class="auth-neo-submit">
                     <span>Create Account</span>
-                    <span class="auth-neo-submit-icon">&#8594;</span>
+                    <span class="auth-neo-submit-icon icon-svg icon-arrow-right" aria-hidden="true"></span>
                 </button>
             </form>
 
@@ -45,5 +54,6 @@
     </main>
 </body>
 </html>
+
 
 

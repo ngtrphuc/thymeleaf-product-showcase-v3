@@ -39,9 +39,9 @@ public class SecurityConfig {
         http
                 .userDetailsService(userDetailsService)
                 .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/css/**", "/images/**", "/js/**", "/fonts/**", "/actuator/health", "/favicon.ico").permitAll()
+                .requestMatchers("/css/**", "/images/**", "/js/**", "/fonts/**", "/svg/**", "/actuator/health", "/favicon.ico").permitAll()
                 .requestMatchers("/", "/product/**", "/register", "/login", "/error", "/admin/access-denied-admin", "/cart/**").permitAll()
-                .requestMatchers("/profile/**", "/my-orders/**", "/chat/**").hasRole("USER")
+                .requestMatchers("/profile/**", "/my-orders/**", "/chat/**", "/wishlist/**").hasRole("USER")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
                 )

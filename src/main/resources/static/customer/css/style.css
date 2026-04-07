@@ -98,6 +98,46 @@ button {
   font-family: inherit;
 }
 
+.icon-svg {
+  --icon-mask: none;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  vertical-align: -0.125em;
+  background-color: currentColor;
+  -webkit-mask: var(--icon-mask) center / contain no-repeat;
+  mask: var(--icon-mask) center / contain no-repeat;
+}
+
+.icon-home { --icon-mask: url("/svg/griddy/home.svg"); }
+.icon-login { --icon-mask: url("/svg/griddy/login.svg"); }
+.icon-orders { --icon-mask: url("/svg/griddy/orders.svg"); }
+.icon-wishlist { --icon-mask: url("/svg/griddy/wishlist.svg"); }
+.icon-heart-outline { --icon-mask: url("/svg/griddy/heart-outline.svg"); }
+.icon-cart { --icon-mask: url("/svg/griddy/cart.svg"); }
+.icon-user { --icon-mask: url("/svg/griddy/user.svg"); }
+.icon-profile { --icon-mask: url("/svg/griddy/profile.svg"); }
+.icon-admin { --icon-mask: url("/svg/griddy/admin.svg"); }
+.icon-logout { --icon-mask: url("/svg/griddy/logout.svg"); }
+.icon-dashboard { --icon-mask: url("/svg/griddy/dashboard.svg"); }
+.icon-package { --icon-mask: url("/svg/griddy/package.svg"); }
+.icon-chat { --icon-mask: url("/svg/griddy/chat.svg"); }
+.icon-spark { --icon-mask: url("/svg/griddy/spark.svg"); }
+.icon-eye { --icon-mask: url("/svg/griddy/eye.svg"); }
+.icon-eye-off { --icon-mask: url("/svg/griddy/eye-off.svg"); }
+.icon-arrow-right { --icon-mask: url("/svg/griddy/arrow-right.svg"); }
+.icon-arrow-left { --icon-mask: url("/svg/griddy/arrow-left.svg"); }
+.icon-credit-card { --icon-mask: url("/svg/griddy/credit-card.svg"); }
+.icon-alert { --icon-mask: url("/svg/griddy/alert.svg"); }
+.icon-check { --icon-mask: url("/svg/griddy/check.svg"); }
+.icon-clipboard { --icon-mask: url("/svg/griddy/clipboard.svg"); }
+.icon-box { --icon-mask: url("/svg/griddy/box.svg"); }
+.icon-location-pin { --icon-mask: url("/svg/griddy/location-pin.svg"); }
+.icon-phone { --icon-mask: url("/svg/griddy/phone.svg"); }
+.icon-trash { --icon-mask: url("/svg/griddy/trash.svg"); }
+.icon-ban { --icon-mask: url("/svg/griddy/ban.svg"); }
+
 .header {
   display: flex;
   justify-content: space-between;
@@ -194,6 +234,11 @@ button {
 
 .header .home-animated {
   padding: 0;
+}
+
+.home-animated .icon-svg {
+  width: 18px;
+  height: 18px;
 }
 
 @keyframes shineFlow {
@@ -366,6 +411,16 @@ button {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.header-action__icon.icon-svg {
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  background: currentColor !important;
+  background-size: auto;
+  -webkit-background-clip: border-box;
+  -webkit-text-fill-color: initial;
 }
 
 .header-action__icon svg {
@@ -1207,6 +1262,36 @@ footer {
   flex-wrap: wrap;
 }
 
+.action-buttons > form,
+.action-buttons > a.detail-action-btn {
+  margin: 0;
+  display: flex;
+}
+
+.action-buttons .detail-action-btn {
+  width: 220px;
+  height: 56px;
+  box-sizing: border-box;
+  margin-top: 0 !important;
+  border-radius: 24px !important;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+  padding: 0 24px !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2) !important;
+}
+
+.action-buttons .detail-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28) !important;
+}
+
 .btn-cart {
   background: linear-gradient(135deg, var(--accent), var(--accent2));
   color: white;
@@ -1261,6 +1346,15 @@ footer {
 
   .action-buttons {
     flex-wrap: wrap;
+  }
+
+  .action-buttons > form,
+  .action-buttons > a.detail-action-btn {
+    width: 100%;
+  }
+
+  .action-buttons .detail-action-btn {
+    width: 100%;
   }
 }
 
@@ -1509,10 +1603,17 @@ footer {
   background: linear-gradient(135deg, #000000, #000000);
   color: white;
   font-size: 40px;
-  line-height: 76px;
   border-radius: 50%;
   margin: 0 auto 20px;
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkmark-circle .icon-svg {
+  width: 40px;
+  height: 40px;
 }
 
 .btn-home {
@@ -1801,6 +1902,12 @@ footer {
   stroke-width: 1.8;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.admin-nav-icon.icon-svg,
+.admin-nav-icon .icon-svg {
+  width: 18px;
+  height: 18px;
 }
 
 .admin-nav-icon--svg {
@@ -2233,6 +2340,11 @@ select.status-sel option {
   margin-bottom: 12px;
 }
 
+.modal-icon .icon-svg {
+  width: 28px;
+  height: 28px;
+}
+
 .modal-title {
   font-family: 'Syne', sans-serif;
   font-size: 1.15rem;
@@ -2421,6 +2533,33 @@ select.status-sel option {
 
 .order-card:hover {
   border-color: rgba(0, 0, 0, 0.15);
+}
+
+.wishlist-item-actions .wishlist-item-form {
+  margin: 0;
+  display: flex;
+}
+
+.wishlist-item-actions .wishlist-action-btn {
+  min-width: 120px;
+  height: 42px;
+  padding: 0 16px !important;
+  border-radius: 12px !important;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  margin-top: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22) !important;
+}
+
+.wishlist-item-actions .wishlist-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.32) !important;
 }
 
 .order-header {
@@ -3063,6 +3202,9 @@ body.auth-neo-page > * {
   letter-spacing: 0.5px;
   padding: 0 14px;
   margin-right: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .auth-neo-nav-links {
@@ -3369,6 +3511,70 @@ body.auth-neo-page .alert-success {
 .auth-neo-form input:focus {
   border-color: rgba(0, 0, 0, 0.55) !important;
   box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.auth-neo-password-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-neo-password-wrap input {
+  padding-right: 52px !important;
+}
+
+.auth-pass-toggle {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+  color: rgba(0, 0, 0, 0.56);
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.auth-pass-toggle:hover {
+  color: rgba(0, 0, 0, 0.86);
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.auth-pass-toggle:focus-visible {
+  outline: 2px solid rgba(0, 0, 0, 0.4);
+  outline-offset: 2px;
+}
+
+.auth-pass-toggle .auth-pass-toggle__when-visible {
+  display: none;
+}
+
+.auth-neo-brand .icon-svg {
+  width: 18px;
+  height: 18px;
+}
+
+.auth-neo-submit-icon.icon-svg {
+  width: 16px;
+  height: 16px;
+}
+
+.auth-pass-toggle .icon-svg {
+  width: 18px;
+  height: 18px;
+}
+
+.auth-pass-toggle.is-visible .auth-pass-toggle__when-hidden {
+  display: none;
+}
+
+.auth-pass-toggle.is-visible .auth-pass-toggle__when-visible {
+  display: inline;
 }
 
 .auth-neo-submit {
@@ -3911,5 +4117,59 @@ button.btn-modal-cancel.keep-order-btn:not(.btn-home):not(.header-action--danger
   object-fit: contain;
   display: inline-block;
   vertical-align: middle;
+}
+
+/* Keep SVG mask icons visible under legacy gradient/text-clip rules. */
+.icon-svg {
+  background: currentColor !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+  -webkit-text-fill-color: initial !important;
+}
+
+.header-action__icon.icon-svg {
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+}
+
+.admin-nav-icon .icon-svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.brand .icon-svg,
+.error-btn-admin .icon-svg,
+.section-title .icon-svg,
+h2 .icon-svg {
+  width: 18px;
+  height: 18px;
+}
+
+.error-icon .icon-svg {
+  width: 44px;
+  height: 44px;
+}
+
+.header-action__icon.icon-svg {
+  background: currentColor !important;
+  -webkit-background-clip: border-box !important;
+  -webkit-text-fill-color: initial !important;
+}
+
+/* Final override: keep header SVG icons visible after legacy button/icon rules. */
+.header .header-action .header-action__icon.icon-svg,
+.header .btn-header .header-action__icon.icon-svg,
+.header .btn-logout-link .header-action__icon.icon-svg {
+  background: currentColor !important;
+  background-color: currentColor !important;
+  -webkit-background-clip: border-box !important;
+  background-clip: border-box !important;
+  -webkit-text-fill-color: initial !important;
+  color: currentColor !important;
+  width: 18px !important;
+  height: 18px !important;
+  min-width: 18px !important;
+  opacity: 1 !important;
 }
 

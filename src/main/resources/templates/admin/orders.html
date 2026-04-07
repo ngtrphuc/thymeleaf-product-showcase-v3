@@ -110,9 +110,9 @@
 <body>
     <div class="admin-layout">
         <div class="sidebar-admin">
-            <div class="brand">⚙ Admin Panel</div>
+            <div class="brand"><span class="icon-svg icon-admin" aria-hidden="true"></span> Admin Panel</div>
             <a href="/admin" class="admin-nav-link">
-                <span class="admin-nav-icon">&#x1F4CA;&#xFE0E;</span>
+                <span class="admin-nav-icon"><span class="icon-svg icon-dashboard" aria-hidden="true"></span></span>
                 <span class="admin-nav-body"><span class="admin-nav-label">Dashboard</span></span>
             </a>
             <a href="/admin/products" class="admin-nav-link">
@@ -127,18 +127,19 @@
                 <span class="admin-nav-body"><span class="admin-nav-label">Products</span></span>
             </a>
             <a href="/admin/orders" class="admin-nav-link active">
-                <span class="admin-nav-icon">&#x1F4E6;&#xFE0E;</span>
+                <span class="admin-nav-icon"><span class="icon-svg icon-package" aria-hidden="true"></span></span>
                 <span class="admin-nav-body"><span class="admin-nav-label">Orders</span></span>
             </a>
             <a href="/admin/chat" class="admin-nav-link">
-                <span class="admin-nav-icon">&#x1F4AC;&#xFE0E;
+                <span class="admin-nav-icon">
+                    <span class="icon-svg icon-chat" aria-hidden="true"></span>
                     <span id="admin-chat-badge" class="chat-badge">0</span>
                 </span>
                 <span class="admin-nav-body">
                     <span class="admin-nav-label">Chat</span>
                 </span>
             </a>
-            <a href="/" style="margin-top:auto;border-top:1px solid var(--glass-border);padding-top:16px;">🏠︎ HOME</a>
+            <a href="/" class="home-animated" style="margin-top:auto;border-top:1px solid var(--glass-border);padding-top:16px;"><span class="icon-svg icon-home" aria-hidden="true"></span> HOME</a>
         </div>
 
         <div class="admin-content">
@@ -166,7 +167,7 @@
                         <span style="color:var(--accent);font-weight:700;font-family:'Syne',sans-serif;" th:text="'#' + ${order.id}"></span>
                         <span style="color:var(--text-muted);font-size:12px;margin-left:10px;" th:text="${#temporals.format(order.createdAt,'dd/MM/yyyy HH:mm')}"></span>
                         <div style="margin-top:5px;font-weight:600;" th:text="${order.customerName}"></div>
-                        <div style="color:var(--text-muted);font-size:13px;">📞 <span th:text="${order.phoneNumber}"></span></div>
+                        <div style="color:var(--text-muted);font-size:13px;"><span class="icon-svg icon-phone" aria-hidden="true"></span> <span th:text="${order.phoneNumber}"></span></div>
                         <div style="color:var(--text-muted);font-size:12px;">Payment: <span th:text="${order.paymentMethodDisplayName}"></span></div>
                     </div>
                     <div style="text-align:right;">
@@ -208,7 +209,7 @@
                     </div>
                 </div>
                 <div style="margin-top:10px;font-size:12px;color:var(--text-muted);">
-                    📍 <span th:text="${order.shippingAddress}"></span>
+                    <span class="icon-svg icon-location-pin" aria-hidden="true"></span> <span th:text="${order.shippingAddress}"></span>
                 </div>
             </div>
 
@@ -323,4 +324,6 @@
     </script>
 </body>
 </html>
+
+
 

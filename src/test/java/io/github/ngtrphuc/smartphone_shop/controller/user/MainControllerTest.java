@@ -6,7 +6,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -16,6 +15,7 @@ import org.springframework.ui.Model;
 
 import io.github.ngtrphuc.smartphone_shop.model.Product;
 import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
+import io.github.ngtrphuc.smartphone_shop.service.WishlistService;
 
 @ExtendWith(MockitoExtension.class)
 class MainControllerTest {
@@ -23,15 +23,13 @@ class MainControllerTest {
     @Mock
     private ProductRepository productRepository;
 
-    private MainController mainController;
-
-    @BeforeEach
-    void setUp() {
-        mainController = new MainController(productRepository);
-    }
+    @Mock
+    private WishlistService wishlistService;
 
     @Test
     void index_shouldFilterAppleBrandFromIphoneName() {
+        MainController mainController = new MainController(productRepository, wishlistService);
+
         Product iphone = new Product();
         iphone.setId(1L);
         iphone.setName("iPhone 17 Pro");
@@ -46,7 +44,7 @@ class MainControllerTest {
 
         Model model = new ExtendedModelMap();
         String view = mainController.index(null, null, "Apple",
-                null, null, null, null, null, null, null, 9, 0, model);
+                null, null, null, null, null, null, null, 9, 0, null, model);
 
         Object productsAttribute = model.getAttribute("products");
         List<?> rawProducts = assertInstanceOf(List.class, productsAttribute);

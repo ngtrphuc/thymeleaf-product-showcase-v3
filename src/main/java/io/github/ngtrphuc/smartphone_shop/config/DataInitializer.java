@@ -142,7 +142,47 @@ public class DataInitializer {
                 new ProductSeed("Huawei Pura 70 Ultra", 189800.0, "/images/pura70ultra.png",
                         "HarmonyOS", "16 GB", "Kirin 9010", "2.30 GHz", "512 GB", "6.8 inch",
                         "2844 x 1260", "5200 mAh", "100W",
-                        "Huawei's camera-focused flagship delivering cutting-edge photography performance.")
+                        "Huawei's camera-focused flagship delivering cutting-edge photography performance."),
+                new ProductSeed("Huawei Mate X7", 239800.0, "/images/huawei-mate-x7.png",
+                        "HarmonyOS 6", "16 GB", "Kirin 9030 Pro", "3.2 GHz", "512 GB", "8.0 inch",
+                        "2416 x 2210", "5600 mAh", "66W",
+                        "Premium foldable flagship with Kirin 9030 Pro chipset, 8-inch LTPO OLED display and advanced triple camera system."),
+                new ProductSeed("RedMagic 11 Pro 5G", 169800.0, "/images/redmagic11pro.png",
+                        "Android 15 (RedMagic OS)", "16 GB", "Snapdragon 8 Elite", "3.3 GHz", "512 GB", "6.85 inch",
+                        "2688 x 1216", "7500 mAh", "80W",
+                        "Gaming flagship featuring Snapdragon 8 Elite, advanced cooling system and huge 7500 mAh battery for long gaming sessions."),
+                new ProductSeed("Honor Magic V5", 219800.0, "/images/honor-magic-v5.png",
+                        "Android 15 (MagicOS)", "16 GB", "Snapdragon 8 Elite", "3.3 GHz", "512 GB", "7.95 inch",
+                        "2344 x 2156", "5820 mAh", "66W",
+                        "Ultra thin foldable flagship with Snapdragon 8 Elite, large LTPO OLED display and powerful camera system."),
+                new ProductSeed("HONOR 400 Pro 5G", 129800.0, "/images/honor400pro.png",
+                        "Android 15 (MagicOS)", "12 GB", "Snapdragon 8 Gen 3", "3.3 GHz", "512 GB", "6.78 inch",
+                        "2700 x 1224", "5200 mAh", "100W",
+                        "High performance smartphone with Snapdragon 8 Gen 3 and ultra fast charging technology."),
+                new ProductSeed("OPPO Find N6 5G", 219800.0, "/images/oppo-find-n6.png",
+                        "Android 15 (ColorOS)", "16 GB", "Snapdragon 8 Elite", "3.3 GHz", "512 GB", "8.12 inch",
+                        "2480 x 2200", "6000 mAh", "80W",
+                        "Next generation OPPO foldable with Snapdragon 8 Elite and large LTPO OLED display."),
+                new ProductSeed("iPhone 16 Pro Max", 189800.0, "/images/iphone16promax.png",
+                        "iOS 18", "8 GB", "Apple A18 Pro", "4.05 GHz", "512 GB", "6.9 inch",
+                        "2868 x 1320", "4676 mAh", "27W",
+                        "Apple flagship smartphone with A18 Pro chip, advanced camera system and large ProMotion OLED display."),
+                new ProductSeed("iPhone 16 Pro", 169800.0, "/images/iphone16pro.png",
+                        "iOS 18", "8 GB", "Apple A18 Pro", "4.05 GHz", "512 GB", "6.3 inch",
+                        "2622 x 1206", "3582 mAh", "27W",
+                        "Professional iPhone model with powerful A18 Pro chip and premium titanium design."),
+                new ProductSeed("iPhone 16 Plus", 154800.0, "/images/iphone16plus.png",
+                        "iOS 18", "8 GB", "Apple A18", "3.9 GHz", "512 GB", "6.7 inch",
+                        "2796 x 1290", "4674 mAh", "25W",
+                        "Large-screen iPhone with A18 chip, excellent battery life and advanced dual-camera system."),
+                new ProductSeed("Samsung Galaxy Z Flip7", 159800.0, "/images/zflip7.png",
+                        "Android 15 (One UI)", "12 GB", "Snapdragon 8 Elite", "3.3 GHz", "512 GB", "6.9 inch",
+                        "2640 x 1080", "4300 mAh", "25W",
+                        "Stylish foldable smartphone with upgraded hinge design and flagship Snapdragon performance."),
+                new ProductSeed("ZTE Nubia Z70 Ultra", 149800.0, "/images/z70ultra.png",
+                        "Android 15 (MyOS)", "16 GB", "Snapdragon 8 Elite", "3.3 GHz", "512 GB", "6.85 inch",
+                        "2688 x 1216", "6150 mAh", "80W",
+                        "Flagship smartphone with under-display camera, large battery and powerful gaming performance.")
         );
     }
 
@@ -164,9 +204,9 @@ public class DataInitializer {
             String battery,
             String charging,
             String description) {
+
         String key() {
             return name == null ? "" : name.trim().toLowerCase(Locale.ROOT);
         }
     }
 }
-
