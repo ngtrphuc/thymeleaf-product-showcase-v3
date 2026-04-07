@@ -195,6 +195,11 @@ public class CartService {
 
     @Transactional
     public AddItemResult addItem(String email, HttpSession session, long productId) {
+        return addItem(email, session, productId, 1);
+    }
+
+    @Transactional
+    public AddItemResult addItem(String email, HttpSession session, long productId, int requestedQuantity) {
         Product p = productRepository.findById(productId).orElse(null);
         if (p == null) {
             return AddItemResult.UNAVAILABLE;
@@ -203,20 +208,24 @@ public class CartService {
         if (maxStock <= 0) {
             return AddItemResult.UNAVAILABLE;
         }
+        int quantityToAdd = Math.max(1, requestedQuantity);
 
         if (isLoggedIn(email)) {
             Optional<CartItemEntity> existing
                     = cartItemRepository.findByUserEmailAndProductId(email, productId);
             if (existing.isPresent()) {
                 CartItemEntity e = existing.get();
-                if (e.getQuantity() < maxStock) {
-                    e.setQuantity(e.getQuantity() + 1);
-                    cartItemRepository.save(e);
-                    return AddItemResult.ADDED;
+                int currentQuantity = Math.max(0, e.getQuantity());
+                if (currentQuantity >= maxStock) {
+                    return AddItemResult.LIMIT_REACHED;
                 }
-                return AddItemResult.LIMIT_REACHED;
+                int targetQuantity = Math.min(maxStock, currentQuantity + quantityToAdd);
+                e.setQuantity(targetQuantity);
+                cartItemRepository.save(e);
+                return AddItemResult.ADDED;
             } else {
-                cartItemRepository.save(new CartItemEntity(email, productId, 1));
+                int initialQuantity = Math.min(maxStock, quantityToAdd);
+                cartItemRepository.save(new CartItemEntity(email, productId, initialQuantity));
                 return AddItemResult.ADDED;
             }
         } else {
@@ -225,13 +234,16 @@ public class CartService {
                     .filter(i -> i.getId() != null && i.getId() == productId)
                     .findFirst().orElse(null);
             if (found != null) {
-                if (found.getQuantity() < maxStock) {
-                    found.setQuantity(found.getQuantity() + 1);
-                    return AddItemResult.ADDED;
+                int currentQuantity = Math.max(0, found.getQuantity());
+                if (currentQuantity >= maxStock) {
+                    return AddItemResult.LIMIT_REACHED;
                 }
-                return AddItemResult.LIMIT_REACHED;
+                int targetQuantity = Math.min(maxStock, currentQuantity + quantityToAdd);
+                found.setQuantity(targetQuantity);
+                return AddItemResult.ADDED;
             } else {
-                cart.add(new CartItem(productId, p.getName(), p.getPrice(), 1));
+                int initialQuantity = Math.min(maxStock, quantityToAdd);
+                cart.add(new CartItem(productId, p.getName(), p.getPrice(), initialQuantity));
                 return AddItemResult.ADDED;
             }
         }

@@ -79,23 +79,23 @@ public class DataInitializer {
 
     private List<ProductSeed> seeds() {
         return List.of(
-                new ProductSeed("iPhone 17e", 134800.0, "/images/iphone17e.png",
+                new ProductSeed("Apple iPhone 17e", 134800.0, "/images/iphone17e.png",
                         "iOS 26", "8 GB", "Apple A19", "3.78 GHz", "512 GB", "6.1 inch",
                         "2532 x 1170", "4005 mAh", "20W",
                         "Compact iPhone with A19 chip, 48MP camera and durable Ceramic Shield 2 design."),
-                new ProductSeed("iPhone 17", 164800.0, "/images/iphone17.png",
+                new ProductSeed("Apple iPhone 17", 164800.0, "/images/iphone17.png",
                         "iOS 26", "8 GB", "Apple A19", "3.78 GHz", "512 GB", "6.3 inch",
                         "2622 x 1206", "3692 mAh", "40W",
                         "Balanced flagship iPhone featuring ProMotion display and advanced dual-camera system."),
-                new ProductSeed("iPhone Air", 229800.0, "/images/iphoneair.png",
+                new ProductSeed("Apple iPhone Air", 229800.0, "/images/iphoneair.png",
                         "iOS 26", "12 GB", "Apple A19 Pro", "4.05 GHz", "1 TB", "6.5 inch",
                         "2736 x 1260", "3149 mAh", "40W",
                         "Ultra-thin premium iPhone delivering flagship performance in a sleek lightweight design."),
-                new ProductSeed("iPhone 17 Pro", 249800.0, "/images/iphone17pro.png",
+                new ProductSeed("Apple iPhone 17 Pro", 249800.0, "/images/iphone17pro.png",
                         "iOS 26", "12 GB", "Apple A19 Pro", "4.05 GHz", "1 TB", "6.3 inch",
                         "2622 x 1206", "4200 mAh", "40W",
                         "Professional-grade iPhone with triple 48MP cameras and powerful A19 Pro performance."),
-                new ProductSeed("iPhone 17 Pro Max", 329800.0, "/images/iphone17promax.png",
+                new ProductSeed("Apple iPhone 17 Pro Max", 329800.0, "/images/iphone17promax.png",
                         "iOS 26", "12 GB", "Apple A19 Pro", "4.05 GHz", "2 TB", "6.9 inch",
                         "2868 x 1320", "4832 mAh", "45W",
                         "Apple's most powerful flagship with a large 6.9-inch display and advanced triple-camera system."),
@@ -163,15 +163,15 @@ public class DataInitializer {
                         "Android 15 (ColorOS)", "16 GB", "Snapdragon 8 Elite", "3.3 GHz", "512 GB", "8.12 inch",
                         "2480 x 2200", "6000 mAh", "80W",
                         "Next generation OPPO foldable with Snapdragon 8 Elite and large LTPO OLED display."),
-                new ProductSeed("iPhone 16 Pro Max", 189800.0, "/images/iphone16promax.png",
+                new ProductSeed("Apple iPhone 16 Pro Max", 189800.0, "/images/iphone16promax.png",
                         "iOS 18", "8 GB", "Apple A18 Pro", "4.05 GHz", "512 GB", "6.9 inch",
                         "2868 x 1320", "4676 mAh", "27W",
                         "Apple flagship smartphone with A18 Pro chip, advanced camera system and large ProMotion OLED display."),
-                new ProductSeed("iPhone 16 Pro", 169800.0, "/images/iphone16pro.png",
+                new ProductSeed("Apple iPhone 16 Pro", 169800.0, "/images/iphone16pro.png",
                         "iOS 18", "8 GB", "Apple A18 Pro", "4.05 GHz", "512 GB", "6.3 inch",
                         "2622 x 1206", "3582 mAh", "27W",
                         "Professional iPhone model with powerful A18 Pro chip and premium titanium design."),
-                new ProductSeed("iPhone 16 Plus", 154800.0, "/images/iphone16plus.png",
+                new ProductSeed("Apple iPhone 16 Plus", 154800.0, "/images/iphone16plus.png",
                         "iOS 18", "8 GB", "Apple A18", "3.9 GHz", "512 GB", "6.7 inch",
                         "2796 x 1290", "4674 mAh", "25W",
                         "Large-screen iPhone with A18 chip, excellent battery life and advanced dual-camera system."),
@@ -187,7 +187,18 @@ public class DataInitializer {
     }
 
     private String normalizeKey(String name) {
-        return name == null ? "" : name.trim().toLowerCase(Locale.ROOT);
+        return canonicalProductKey(name);
+    }
+
+    private String canonicalProductKey(String name) {
+        if (name == null) {
+            return "";
+        }
+        String key = name.trim().toLowerCase(Locale.ROOT);
+        if (key.startsWith("apple iphone")) {
+            return "iphone" + key.substring("apple iphone".length());
+        }
+        return key;
     }
 
     private record ProductSeed(
@@ -206,7 +217,14 @@ public class DataInitializer {
             String description) {
 
         String key() {
-            return name == null ? "" : name.trim().toLowerCase(Locale.ROOT);
+            if (name == null) {
+                return "";
+            }
+            String key = name.trim().toLowerCase(Locale.ROOT);
+            if (key.startsWith("apple iphone")) {
+                return "iphone" + key.substring("apple iphone".length());
+            }
+            return key;
         }
     }
 }

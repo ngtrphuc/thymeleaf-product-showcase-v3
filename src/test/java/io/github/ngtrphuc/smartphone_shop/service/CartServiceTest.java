@@ -112,4 +112,50 @@ class CartServiceTest {
         assertEquals(2, cart.getFirst().getQuantity());
         verify(cartItemRepository).saveAll(List.of(entity));
     }
+
+    @Test
+    void addItem_shouldRespectRequestedQuantityForSessionCartAndClampByStock() {
+        MockHttpSession session = new MockHttpSession();
+        Product product = new Product();
+        product.setId(5L);
+        product.setName("Phone D");
+        product.setPrice(500.0);
+        product.setStock(4);
+
+        when(productRepository.findById(5L)).thenReturn(Optional.of(product));
+
+        CartService.AddItemResult first = cartService.addItem(null, session, 5L, 3);
+        CartService.AddItemResult second = cartService.addItem(null, session, 5L, 5);
+        CartService.AddItemResult third = cartService.addItem(null, session, 5L, 1);
+
+        List<CartItem> cart = cartService.getSessionCart(session);
+        assertEquals(CartService.AddItemResult.ADDED, first);
+        assertEquals(CartService.AddItemResult.ADDED, second);
+        assertEquals(CartService.AddItemResult.LIMIT_REACHED, third);
+        assertEquals(1, cart.size());
+        assertEquals(4, cart.getFirst().getQuantity());
+    }
+
+    @Test
+    void addItem_shouldRespectRequestedQuantityForDbCartAndClampByStock() {
+        MockHttpSession session = new MockHttpSession();
+        Product product = new Product();
+        product.setId(8L);
+        product.setName("Phone E");
+        product.setPrice(800.0);
+        product.setStock(6);
+        CartItemEntity existing = new CartItemEntity("user@example.com", 8L, 2);
+
+        when(productRepository.findById(8L)).thenReturn(Optional.of(product));
+        when(cartItemRepository.findByUserEmailAndProductId("user@example.com", 8L))
+                .thenReturn(Optional.of(existing));
+
+        CartService.AddItemResult first = cartService.addItem("user@example.com", session, 8L, 4);
+        CartService.AddItemResult second = cartService.addItem("user@example.com", session, 8L, 1);
+
+        assertEquals(CartService.AddItemResult.ADDED, first);
+        assertEquals(CartService.AddItemResult.LIMIT_REACHED, second);
+        assertEquals(6, existing.getQuantity());
+        verify(cartItemRepository).save(existing);
+    }
 }

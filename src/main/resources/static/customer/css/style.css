@@ -1268,6 +1268,85 @@ footer {
   display: flex;
 }
 
+.action-buttons .detail-cart-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 220px;
+}
+
+.detail-qty-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.detail-qty-label {
+  font-size: 12px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.detail-qty-control {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--surface-soft);
+}
+
+.detail-qty-btn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.detail-qty-btn:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.detail-qty-input {
+  width: 58px;
+  height: 34px;
+  border: none;
+  border-left: 1px solid var(--glass-border);
+  border-right: 1px solid var(--glass-border);
+  text-align: center;
+  font-weight: 700;
+  color: var(--text);
+  background: transparent;
+  outline: none;
+}
+
+.detail-qty-input::-webkit-outer-spin-button,
+.detail-qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.detail-qty-input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.detail-split-actions {
+  --detail-diagonal-cut: 32px;
+  display: flex;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+}
+
 .action-buttons .detail-action-btn {
   width: 220px;
   height: 56px;
@@ -1290,6 +1369,35 @@ footer {
 .action-buttons .detail-action-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.28) !important;
+}
+
+.action-buttons .detail-split-btn {
+  width: calc(50% + var(--detail-diagonal-cut));
+  min-width: 0;
+  border-radius: 0 !important;
+  position: relative;
+  z-index: 1;
+}
+
+.action-buttons .detail-split-btn--left {
+  border-top-left-radius: 24px !important;
+  border-bottom-left-radius: 24px !important;
+  border-right: 0 !important;
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--detail-diagonal-cut)) 100%, 0 100%);
+}
+
+.action-buttons .detail-split-btn--right {
+  border-top-right-radius: 24px !important;
+  border-bottom-right-radius: 24px !important;
+  border-left: 0 !important;
+  margin-left: calc(-1 * var(--detail-diagonal-cut));
+  clip-path: polygon(var(--detail-diagonal-cut) 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.action-buttons .detail-split-btn:hover,
+.action-buttons .detail-split-btn:focus-visible {
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 .btn-cart {
@@ -1353,8 +1461,20 @@ footer {
     width: 100%;
   }
 
+  .action-buttons .detail-cart-form {
+    width: 100%;
+  }
+
+  .detail-split-actions {
+    width: 100%;
+  }
+
   .action-buttons .detail-action-btn {
     width: 100%;
+  }
+
+  .action-buttons .detail-split-btn {
+    width: calc(50% + var(--detail-diagonal-cut));
   }
 }
 
@@ -3613,7 +3733,7 @@ body.auth-neo-page .alert-success {
   color: #000 !important;
 }
 
-.header-action__icon {
+.header-action__icon:not(.icon-svg) {
   background: none !important;
   -webkit-text-fill-color: currentColor !important;
 }
@@ -3780,8 +3900,8 @@ body.auth-neo-page .alert-success {
   color: #ffffff !important;
 }
 
-.header-action--neutral .header-action__icon,
-.header-action--profile .header-action__icon {
+.header-action--neutral .header-action__icon:not(.icon-svg),
+.header-action--profile .header-action__icon:not(.icon-svg) {
   background: none !important;
   -webkit-text-fill-color: currentColor !important;
   color: #ffffff !important;
@@ -3865,8 +3985,8 @@ button:not(.btn-logout-link):not(.header-action--danger):not(.btn-home):hover {
 .btn-sm .header-action__icon,
 .auth-neo-submit .auth-neo-submit-icon,
 .auth-neo-submit--login .auth-neo-submit-icon,
-.header-action:not(.header-action--danger):not(.home-animated):not(.admin-sidebar-home):not(.btn-home) .header-action__icon,
-.btn-header:not(.header-action--danger):not(.home-animated):not(.admin-sidebar-home):not(.btn-home) .header-action__icon {
+.header-action:not(.header-action--danger):not(.home-animated):not(.admin-sidebar-home):not(.btn-home) .header-action__icon:not(.icon-svg),
+.btn-header:not(.header-action--danger):not(.home-animated):not(.admin-sidebar-home):not(.btn-home) .header-action__icon:not(.icon-svg) {
   color: #ffffff !important;
   background: none !important;
   -webkit-text-fill-color: currentColor !important;
@@ -3917,7 +4037,7 @@ button:not(.btn-logout-link):not(.header-action--danger):not(.btn-home):hover {
   -webkit-text-fill-color: currentColor !important;
 }
 
-.header-action--login .header-action__icon {
+.header-action--login .header-action__icon:not(.icon-svg) {
   background: none !important;
 }
 
@@ -4038,6 +4158,7 @@ button.btn-modal-cancel.keep-order-btn:not(.btn-home):not(.header-action--danger
   background: #000000 !important;
   border-color: #000000 !important;
   color: #ffffff !important;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease, color 0.22s ease !important;
 }
 
 button.btn-modal-cancel.keep-order-btn:not(.btn-home):not(.header-action--danger):not(.btn-logout-link):hover,
@@ -4046,6 +4167,8 @@ button.btn-modal-cancel.keep-order-btn:not(.btn-home):not(.header-action--danger
   background: #111111 !important;
   border-color: #000000 !important;
   color: #ffffff !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 24px rgba(111, 90, 69, 0.14) !important;
 }
 .badge-pending {
   background: rgba(245, 158, 11, 0.16) !important;
@@ -4171,6 +4294,16 @@ h2 .icon-svg {
   height: 18px !important;
   min-width: 18px !important;
   opacity: 1 !important;
+  /* Thicken masked SVG lines to better match button label stroke weight. */
+  filter:
+    drop-shadow(0.55px 0 0 currentColor)
+    drop-shadow(-0.55px 0 0 currentColor)
+    drop-shadow(0 0.55px 0 currentColor)
+    drop-shadow(0 -0.55px 0 currentColor)
+    drop-shadow(0.35px 0.35px 0 currentColor)
+    drop-shadow(-0.35px 0.35px 0 currentColor)
+    drop-shadow(0.35px -0.35px 0 currentColor)
+    drop-shadow(-0.35px -0.35px 0 currentColor);
 }
 
 /* Force header action icons to stay visible on dark pills. */
@@ -4185,5 +4318,394 @@ h2 .icon-svg {
   mask-position: center !important;
   -webkit-mask-size: contain !important;
   mask-size: contain !important;
+}
+
+/* Keep only logout icon black on danger button. */
+.header .btn-logout-link .header-action__icon.icon-svg,
+.header .header-action--danger .header-action__icon.icon-svg {
+  color: #000000 !important;
+  background-color: #000000 !important;
+}
+
+/* Keep sidebar HOME readable in admin panel on hover/focus. */
+.sidebar-admin .home-animated:hover,
+.sidebar-admin .home-animated:focus-visible,
+.sidebar-admin .admin-sidebar-home:hover,
+.sidebar-admin .admin-sidebar-home:focus-visible {
+  animation: none !important;
+  background: none !important;
+  -webkit-text-fill-color: #000000 !important;
+  color: #000000 !important;
+}
+
+.sidebar-admin .home-animated:hover .icon-svg,
+.sidebar-admin .home-animated:focus-visible .icon-svg,
+.sidebar-admin .admin-sidebar-home:hover .icon-svg,
+.sidebar-admin .admin-sidebar-home:focus-visible .icon-svg {
+  color: #000000 !important;
+  background-color: #000000 !important;
+}
+
+/* Detail quantity control: black borders + +/- invert on hover. */
+.detail-qty-control {
+  border: 1px solid #000000 !important;
+}
+
+.detail-qty-input {
+  border-left: 0 !important;
+  border-right: 0 !important;
+  color: #000000 !important;
+  background: #ffffff !important;
+}
+
+.detail-qty-btn {
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #000000 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  border: none !important;
+}
+
+.detail-qty-btn--left {
+  border-right: 1px solid #000000 !important;
+}
+
+.detail-qty-btn--right {
+  border-left: 1px solid #000000 !important;
+}
+
+.detail-qty-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  transform: scaleX(0);
+  transition: transform 0.36s ease;
+  z-index: 1;
+}
+
+.detail-qty-btn--left::before {
+  transform-origin: right center;
+}
+
+.detail-qty-btn--right::before {
+  transform-origin: left center;
+}
+
+.detail-qty-btn--left:hover::before,
+.detail-qty-btn--left:focus-visible::before {
+  transform-origin: left center;
+}
+
+.detail-qty-btn--right:hover::before,
+.detail-qty-btn--right:focus-visible::before {
+  transform-origin: right center;
+}
+
+.detail-qty-btn:hover::before,
+.detail-qty-btn:focus-visible::before {
+  transform: scaleX(1);
+}
+
+.action-buttons .detail-split-btn {
+  border: 1px solid #000000 !important;
+}
+
+.action-buttons .detail-split-btn--left {
+  border-right: 0 !important;
+}
+
+.action-buttons .detail-split-btn--right {
+  border-left: 0 !important;
+}
+
+/* Split Add/Buy + Wishlist/Back hover fill from outer edge to inner edge. */
+.action-buttons .detail-split-btn {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #000000 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  z-index: 1 !important;
+  transition: border-color 0.2s ease !important;
+}
+
+.action-buttons .detail-action-btn.detail-invert-fill {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #000000 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.action-buttons .detail-split-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  transform: scaleX(0);
+  transition: transform 0.36s ease;
+  z-index: 1;
+}
+
+.action-buttons .detail-action-btn.detail-invert-fill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  clip-path: circle(0% at 50% 50%);
+  transition: clip-path 0.36s ease;
+  z-index: 1;
+}
+
+.action-buttons .detail-action-btn.detail-invert-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #000000;
+  clip-path: circle(0% at 50% 50%);
+  opacity: 0;
+  z-index: 2;
+}
+
+.action-buttons .detail-action-btn.detail-invert-fill--left::before {
+  transform-origin: center center;
+}
+
+.action-buttons .detail-action-btn.detail-invert-fill--right::before {
+  transform-origin: center center;
+}
+
+.action-buttons .detail-action-btn.detail-invert-fill.is-active::before,
+.action-buttons .detail-action-btn.detail-invert-fill:hover::before,
+.action-buttons .detail-action-btn.detail-invert-fill:focus-visible::before {
+  clip-path: circle(150% at 50% 50%);
+}
+
+.action-buttons .detail-action-btn.detail-invert-fill.is-leaving::after {
+  opacity: 1;
+  animation: detailCenterOutDark 0.36s ease forwards;
+}
+
+.detail-qty-btn .detail-invert-label,
+.action-buttons .detail-action-btn.detail-invert-fill .detail-invert-label,
+.action-buttons .detail-split-btn .detail-invert-label {
+  position: relative;
+  z-index: 3;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  mix-blend-mode: difference;
+  pointer-events: none;
+}
+
+@keyframes detailCenterOutDark {
+  from {
+    clip-path: circle(0% at 50% 50%);
+  }
+
+  to {
+    clip-path: circle(150% at 50% 50%);
+  }
+}
+
+.action-buttons .detail-split-btn--left::before {
+  transform-origin: right center;
+}
+
+.action-buttons .detail-split-btn--right::before {
+  transform-origin: left center;
+}
+
+.action-buttons .detail-split-btn--left:hover::before,
+.action-buttons .detail-split-btn--left:focus-visible::before {
+  transform-origin: left center;
+}
+
+.action-buttons .detail-split-btn--right:hover::before,
+.action-buttons .detail-split-btn--right:focus-visible::before {
+  transform-origin: right center;
+}
+
+.action-buttons .detail-split-btn:hover::before,
+.action-buttons .detail-split-btn:focus-visible::before {
+  transform: scaleX(1);
+}
+
+.action-buttons .detail-split-btn--left:hover,
+.action-buttons .detail-split-btn--left:focus-visible,
+.action-buttons .detail-split-btn--right:hover,
+.action-buttons .detail-split-btn--right:focus-visible {
+  background: #000000 !important;
+}
+
+/* Final priority override for label colors and anti-conflict with global hover rules. */
+.detail-qty-btn,
+.detail-qty-btn:hover,
+.detail-qty-btn:focus-visible,
+.detail-qty-btn:active,
+.action-buttons .detail-action-btn.detail-invert-fill,
+.action-buttons .detail-action-btn.detail-invert-fill.is-active,
+.action-buttons .detail-action-btn.detail-invert-fill.is-leaving,
+.action-buttons .detail-action-btn.detail-invert-fill:hover,
+.action-buttons .detail-action-btn.detail-invert-fill:focus-visible,
+.action-buttons .detail-action-btn.detail-invert-fill:active,
+.action-buttons .detail-split-actions > button.detail-split-btn,
+.action-buttons .detail-split-actions > button.detail-split-btn:hover,
+.action-buttons .detail-split-actions > button.detail-split-btn:focus-visible,
+.action-buttons .detail-split-actions > button.detail-split-btn:active {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+@supports not (mix-blend-mode: difference) {
+  .detail-qty-btn:hover,
+  .detail-qty-btn:focus-visible,
+  .detail-qty-btn:active,
+  .action-buttons .detail-action-btn.detail-invert-fill.is-active,
+  .action-buttons .detail-action-btn.detail-invert-fill.is-leaving,
+  .action-buttons .detail-action-btn.detail-invert-fill:hover,
+  .action-buttons .detail-action-btn.detail-invert-fill:focus-visible,
+  .action-buttons .detail-action-btn.detail-invert-fill:active,
+  .action-buttons .detail-split-actions > button.detail-split-btn:hover,
+  .action-buttons .detail-split-actions > button.detail-split-btn:focus-visible,
+  .action-buttons .detail-split-actions > button.detail-split-btn:active {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+  }
+}
+
+@supports not (mix-blend-mode: difference) {
+  .detail-qty-btn .detail-invert-label,
+  .action-buttons .detail-action-btn.detail-invert-fill .detail-invert-label,
+  .action-buttons .detail-split-btn .detail-split-btn__label {
+    color: inherit !important;
+    -webkit-text-fill-color: inherit !important;
+  }
+}
+
+/* Auth nav switch: split cluster style similar to Add to Cart / Buy Now. */
+body.auth-neo-page .auth-neo-switch {
+  --auth-switch-cut: 22px;
+  display: inline-flex !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  width: clamp(190px, 30vw, 240px);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+body.auth-neo-page .auth-neo-switch .auth-neo-switch__btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  width: calc(50% + var(--auth-switch-cut));
+  min-width: 0;
+  padding: 10px 0 !important;
+  border: 1px solid #000000 !important;
+  background: #000000 !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+body.auth-neo-page .auth-neo-switch .auth-neo-switch__btn--left {
+  border-top-left-radius: 999px;
+  border-bottom-left-radius: 999px;
+  border-right: 0 !important;
+  clip-path: polygon(0 0, 100% 0, calc(100% - var(--auth-switch-cut)) 100%, 0 100%);
+}
+
+body.auth-neo-page .auth-neo-switch .auth-neo-switch__btn--right {
+  border-top-right-radius: 999px;
+  border-bottom-right-radius: 999px;
+  border-left: 0 !important;
+  margin-left: calc(-1 * var(--auth-switch-cut));
+  clip-path: polygon(var(--auth-switch-cut) 0, 100% 0, 100% 100%, 0 100%);
+}
+
+body.auth-neo-page .auth-neo-switch .auth-neo-switch__btn.is-active,
+body.auth-neo-page .auth-neo-switch .auth-neo-switch__btn.is-active:hover,
+body.auth-neo-page .auth-neo-switch .auth-neo-switch__btn.is-active:focus-visible {
+  background: #ffffff !important;
+  border-color: #000000 !important;
+  color: #000000 !important;
+}
+
+body.auth-neo-page .auth-neo-switch .auth-neo-switch__btn:not(.is-active):hover,
+body.auth-neo-page .auth-neo-switch .auth-neo-switch__btn:not(.is-active):focus-visible {
+  background: #111111 !important;
+  border-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+body.auth-neo-page .auth-neo-switch .auth-neo-switch__label {
+  position: relative;
+  z-index: 1;
+}
+
+/* Admin row actions: give Edit/Delete the same lift feel as Apply/Reset. */
+.admin-table .admin-actions-group .btn-edit,
+.admin-table .admin-actions-group .btn-del {
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease, color 0.22s ease !important;
+}
+
+.admin-table .admin-actions-group .btn-edit:hover,
+.admin-table .admin-actions-group .btn-edit:focus-visible,
+.admin-table .admin-actions-group .btn-del:hover,
+.admin-table .admin-actions-group .btn-del:focus-visible {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 24px rgba(111, 90, 69, 0.14) !important;
+}
+
+/* Search button: invert-color fill effect. */
+.search-container form .btn-search {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #000000 !important;
+  border: 1px solid #000000 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.search-container form .btn-search::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.34s ease;
+  z-index: 1;
+}
+
+.search-container form .btn-search:hover::before,
+.search-container form .btn-search:focus-visible::before {
+  transform: scaleX(1);
+}
+
+.search-container form .btn-search .btn-search__label {
+  position: relative;
+  z-index: 2;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  mix-blend-mode: difference;
+}
+
+.search-container form .btn-search:hover,
+.search-container form .btn-search:focus-visible,
+.search-container form .btn-search:active {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
 }
 

@@ -65,15 +65,22 @@ public class CartController {
     }
 
     @PostMapping("/add")
-    public String add(@RequestParam long id, Authentication auth,
+    public String add(@RequestParam long id,
+            @RequestParam(defaultValue = "1") int quantity,
+            @RequestParam(defaultValue = "cart") String mode,
+            Authentication auth,
             HttpSession session, RedirectAttributes redirectAttributes) {
-        CartService.AddItemResult result = cartService.addItem(getEmail(auth), session, id);
+        int safeQuantity = Math.max(1, quantity);
+        CartService.AddItemResult result = cartService.addItem(getEmail(auth), session, id, safeQuantity);
         cartService.syncCartCount(session, getEmail(auth));
         String toast = switch (result) {
             case ADDED -> "Added to cart successfully.";
             case LIMIT_REACHED -> "You've already added the maximum available stock for this product.";
             case UNAVAILABLE -> "This product is unavailable right now.";
         };
+        if ("buy".equalsIgnoreCase(mode) && result != CartService.AddItemResult.UNAVAILABLE) {
+            return "redirect:/cart/payment";
+        }
         redirectAttributes.addFlashAttribute("toast", toast);
         return "redirect:/product/" + id;
     }

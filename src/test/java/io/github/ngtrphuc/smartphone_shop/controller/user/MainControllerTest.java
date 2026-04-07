@@ -27,12 +27,12 @@ class MainControllerTest {
     private WishlistService wishlistService;
 
     @Test
-    void index_shouldFilterAppleBrandFromIphoneName() {
+    void index_shouldFilterAppleBrandFromAppleIphoneName() {
         MainController mainController = new MainController(productRepository, wishlistService);
 
         Product iphone = new Product();
         iphone.setId(1L);
-        iphone.setName("iPhone 17 Pro");
+        iphone.setName("Apple iPhone 17 Pro");
         iphone.setPrice(1000.0);
 
         Product galaxy = new Product();
@@ -52,6 +52,6 @@ class MainControllerTest {
 
         assertEquals("index", view);
         assertEquals(1, rawProducts.size());
-        assertEquals("iPhone 17 Pro", filteredProduct.getName());
+        assertEquals("Apple iPhone 17 Pro", filteredProduct.getName());
     }
 }

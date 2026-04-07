@@ -29,6 +29,19 @@
         .product-form-actions .btn-cart {
             justify-content: center;
         }
+
+        .product-form-actions .btn-cart,
+        .product-form-actions .btn-back {
+            transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease, color 0.22s ease !important;
+        }
+
+        .product-form-actions .btn-cart:hover,
+        .product-form-actions .btn-cart:focus-visible,
+        .product-form-actions .btn-back:hover,
+        .product-form-actions .btn-back:focus-visible {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 12px 24px rgba(111, 90, 69, 0.14) !important;
+        }
     </style>
 </head>
 
@@ -53,7 +66,7 @@
                 <span class="admin-nav-body"><span class="admin-nav-label">Products</span></span>
             </a>
             <a href="/admin/orders" class="admin-nav-link">
-                <span class="admin-nav-icon"><span class="icon-svg icon-package" aria-hidden="true"></span></span>
+                <span class="admin-nav-icon"><span class="icon-svg icon-orders" aria-hidden="true"></span></span>
                 <span class="admin-nav-body"><span class="admin-nav-label">Orders</span></span>
             </a>
             <a href="/admin/chat" class="admin-nav-link">

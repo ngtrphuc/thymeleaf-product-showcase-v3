@@ -3342,7 +3342,7 @@ body.auth-neo-page .alert-success {
   color: #000 !important;
 }
 
-.header-action__icon {
+.header-action__icon:not(.icon-svg) {
   background: none !important;
   -webkit-text-fill-color: currentColor !important;
 }
@@ -3509,8 +3509,8 @@ body.auth-neo-page .alert-success {
   color: #ffffff !important;
 }
 
-.header-action--neutral .header-action__icon,
-.header-action--profile .header-action__icon {
+.header-action--neutral .header-action__icon:not(.icon-svg),
+.header-action--profile .header-action__icon:not(.icon-svg) {
   background: none !important;
   -webkit-text-fill-color: currentColor !important;
   color: #ffffff !important;
@@ -3594,8 +3594,8 @@ button:not(.btn-logout-link):not(.header-action--danger):not(.btn-home):hover {
 .btn-sm .header-action__icon,
 .auth-neo-submit .auth-neo-submit-icon,
 .auth-neo-submit--login .auth-neo-submit-icon,
-.header-action:not(.header-action--danger):not(.home-animated):not(.admin-sidebar-home):not(.btn-home) .header-action__icon,
-.btn-header:not(.header-action--danger):not(.home-animated):not(.admin-sidebar-home):not(.btn-home) .header-action__icon {
+.header-action:not(.header-action--danger):not(.home-animated):not(.admin-sidebar-home):not(.btn-home) .header-action__icon:not(.icon-svg),
+.btn-header:not(.header-action--danger):not(.home-animated):not(.admin-sidebar-home):not(.btn-home) .header-action__icon:not(.icon-svg) {
   color: #ffffff !important;
   background: none !important;
   -webkit-text-fill-color: currentColor !important;
@@ -3795,6 +3795,32 @@ button.btn-modal-cancel.keep-order-btn:not(.btn-home):not(.header-action--danger
 
 .badge-cancelled::before {
   background: #ef4444 !important;
+}
+
+/* Keep only logout icon black on danger button. */
+.header .btn-logout-link .header-action__icon.icon-svg,
+.header .header-action--danger .header-action__icon.icon-svg {
+  color: #000000 !important;
+  background-color: #000000 !important;
+}
+
+/* Keep sidebar HOME readable in admin panel on hover/focus. */
+.sidebar-admin .home-animated:hover,
+.sidebar-admin .home-animated:focus-visible,
+.sidebar-admin .admin-sidebar-home:hover,
+.sidebar-admin .admin-sidebar-home:focus-visible {
+  animation: none !important;
+  background: none !important;
+  -webkit-text-fill-color: #000000 !important;
+  color: #000000 !important;
+}
+
+.sidebar-admin .home-animated:hover .icon-svg,
+.sidebar-admin .home-animated:focus-visible .icon-svg,
+.sidebar-admin .admin-sidebar-home:hover .icon-svg,
+.sidebar-admin .admin-sidebar-home:focus-visible .icon-svg {
+  color: #000000 !important;
+  background-color: #000000 !important;
 }
 
 

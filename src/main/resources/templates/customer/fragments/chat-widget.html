@@ -39,7 +39,7 @@
 
             <div style="padding:14px 18px;background:linear-gradient(135deg,rgba(0,0,0,0.12),rgba(0,0,0,0.12));
                     border-bottom:1px solid var(--glass-border);
-                    display:flex;align-items:center;justify-content:space-between;">
+                    display:flex;align-items:center;justify-content:flex-start;">
                 <div style="display:flex;align-items:center;gap:10px;">
                     <div style="width:34px;height:34px;border-radius:50%;
                             background:linear-gradient(135deg,var(--accent),var(--accent2));
@@ -56,14 +56,6 @@
                         </div>
                     </div>
                 </div>
-                <button onclick="toggleChat()" style="background:none;border:none;color:#FFFFFF;font-size:18px;cursor:pointer;
-                           padding:4px;line-height:1;display:flex;align-items:center;justify-content:center;transition:opacity 0.2s;"
-                    onmouseover="this.style.opacity='0.82'"
-                    onmouseout="this.style.opacity='1'">
-                    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                        <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
-                    </svg>
-                </button>
             </div>
 
             <div id="chat-messages"
@@ -101,6 +93,10 @@
                 box-shadow: 0 6px 26px rgba(0, 0, 0, 0.45);
             }
 
+            #chat-fab.is-close:hover #chat-fab-icon svg {
+                animation: chatCloseSpin 0.55s linear 1;
+            }
+
             #chat-messages::-webkit-scrollbar {
                 width: 3px;
             }
@@ -119,6 +115,16 @@
                 to {
                     opacity: 1;
                     transform: scale(1) translateY(0);
+                }
+            }
+
+            @keyframes chatCloseSpin {
+                from {
+                    transform: rotate(0deg);
+                }
+
+                to {
+                    transform: rotate(360deg);
                 }
             }
         </style>
@@ -165,16 +171,19 @@
                 chatOpen = !chatOpen;
                 const popup = document.getElementById('chat-popup');
                 const icon = document.getElementById('chat-fab-icon');
+                const fab = document.getElementById('chat-fab');
                 if (chatOpen) {
                     popup.style.display = 'flex';
                     popup.style.animation = 'chatPopIn 0.22s ease';
                     icon.innerHTML = CHAT_CLOSE_ICON;
+                    fab.classList.add('is-close');
                     clearUnreadBadge();
                     loadHistory();
                     if (!chatEvtSource) startSSE();
                 } else {
                     popup.style.display = 'none';
                     icon.innerHTML = CHAT_BUBBLE_ICON;
+                    fab.classList.remove('is-close');
                 }
             }
 
