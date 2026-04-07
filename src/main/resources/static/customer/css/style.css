@@ -4173,3 +4173,17 @@ h2 .icon-svg {
   opacity: 1 !important;
 }
 
+/* Force header action icons to stay visible on dark pills. */
+.header .header-action:not(.header-action--danger) .header-action__icon.icon-svg {
+  color: #ffffff !important;
+  background-color: #ffffff !important;
+  -webkit-mask-mode: alpha !important;
+  mask-mode: alpha !important;
+  -webkit-mask-repeat: no-repeat !important;
+  mask-repeat: no-repeat !important;
+  -webkit-mask-position: center !important;
+  mask-position: center !important;
+  -webkit-mask-size: contain !important;
+  mask-size: contain !important;
+}
+
