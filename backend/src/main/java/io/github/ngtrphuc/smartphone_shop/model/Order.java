@@ -153,6 +153,8 @@ public class Order {
                     ? "Bank Transfer"
                     : "Bank Transfer - " + maskDetail(paymentDetail);
             case "PAYPAY" -> "PayPay";
+            case "KOMBINI" -> "Kombini";
+            case "VISA", "MASTERCARD" -> "MasterCard";
             default -> paymentMethod;
         };
     }

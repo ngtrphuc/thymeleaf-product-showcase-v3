@@ -84,6 +84,7 @@
                 <form method="post" th:action="@{/admin/products/save}">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                     <input type="hidden" name="id" th:value="${product.id}">
+                    <input type="hidden" name="returnUrl" th:value="${returnUrl}">
                     <input type="hidden" name="returnPage" th:value="${currentPage}">
                     <input type="hidden" name="returnKeyword" th:value="${keyword}">
                     <input type="hidden" name="returnBrand" th:value="${brand}">
@@ -130,7 +131,7 @@
                     </div>
                     <div class="product-form-actions">
                         <button type="submit" class="btn-cart">Save</button>
-                        <a th:href="@{/admin/products(page=${currentPage}, keyword=${keyword}, brand=${brand}, stock=${stock}, sort=${sort})}"
+                        <a th:href="${cancelUrl}"
                             class="btn-back">Cancel</a>
                     </div>
                 </form>

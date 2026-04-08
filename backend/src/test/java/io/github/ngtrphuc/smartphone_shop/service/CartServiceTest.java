@@ -81,7 +81,6 @@ class CartServiceTest {
     }
 
     @Test
-    @SuppressWarnings("null")
     void getDbCart_shouldRemoveOrphanedItemsWhenProductNoLongerExists() {
         CartItemEntity orphan = new CartItemEntity("user@example.com", 99L, 2);
         when(cartItemRepository.findByUserEmail("user@example.com")).thenReturn(List.of(orphan));
@@ -90,11 +89,10 @@ class CartServiceTest {
         List<CartItem> cart = cartService.getDbCart("user@example.com");
 
         assertTrue(cart.isEmpty());
-        verify(cartItemRepository).deleteAll(List.of(orphan));
+        verify(cartItemRepository).deleteAll(MockitoNullSafety.nonNullIterable(List.of(orphan)));
     }
 
     @Test
-    @SuppressWarnings("null")
     void getDbCart_shouldClampQuantityWhenStockDrops() {
         CartItemEntity entity = new CartItemEntity("user@example.com", 7L, 5);
         Product product = new Product();
@@ -110,7 +108,7 @@ class CartServiceTest {
 
         assertEquals(1, cart.size());
         assertEquals(2, cart.getFirst().getQuantity());
-        verify(cartItemRepository).saveAll(List.of(entity));
+        verify(cartItemRepository).saveAll(MockitoNullSafety.nonNullIterable(List.of(entity)));
     }
 
     @Test

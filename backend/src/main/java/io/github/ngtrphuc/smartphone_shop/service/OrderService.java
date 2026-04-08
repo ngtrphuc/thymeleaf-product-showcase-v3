@@ -29,7 +29,7 @@ public class OrderService {
     private static final Set<String> ALLOWED_STATUSES = Set.of(
             "pending", "processing", "shipped", "delivered", "cancelled");
     private static final Set<String> ALLOWED_PAYMENT_METHODS = Set.of(
-            "CASH_ON_DELIVERY", "BANK_TRANSFER", "PAYPAY");
+            "CASH_ON_DELIVERY", "BANK_TRANSFER", "PAYPAY", "VISA", "MASTERCARD");
     private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+()\\-\\s]{6,30}$");
 
     private final OrderRepository orderRepository;
@@ -350,4 +350,3 @@ public class OrderService {
         return price;
     }
 }
-

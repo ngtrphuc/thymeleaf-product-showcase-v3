@@ -3,7 +3,6 @@ package io.github.ngtrphuc.smartphone_shop.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -37,7 +36,6 @@ class AuthServiceTest {
     }
 
     @Test
-    @SuppressWarnings("null")
     void register_shouldNormalizeEmailBeforeSaving() {
         when(userRepository.existsByEmailIgnoreCase("user@example.com")).thenReturn(false);
         when(passwordEncoder.encode("secret123")).thenReturn("encoded-secret");
@@ -46,8 +44,8 @@ class AuthServiceTest {
 
         assertTrue(registered);
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
-        verify(userRepository).save(userCaptor.capture());
-        User savedUser = userCaptor.getValue();
+        verify(userRepository).save(MockitoNullSafety.captureNonNull(userCaptor));
+        User savedUser = MockitoNullSafety.capturedValue(userCaptor);
 
         assertEquals("user@example.com", savedUser.getEmail());
         assertEquals("Nguyen Phuc", savedUser.getFullName());
@@ -71,11 +69,11 @@ class AuthServiceTest {
     }
 
     @Test
-    @SuppressWarnings("null")
     void register_shouldReturnFalseWhenUniqueConstraintWinsRace() {
         when(userRepository.existsByEmailIgnoreCase("user@example.com")).thenReturn(false);
         when(passwordEncoder.encode("secret123")).thenReturn("encoded-secret");
-        when(userRepository.save(any(User.class))).thenThrow(new DataIntegrityViolationException("duplicate"));
+        when(userRepository.save(MockitoNullSafety.anyNonNull(User.class)))
+                .thenThrow(new DataIntegrityViolationException("duplicate"));
 
         boolean registered = authService.register("user@example.com", "Tester", "secret123");
 

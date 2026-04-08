@@ -120,8 +120,14 @@
             <div th:each="pm : ${paymentMethods}" class="cart-row">
                 <div style="display:flex;flex-direction:column;gap:2px;flex:1;">
                     <span style="font-weight:600;display:flex;align-items:center;gap:8px;">
+                        <img th:if="${pm.type.name() == 'CASH_ON_DELIVERY'}" th:src="@{/images/cash-on-delivery-icon.svg}" alt="Cash on Delivery"
+                            class="payment-method-icon-inline">
+                        <img th:if="${pm.type.name() == 'BANK_TRANSFER'}" th:src="@{/images/bank-transfer-icon.svg}" alt="Bank Transfer"
+                            class="payment-method-icon-inline">
                         <img th:if="${pm.type.name() == 'PAYPAY'}" th:src="@{/images/paypay.png}" alt="PayPay"
                             class="paypay-icon-inline">
+                        <img th:if="${pm.type.name() == 'VISA' or pm.type.name() == 'MASTERCARD'}" th:src="@{/images/mastercard-icon.svg}" alt="MasterCard"
+                            class="payment-method-icon-inline">
                         <span th:text="${pm.displayName}"></span>
                     </span>
                     <span th:if="${pm.detail}" style="font-size:12px;color:var(--text-muted);" th:text="${pm.detail}"></span>
@@ -149,20 +155,33 @@
                 </div>
                 <form th:action="@{/profile/payment-methods/add}" method="post">
                     <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+                    <div class="profile-payment-method-grid" style="margin-bottom:12px;">
                         <label class="option-card" style="padding:8px 10px;">
                             <input type="radio" name="type" value="CASH_ON_DELIVERY" onchange="toggleProfileBankDetail(this)">
-                            <span>Cash on Delivery</span>
+                            <span style="display:inline-flex;align-items:center;gap:6px;">
+                                <img th:src="@{/images/cash-on-delivery-icon.svg}" alt="Cash on Delivery" class="payment-method-icon-inline">
+                                <span>Cash on Delivery</span>
+                            </span>
                         </label>
                         <label class="option-card" style="padding:8px 10px;">
                             <input type="radio" name="type" value="BANK_TRANSFER" onchange="toggleProfileBankDetail(this)">
-                            <span>Bank Transfer</span>
+                            <span style="display:inline-flex;align-items:center;gap:6px;">
+                                <img th:src="@{/images/bank-transfer-icon.svg}" alt="Bank Transfer" class="payment-method-icon-inline">
+                                <span>Bank Transfer</span>
+                            </span>
                         </label>
                         <label class="option-card" style="padding:8px 10px;">
                             <input type="radio" name="type" value="PAYPAY" onchange="toggleProfileBankDetail(this)">
                             <span style="display:inline-flex;align-items:center;gap:6px;">
                                 <img th:src="@{/images/paypay.png}" alt="PayPay" class="paypay-icon-inline">
                                 <span>PayPay</span>
+                            </span>
+                        </label>
+                        <label class="option-card" style="padding:8px 10px;">
+                            <input type="radio" name="type" value="MASTERCARD" onchange="toggleProfileBankDetail(this)">
+                            <span style="display:inline-flex;align-items:center;gap:6px;">
+                                <img th:src="@{/images/mastercard-icon.svg}" alt="MasterCard" class="payment-method-icon-inline">
+                                <span>MasterCard</span>
                             </span>
                         </label>
                     </div>

@@ -73,9 +73,16 @@
                 <span class="icon-svg icon-home" aria-hidden="true"></span> <span th:text="${order.shippingAddress}"></span>
             </div>
             <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">
+                <img th:if="${order.paymentMethod == 'CASH_ON_DELIVERY'}" th:src="@{/images/cash-on-delivery-icon.svg}" alt="Cash on Delivery"
+                    class="payment-method-icon-inline">
+                <img th:if="${order.paymentMethod == 'BANK_TRANSFER'}" th:src="@{/images/bank-transfer-icon.svg}" alt="Bank Transfer"
+                    class="payment-method-icon-inline">
                 <img th:if="${order.paymentMethod == 'PAYPAY'}" th:src="@{/images/paypay.png}" alt="PayPay"
                     class="paypay-icon-inline">
-                <span th:unless="${order.paymentMethod == 'PAYPAY'}" class="icon-svg icon-credit-card" aria-hidden="true"></span>
+                <img th:if="${order.paymentMethod == 'KOMBINI'}" th:src="@{/images/kombini-icon.svg}" alt="Kombini"
+                    class="payment-method-icon-inline">
+                <img th:if="${order.paymentMethod == 'VISA' or order.paymentMethod == 'MASTERCARD'}" th:src="@{/images/mastercard-icon.svg}" alt="MasterCard"
+                    class="payment-method-icon-inline">
                 <span th:text="${order.paymentMethodDisplayName}"></span>
             </div>
 

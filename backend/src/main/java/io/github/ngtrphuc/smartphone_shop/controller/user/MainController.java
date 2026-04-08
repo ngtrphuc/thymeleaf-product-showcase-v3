@@ -77,7 +77,8 @@ public class MainController {
 
         int effectivePageSize = resolvePageSize(pageSize);
         int safeRequestedPage = Math.max(page, 0);
-        Sort requestedSort = Objects.requireNonNull(resolveSort(sort));
+        String normalizedSort = normalizeSort(sort);
+        Sort requestedSort = Objects.requireNonNull(resolveSort(normalizedSort));
         List<Product> products;
         long totalElements;
         int totalPages;
@@ -94,7 +95,7 @@ public class MainController {
                         .toList();
             }
 
-            all = applySortInMemory(all, sort);
+            all = applySortInMemory(all, normalizedSort);
             all = applyStringFilters(all, batteryRange, batteryMin, batteryMax, screenSize);
 
             totalElements = all.size();
@@ -129,7 +130,7 @@ public class MainController {
         model.addAttribute("totalElements", (long) totalElements);
         model.addAttribute("pageSize", effectivePageSize);
         model.addAttribute("keyword", keyword);
-        model.addAttribute("sort", sort);
+        model.addAttribute("sort", normalizedSort);
         model.addAttribute("brand", brand);
         model.addAttribute("brands", BRANDS);
         model.addAttribute("priceRange", priceRange);
@@ -229,14 +230,24 @@ public class MainController {
 
     private Sort resolveSort(String sort) {
         if (sort == null) {
-            return Sort.by("id").ascending();
+            return Sort.by(Sort.Order.asc("name").ignoreCase());
         }
         return switch (sort) {
             case "name_asc" -> Sort.by(Sort.Order.asc("name").ignoreCase());
             case "name_desc" -> Sort.by(Sort.Order.desc("name").ignoreCase());
             case "price_asc" -> Sort.by("price").ascending();
             case "price_desc" -> Sort.by("price").descending();
-            default -> Sort.by("id").ascending();
+            default -> Sort.by(Sort.Order.asc("name").ignoreCase());
+        };
+    }
+
+    private String normalizeSort(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return "name_asc";
+        }
+        return switch (sort) {
+            case "name_desc", "price_asc", "price_desc" -> sort;
+            default -> "name_asc";
         };
     }
 

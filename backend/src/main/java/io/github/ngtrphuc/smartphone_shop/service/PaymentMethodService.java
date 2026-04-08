@@ -23,7 +23,10 @@ public class PaymentMethodService {
 
     @Transactional(readOnly = true)
     public List<PaymentMethod> getUserPaymentMethods(String email) {
-        return paymentMethodRepository.findByUserEmailAndActiveTrueOrderByIsDefaultDescCreatedAtDesc(normalize(email));
+        return paymentMethodRepository.findByUserEmailAndActiveTrueOrderByIsDefaultDescCreatedAtDesc(normalize(email))
+                .stream()
+                .filter(paymentMethod -> paymentMethod.getType() != PaymentMethod.Type.KOMBINI)
+                .toList();
     }
 
     @Transactional(readOnly = true)

@@ -23,7 +23,10 @@ public class PaymentMethod {
     public enum Type {
         CASH_ON_DELIVERY,
         BANK_TRANSFER,
-        PAYPAY
+        PAYPAY,
+        KOMBINI,
+        VISA,
+        MASTERCARD
     }
 
     @Id
@@ -110,7 +113,8 @@ public class PaymentMethod {
             case CASH_ON_DELIVERY -> "Cash on Delivery";
             case BANK_TRANSFER -> "Bank Transfer";
             case PAYPAY -> "PayPay";
+            case KOMBINI -> "Kombini";
+            case VISA, MASTERCARD -> "MasterCard";
         };
     }
 }
-

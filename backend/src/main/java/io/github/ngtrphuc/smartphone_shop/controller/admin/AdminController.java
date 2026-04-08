@@ -1,6 +1,5 @@
 package io.github.ngtrphuc.smartphone_shop.controller.admin;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -70,7 +69,7 @@ public class AdminController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String brand,
             @RequestParam(defaultValue = "all") String stock,
-            @RequestParam(defaultValue = "id_asc") String sort,
+            @RequestParam(defaultValue = "name_asc") String sort,
             Model model) {
         populateProductListModel(model, page, keyword, brand, stock, sort);
         return "products";
@@ -82,10 +81,13 @@ public class AdminController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String brand,
             @RequestParam(defaultValue = "all") String stock,
-            @RequestParam(defaultValue = "id_asc") String sort,
+            @RequestParam(defaultValue = "name_asc") String sort,
             Model model) {
         if (!model.containsAttribute("product")) {
             model.addAttribute("product", new Product());
+        }
+        if (!model.containsAttribute("cancelUrl")) {
+            model.addAttribute("cancelUrl", buildAdminProductsUrl(page, keyword, brand, stock, sort));
         }
         addProductListState(model, page, keyword, brand, stock, sort);
         return "product-form";
@@ -93,17 +95,26 @@ public class AdminController {
 
     @GetMapping("/products/edit/{id}")
     public String editProductForm(@PathVariable long id,
+            @RequestParam(required = false) String returnUrl,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String brand,
             @RequestParam(defaultValue = "all") String stock,
-            @RequestParam(defaultValue = "id_asc") String sort,
+            @RequestParam(defaultValue = "name_asc") String sort,
             Model model,
             RedirectAttributes redirectAttributes) {
         return productRepository.findById(id)
                 .map(product -> {
                     if (!model.containsAttribute("product")) {
                         model.addAttribute("product", product);
+                    }
+                    String normalizedReturnUrl = normalizeAdminReturnUrl(returnUrl);
+                    if (!model.containsAttribute("returnUrl")) {
+                        model.addAttribute("returnUrl", normalizedReturnUrl);
+                    }
+                    if (!model.containsAttribute("cancelUrl")) {
+                        model.addAttribute("cancelUrl",
+                                normalizedReturnUrl != null ? normalizedReturnUrl : buildAdminProductsUrl(page, keyword, brand, stock, sort));
                     }
                     addProductListState(model, page, keyword, brand, stock, sort);
                     return "product-form";
@@ -117,17 +128,22 @@ public class AdminController {
 
     @PostMapping("/products/save")
     public String saveProduct(@ModelAttribute Product product,
+            @RequestParam(name = "returnUrl", required = false) String returnUrl,
             @RequestParam(name = "returnPage", defaultValue = "0") int page,
             @RequestParam(name = "returnKeyword", required = false) String keyword,
             @RequestParam(name = "returnBrand", required = false) String brand,
             @RequestParam(name = "returnStock", defaultValue = "all") String stock,
-            @RequestParam(name = "returnSort", defaultValue = "id_asc") String sort,
+            @RequestParam(name = "returnSort", defaultValue = "name_asc") String sort,
             RedirectAttributes redirectAttributes) {
+        String normalizedReturnUrl = normalizeAdminReturnUrl(returnUrl);
         try {
             normalizeAndValidateProduct(product);
         } catch (IllegalArgumentException ex) {
             redirectAttributes.addFlashAttribute("toast", ex.getMessage());
             redirectAttributes.addFlashAttribute("product", product);
+            redirectAttributes.addFlashAttribute("returnUrl", normalizedReturnUrl);
+            redirectAttributes.addFlashAttribute("cancelUrl",
+                    normalizedReturnUrl != null ? normalizedReturnUrl : buildAdminProductsUrl(page, keyword, brand, stock, sort));
             addProductListState(redirectAttributes, page, keyword, brand, stock, sort);
             return product.getId() != null
                     ? "redirect:/admin/products/edit/" + product.getId()
@@ -145,6 +161,9 @@ public class AdminController {
         productRepository.save(product);
         redirectAttributes.addFlashAttribute("toast",
                 isUpdate ? "Product updated successfully." : "Product created successfully.");
+        if (normalizedReturnUrl != null) {
+            return "redirect:" + normalizedReturnUrl;
+        }
         addProductListState(redirectAttributes, page, keyword, brand, stock, sort);
         return "redirect:/admin/products";
     }
@@ -156,7 +175,7 @@ public class AdminController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String brand,
             @RequestParam(defaultValue = "all") String stock,
-            @RequestParam(defaultValue = "id_asc") String sort,
+            @RequestParam(defaultValue = "name_asc") String sort,
             RedirectAttributes redirectAttributes) {
         if (!productRepository.existsById(id)) {
             redirectAttributes.addFlashAttribute("toast", "Product not found.");
@@ -272,17 +291,25 @@ public class AdminController {
     }
 
     private List<Product> applyAdminSort(List<Product> products, String sort) {
-        Comparator<Product> comparator = switch (sort) {
-            case "id_desc" -> Comparator.comparing((Product p) -> p.getId() == null ? Long.MIN_VALUE : p.getId()).reversed();
-            case "name_asc" -> Comparator.comparing((Product p) -> normalizeNameForSort(p.getName()));
-            case "name_desc" -> Comparator.comparing((Product p) -> normalizeNameForSort(p.getName())).reversed();
-            case "price_asc" -> Comparator.comparing(p -> p.getPrice() == null ? Double.MAX_VALUE : p.getPrice());
-            case "price_desc" -> Comparator.comparing((Product p) -> p.getPrice() == null ? Double.MIN_VALUE : p.getPrice()).reversed();
-            case "stock_asc" -> Comparator.comparing(p -> p.getStock() == null ? Integer.MAX_VALUE : p.getStock());
-            case "stock_desc" -> Comparator.comparing((Product p) -> p.getStock() == null ? Integer.MIN_VALUE : p.getStock()).reversed();
-            default -> Comparator.comparing(p -> p.getId() == null ? Long.MAX_VALUE : p.getId());
-        };
-        return products.stream().sorted(comparator).toList();
+        List<Product> sorted = new java.util.ArrayList<>(products);
+        if ("id_desc".equals(sort)) {
+            sorted.sort((left, right) -> compareByIdDescending(left, right));
+        } else if ("name_asc".equals(sort)) {
+            sorted.sort((left, right) -> compareByNameAscending(left, right));
+        } else if ("name_desc".equals(sort)) {
+            sorted.sort((left, right) -> compareByNameDescending(left, right));
+        } else if ("price_asc".equals(sort)) {
+            sorted.sort((left, right) -> compareByPriceAscending(left, right));
+        } else if ("price_desc".equals(sort)) {
+            sorted.sort((left, right) -> compareByPriceDescending(left, right));
+        } else if ("stock_asc".equals(sort)) {
+            sorted.sort((left, right) -> compareByStockAscending(left, right));
+        } else if ("stock_desc".equals(sort)) {
+            sorted.sort((left, right) -> compareByStockDescending(left, right));
+        } else {
+            sorted.sort((left, right) -> compareByIdAscending(left, right));
+        }
+        return sorted;
     }
 
     private String extractBrand(Product product) {
@@ -335,7 +362,7 @@ public class AdminController {
 
     private Sort resolveAdminSort(String sort) {
         if (sort == null) {
-            return Sort.by("id").ascending();
+            return Sort.by(Sort.Order.asc("name").ignoreCase());
         }
         return switch (sort) {
             case "id_desc" -> Sort.by("id").descending();
@@ -345,7 +372,7 @@ public class AdminController {
             case "price_desc" -> Sort.by("price").descending();
             case "stock_asc" -> Sort.by("stock").ascending().and(Sort.by("id").ascending());
             case "stock_desc" -> Sort.by("stock").descending().and(Sort.by("id").ascending());
-            default -> Sort.by("id").ascending();
+            default -> Sort.by(Sort.Order.asc("name").ignoreCase());
         };
     }
 
@@ -368,6 +395,54 @@ public class AdminController {
         return name == null ? "" : name.trim().toLowerCase(Locale.ROOT);
     }
 
+    private int compareByIdAscending(Product left, Product right) {
+        return Long.compare(safeIdForAscendingSort(left), safeIdForAscendingSort(right));
+    }
+
+    private int compareByIdDescending(Product left, Product right) {
+        return Long.compare(safeIdForAscendingSort(right), safeIdForAscendingSort(left));
+    }
+
+    private int compareByNameAscending(Product left, Product right) {
+        return normalizeNameForSort(left != null ? left.getName() : null)
+                .compareTo(normalizeNameForSort(right != null ? right.getName() : null));
+    }
+
+    private int compareByNameDescending(Product left, Product right) {
+        return compareByNameAscending(right, left);
+    }
+
+    private int compareByPriceAscending(Product left, Product right) {
+        return Double.compare(safePriceForAscendingSort(left), safePriceForAscendingSort(right));
+    }
+
+    private int compareByPriceDescending(Product left, Product right) {
+        return Double.compare(safePriceForAscendingSort(right), safePriceForAscendingSort(left));
+    }
+
+    private int compareByStockAscending(Product left, Product right) {
+        return Integer.compare(safeStockForAscendingSort(left), safeStockForAscendingSort(right));
+    }
+
+    private int compareByStockDescending(Product left, Product right) {
+        return Integer.compare(safeStockForAscendingSort(right), safeStockForAscendingSort(left));
+    }
+
+    private long safeIdForAscendingSort(Product product) {
+        Long id = product != null ? product.getId() : null;
+        return id != null ? id : Long.MAX_VALUE;
+    }
+
+    private double safePriceForAscendingSort(Product product) {
+        Double price = product != null ? product.getPrice() : null;
+        return price != null ? price : Double.MAX_VALUE;
+    }
+
+    private int safeStockForAscendingSort(Product product) {
+        Integer stock = product != null ? product.getStock() : null;
+        return stock != null ? stock : Integer.MAX_VALUE;
+    }
+
     private String normalizeStock(String stock) {
         return switch (stock) {
             case "in_stock", "low_stock", "out_of_stock" -> stock;
@@ -378,7 +453,7 @@ public class AdminController {
     private String normalizeSort(String sort) {
         return switch (sort) {
             case "id_desc", "name_asc", "name_desc", "price_asc", "price_desc", "stock_asc", "stock_desc" -> sort;
-            default -> "id_asc";
+            default -> "name_asc";
         };
     }
 
@@ -406,7 +481,7 @@ public class AdminController {
         if (!"all".equals(normalizedStock)) {
             redirectAttributes.addAttribute("stock", normalizedStock);
         }
-        if (!"id_asc".equals(normalizedSort)) {
+        if (!"name_asc".equals(normalizedSort)) {
             redirectAttributes.addAttribute("sort", normalizedSort);
         }
     }
@@ -462,5 +537,46 @@ public class AdminController {
             throw new IllegalArgumentException(tooLongMessage);
         }
         return normalized;
+    }
+
+    private String normalizeAdminReturnUrl(String returnUrl) {
+        if (returnUrl == null) {
+            return null;
+        }
+        String trimmed = returnUrl.trim();
+        if (trimmed.isBlank() || !trimmed.startsWith("/") || trimmed.startsWith("//")) {
+            return null;
+        }
+        return trimmed;
+    }
+
+    private String buildAdminProductsUrl(int page, String keyword, String brand, String stock, String sort) {
+        StringBuilder url = new StringBuilder("/admin/products");
+        String separator = "?";
+
+        url.append(separator).append("page=").append(Math.max(page, 0));
+        separator = "&";
+
+        String normalizedKeyword = normalizeText(keyword);
+        if (normalizedKeyword != null) {
+            url.append(separator).append("keyword=").append(normalizedKeyword);
+        }
+
+        String normalizedBrand = normalizeText(brand);
+        if (normalizedBrand != null) {
+            url.append(separator).append("brand=").append(normalizedBrand);
+        }
+
+        String normalizedStock = normalizeStock(stock);
+        if (!"all".equals(normalizedStock)) {
+            url.append(separator).append("stock=").append(normalizedStock);
+        }
+
+        String normalizedSort = normalizeSort(sort);
+        if (!"name_asc".equals(normalizedSort)) {
+            url.append(separator).append("sort=").append(normalizedSort);
+        }
+
+        return url.toString();
     }
 }

@@ -32,11 +32,10 @@ class PaymentMethodServiceTest {
     }
 
     @Test
-    @SuppressWarnings("null")
     void addPaymentMethod_shouldSetFirstMethodAsDefault() {
         when(paymentMethodRepository.countActiveByUser("user@example.com")).thenReturn(0L);
         when(paymentMethodRepository.save(any(PaymentMethod.class)))
-                .thenAnswer(invocation -> invocation.getArgument(0, PaymentMethod.class));
+                .thenAnswer(MockitoNullSafety.returnsFirstArgument(PaymentMethod.class));
 
         PaymentMethod created = paymentMethodService.addPaymentMethod(
                 "User@Example.com",
@@ -59,6 +58,22 @@ class PaymentMethodServiceTest {
                 PaymentMethod.Type.BANK_TRANSFER,
                 "   ",
                 false));
+    }
+
+    @Test
+    void addPaymentMethod_shouldAllowMasterCardWithoutDetail() {
+        when(paymentMethodRepository.countActiveByUser("user@example.com")).thenReturn(1L);
+        when(paymentMethodRepository.save(any(PaymentMethod.class)))
+                .thenAnswer(MockitoNullSafety.returnsFirstArgument(PaymentMethod.class));
+
+        PaymentMethod created = paymentMethodService.addPaymentMethod(
+                "user@example.com",
+                PaymentMethod.Type.MASTERCARD,
+                null,
+                false);
+
+        assertEquals(PaymentMethod.Type.MASTERCARD, created.getType());
+        assertEquals(null, created.getDetail());
     }
 
     @Test
@@ -90,4 +105,3 @@ class PaymentMethodServiceTest {
         verify(paymentMethodRepository).save(nextMethod);
     }
 }
-

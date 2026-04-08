@@ -114,9 +114,19 @@ public class CartController {
         }
 
         if (isAuthenticatedUser(email)) {
-            model.addAttribute("savedPaymentMethods", paymentMethodService.getUserPaymentMethods(email));
+            List<PaymentMethod> savedPaymentMethods = paymentMethodService.getUserPaymentMethods(email);
+            model.addAttribute("savedPaymentMethods", savedPaymentMethods);
+            model.addAttribute("selectedDefaultPaymentType", savedPaymentMethods.stream()
+                    .filter(PaymentMethod::isDefault)
+                    .map(PaymentMethod::getType)
+                    .map(type -> type == PaymentMethod.Type.VISA || type == PaymentMethod.Type.MASTERCARD
+                            ? "MASTERCARD"
+                            : type.name())
+                    .findFirst()
+                    .orElse(null));
         } else {
             model.addAttribute("savedPaymentMethods", List.of());
+            model.addAttribute("selectedDefaultPaymentType", null);
         }
         return "payment-select";
     }
@@ -156,7 +166,7 @@ public class CartController {
                     ? "CASH_ON_DELIVERY"
                     : paymentType.trim().toUpperCase(Locale.ROOT);
 
-            if (!List.of("CASH_ON_DELIVERY", "BANK_TRANSFER", "PAYPAY").contains(finalMethod)) {
+            if (!List.of("CASH_ON_DELIVERY", "BANK_TRANSFER", "PAYPAY", "VISA", "MASTERCARD").contains(finalMethod)) {
                 redirectAttributes.addFlashAttribute("toast", "Invalid payment method selected.");
                 return "redirect:/cart/payment";
             }
@@ -312,6 +322,8 @@ public class CartController {
                     ? "Bank Transfer"
                     : "Bank Transfer - " + detail;
             case "PAYPAY" -> "PayPay";
+            case "KOMBINI" -> "Kombini";
+            case "VISA", "MASTERCARD" -> "MasterCard";
             default -> "Cash on Delivery";
         };
     }

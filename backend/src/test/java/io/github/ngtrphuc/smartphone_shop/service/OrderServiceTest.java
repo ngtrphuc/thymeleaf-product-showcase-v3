@@ -76,7 +76,6 @@ class OrderServiceTest {
     }
 
     @Test
-    @SuppressWarnings("null")
     void createOrder_shouldRecalculatePricesFromCurrentCatalog() {
         Product product = new Product();
         product.setId(1L);
@@ -86,7 +85,7 @@ class OrderServiceTest {
 
         CartItem staleCartItem = new CartItem(1L, "Phone A", 100.0, 2);
         when(productRepository.findAllByIdInForUpdate(anyCollection())).thenReturn(List.of(product));
-        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0, Order.class));
+        when(orderRepository.save(any(Order.class))).thenAnswer(MockitoNullSafety.returnsFirstArgument(Order.class));
 
         Order created = orderService.createOrder(
                 "user@example.com", "John Doe", "0901234567", "Tokyo", List.of(staleCartItem));
@@ -110,5 +109,30 @@ class OrderServiceTest {
                         List.of(item),
                         "CRYPTO",
                         null));
+    }
+
+    @Test
+    void createOrder_shouldAcceptMasterCardPaymentMethod() {
+        Product product = new Product();
+        product.setId(1L);
+        product.setName("Phone A");
+        product.setPrice(100.0);
+        product.setStock(5);
+
+        CartItem item = new CartItem(1L, "Phone A", 100.0, 1);
+        when(productRepository.findAllByIdInForUpdate(anyCollection())).thenReturn(List.of(product));
+        when(orderRepository.save(any(Order.class))).thenAnswer(MockitoNullSafety.returnsFirstArgument(Order.class));
+
+        Order created = orderService.createOrder(
+                "user@example.com",
+                "John Doe",
+                "0901234567",
+                "Tokyo",
+                List.of(item),
+                "MASTERCARD",
+                null);
+
+        assertEquals("MASTERCARD", created.getPaymentMethod());
+        assertEquals(null, created.getPaymentDetail());
     }
 }

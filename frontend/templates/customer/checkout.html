@@ -35,8 +35,16 @@
 
             <h3 style="font-size:11px;color:var(--text-muted);margin-top:0;text-transform:uppercase;letter-spacing:1px;font-weight:700;">Payment Method</h3>
             <p style="font-size:14px;font-weight:600;display:flex;align-items:center;gap:8px;">
+                <img th:if="${session.paymentMethod == 'CASH_ON_DELIVERY'}" th:src="@{/images/cash-on-delivery-icon.svg}" alt="Cash on Delivery"
+                    class="payment-method-icon-inline">
+                <img th:if="${session.paymentMethod == 'BANK_TRANSFER'}" th:src="@{/images/bank-transfer-icon.svg}" alt="Bank Transfer"
+                    class="payment-method-icon-inline">
                 <img th:if="${session.paymentMethod == 'PAYPAY'}" th:src="@{/images/paypay.png}" alt="PayPay"
                     class="paypay-icon-inline">
+                <img th:if="${session.paymentMethod == 'KOMBINI'}" th:src="@{/images/kombini-icon.svg}" alt="Kombini"
+                    class="payment-method-icon-inline">
+                <img th:if="${session.paymentMethod == 'VISA' or session.paymentMethod == 'MASTERCARD'}" th:src="@{/images/mastercard-icon.svg}" alt="MasterCard"
+                    class="payment-method-icon-inline">
                 <span th:text="${paymentMethodDisplay}">Cash on Delivery</span>
             </p>
 
