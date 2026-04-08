@@ -4,8 +4,10 @@ from PIL import Image
 from rembg import remove
 
 
-SOURCE_DIR = Path("src/main/resources/static/customer/images")
-OUTPUT_DIR = SOURCE_DIR / "cutouts"
+SOURCE_DIR_CANDIDATES = (
+    Path("frontend/static/customer/images"),
+    Path("src/main/resources/static/customer/images"),
+)
 SUPPORTED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
@@ -22,10 +24,18 @@ def process_image(source_path: Path, output_path: Path) -> None:
 
 
 def main() -> None:
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    source_dir = next((path for path in SOURCE_DIR_CANDIDATES if path.exists()), None)
+    if source_dir is None:
+        print("Source images directory not found.")
+        print(f"Checked: {', '.join(str(path) for path in SOURCE_DIR_CANDIDATES)}")
+        return
+
+    output_dir = source_dir / "cutouts"
+    
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     source_files = sorted(
-        path for path in SOURCE_DIR.iterdir()
+        path for path in source_dir.iterdir()
         if path.is_file() and path.suffix.lower() in SUPPORTED_EXTENSIONS
     )
 
@@ -37,7 +47,7 @@ def main() -> None:
     skipped = 0
 
     for source_path in source_files:
-        output_path = OUTPUT_DIR / f"{source_path.stem}.png"
+        output_path = output_dir / f"{source_path.stem}.png"
         if output_path.exists():
             skipped += 1
             print(f"Skipped existing: {output_path.name}")
@@ -47,7 +57,7 @@ def main() -> None:
         process_image(source_path, output_path)
         processed += 1
 
-    print(f"Done. Processed={processed}, Skipped={skipped}, OutputDir={OUTPUT_DIR}")
+    print(f"Done. Processed={processed}, Skipped={skipped}, OutputDir={output_dir}")
 
 
 if __name__ == "__main__":

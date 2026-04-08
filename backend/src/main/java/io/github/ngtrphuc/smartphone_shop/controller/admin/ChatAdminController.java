@@ -33,7 +33,7 @@ public class ChatAdminController {
         model.addAttribute("emails", emails);
         model.addAttribute("unreadCounts", unreadCounts);
         model.addAttribute("selectedEmail", null);
-        return "admin/chat";
+        return "chat";
     }
 
     @GetMapping("/admin/chat/{email}")
@@ -45,14 +45,14 @@ public class ChatAdminController {
             model.addAttribute("unreadCounts", new HashMap<>(chatService.getUnreadCountsByAdminConversation()));
             model.addAttribute("selectedEmail", null);
             model.addAttribute("toast", "Conversation not found.");
-            return "admin/chat";
+            return "chat";
         }
         List<String> emails = chatService.getAllConversationEmails();
         Map<String, Long> unreadCounts = new HashMap<>(chatService.getUnreadCountsByAdminConversation());
         model.addAttribute("emails", emails);
         model.addAttribute("unreadCounts", unreadCounts);
         model.addAttribute("selectedEmail", email);
-        return "admin/chat";
+        return "chat";
     }
 
     @GetMapping(value = "/admin/chat/stream", produces = "text/event-stream")

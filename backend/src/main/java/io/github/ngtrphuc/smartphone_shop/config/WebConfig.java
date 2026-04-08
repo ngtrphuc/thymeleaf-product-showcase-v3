@@ -12,16 +12,16 @@ public class WebConfig implements WebMvcConfigurer {
     public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/css/**")
                 .addResourceLocations(
-                        "classpath:/static/customer/css/",
-                        "classpath:/static/admin/css/"
+                        "classpath:/frontend/static/customer/css/",
+                        "classpath:/frontend/static/admin/css/"
                 );
         registry.addResourceHandler("/images/**")
-                .addResourceLocations("classpath:/static/customer/images/");
+                .addResourceLocations("classpath:/frontend/static/customer/images/");
         registry.addResourceHandler("/fonts/**")
-                .addResourceLocations("classpath:/static/customer/fonts/");
+                .addResourceLocations("classpath:/frontend/static/customer/fonts/");
         registry.addResourceHandler("/js/**")
-                .addResourceLocations("classpath:/static/js/");
+                .addResourceLocations("classpath:/frontend/static/js/");
         registry.addResourceHandler("/svg/**")
-                .addResourceLocations("classpath:/static/svg/");
+                .addResourceLocations("classpath:/frontend/static/svg/");
     }
 }

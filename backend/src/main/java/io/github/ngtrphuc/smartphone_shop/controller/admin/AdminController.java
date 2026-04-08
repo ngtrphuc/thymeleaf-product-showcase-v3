@@ -61,7 +61,7 @@ public class AdminController {
         model.addAttribute("currentPage", safePage);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("dashboardOrderCount", totalOrders);
-        return "admin/dashboard";
+        return "dashboard";
     }
 
     @GetMapping("/products")
@@ -73,7 +73,7 @@ public class AdminController {
             @RequestParam(defaultValue = "id_asc") String sort,
             Model model) {
         populateProductListModel(model, page, keyword, brand, stock, sort);
-        return "admin/products";
+        return "products";
     }
 
     @GetMapping("/products/new")
@@ -88,7 +88,7 @@ public class AdminController {
             model.addAttribute("product", new Product());
         }
         addProductListState(model, page, keyword, brand, stock, sort);
-        return "admin/product-form";
+        return "product-form";
     }
 
     @GetMapping("/products/edit/{id}")
@@ -106,7 +106,7 @@ public class AdminController {
                         model.addAttribute("product", product);
                     }
                     addProductListState(model, page, keyword, brand, stock, sort);
-                    return "admin/product-form";
+                    return "product-form";
                 })
                 .orElseGet(() -> {
                     redirectAttributes.addFlashAttribute("toast", "Product not found.");
@@ -180,7 +180,12 @@ public class AdminController {
         model.addAttribute("currentPage", safePage);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("orderCount", totalOrders);
-        return "admin/orders";
+        return "orders";
+    }
+
+    @GetMapping("/access-denied-admin")
+    public String accessDeniedAdminPage() {
+        return "error/access-denied-admin";
     }
 
     @PostMapping("/orders/{id}/status")

@@ -20,12 +20,12 @@ public class AuthController {
                             Model model) {
         if (error != null)  model.addAttribute("error", "Invalid email or password.");
         if (logout != null) model.addAttribute("message", "You have been logged out.");
-        return "customer/auth/login";
+        return "auth/login";
     }
 
     @GetMapping("/register")
     public String registerPage() {
-        return "customer/auth/register"; 
+        return "auth/register"; 
     }
 
     @PostMapping("/register")
@@ -38,13 +38,13 @@ public class AuthController {
             model.addAttribute("error", ex.getMessage());
             model.addAttribute("email", email);
             model.addAttribute("fullName", fullName);
-            return "customer/auth/register";
+            return "auth/register";
         }
         if (!success) {
             model.addAttribute("error", "Email already exists.");
             model.addAttribute("email", email);
             model.addAttribute("fullName", fullName);
-            return "customer/auth/register";
+            return "auth/register";
         }
         return "redirect:/login?registered";
     }

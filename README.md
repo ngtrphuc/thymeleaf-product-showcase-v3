@@ -1,22 +1,22 @@
 # Smartphone Shop
 
-Ứng dụng web bán điện thoại xây bằng Spring Boot + Thymeleaf, có đầy đủ luồng khách hàng và quản trị.
+A smartphone e-commerce web application built with Spring Boot + Thymeleaf, including both customer and admin flows.
 
-## Tính năng chính
+## Key Features
 
-- Đăng ký/đăng nhập, phân quyền `ROLE_USER` và `ROLE_ADMIN`
-- Danh sách sản phẩm, lọc/tìm kiếm, trang chi tiết
-- Giỏ hàng, checkout nhiều bước
-- Quản lý phương thức thanh toán:
+- Sign up/sign in with `ROLE_USER` and `ROLE_ADMIN` authorization
+- Product listing with filtering/search and product detail pages
+- Shopping cart and multi-step checkout
+- Payment method management:
   - `Cash on Delivery`
   - `Bank Transfer`
   - `PayPay`
-- Lưu địa chỉ mặc định trong profile và dùng lại khi shipping
-- Theo dõi đơn hàng của khách
-- Admin quản lý sản phẩm, đơn hàng, chat
-- Chat realtime giữa khách và admin (SSE)
+- Save default shipping address in profile and reuse it during checkout
+- Customer order tracking
+- Admin management for products, orders, and chat
+- Real-time chat between customer and admin (SSE)
 
-## Công nghệ
+## Tech Stack
 
 - Java 21
 - Spring Boot 3.5.13
@@ -26,46 +26,76 @@
 - Maven
 - H2 (dev/test), MySQL/MariaDB (prod)
 
-## Cấu trúc dự án
+## Project Structure
 
 ```text
 📂 smartphone-shop
-├── 📂 src
-│   ├── 📂 main
-│   │   ├── 📂 java/io/github/ngtrphuc/smartphone_shop
-│   │   │   ├── 📂 config
-│   │   │   ├── 📂 controller
-│   │   │   │   ├── 📂 admin
-│   │   │   │   └── 📂 user
-│   │   │   ├── 📂 model
-│   │   │   ├── 📂 repository
-│   │   │   ├── 📂 service
-│   │   │   └── 📄 SmartphoneShopApplication.java
-│   │   └── 📂 resources
-│   │       ├── 📂 static
-│   │       │   ├── 📂 admin/css
-│   │       │   ├── 📂 customer/css
-│   │       │   ├── 📂 customer/images
-│   │       │   └── 📂 js
-│   │       ├── 📂 templates
-│   │       │   ├── 📂 admin
-│   │       │   └── 📂 customer
-│   │       ├── 📄 application.properties
-│   │       ├── 📄 application-dev.properties
-│   │       └── 📄 application-prod.properties
-│   └── 📂 test
-│       ├── 📂 java
-│       └── 📂 resources
+├── 📂 .data/
+│   ├── 📄 smartphone_shop_dev.lock.db
+│   ├── 📄 smartphone_shop_dev.mv.db
+│   └── 📄 smartphone_shop_dev.trace.db
+├── 📂 .mvn/
+│   └── 📂 wrapper/
+│       └── 📄 maven-wrapper.properties
+├── 📂 .vscode/
+│   ├── 📄 launch.json
+│   └── 📄 settings.json
+├── 📂 backend
+│   └── 📂 src
+│       ├── 📂 main
+│       │   ├── 📂 java/io/github/ngtrphuc/smartphone_shop
+│       │   │   ├── 📂 config
+│       │   │   ├── 📂 controller
+│       │   │   │   ├── 📂 admin
+│       │   │   │   └── 📂 user
+│       │   │   ├── 📂 model
+│       │   │   ├── 📂 repository
+│       │   │   ├── 📂 service
+│       │   │   └── 📄 SmartphoneShopApplication.java
+│       │   └── 📂 resources
+│       │       ├── 📄 application.properties
+│       │       ├── 📄 application-dev.properties
+│       │       └── 📄 application-prod.properties
+│       └── 📂 test
+│           ├── 📂 java/io/github/ngtrphuc/smartphone_shop
+│           │   ├── 📂 controller/user
+│           │   ├── 📂 service
+│           │   └── 📄 SmartphoneShopApplicationTests.java
+│           └── 📂 resources
+├── 📂 frontend
+│   ├── 📂 static
+│   │   ├── 📂 admin/css
+│   │   ├── 📂 customer/css
+│   │   ├── 📂 customer/images
+│   │   ├── 📂 svg
+│   │   └── 📂 js
+│   └── 📂 templates
+│       ├── 📂 admin
+│       └── 📂 customer
+├── 📂 scripts
+│   └── 📄 remove_product_backgrounds.py
+├── 📂 tmp
 ├── 📄 pom.xml
 ├── 📄 mvnw
 └── 📄 mvnw.cmd
 ```
 
-## Chạy nhanh (Dev profile mặc định)
+- `backend/src/main/java/.../config`: System configuration, security, Thymeleaf, web setup, and bootstrap data
+- `backend/src/main/java/.../controller`: Request handlers for user/admin
+- `backend/src/main/java/.../model`: Main entities/models
+- `backend/src/main/java/.../repository`: Data access layer (Spring Data JPA)
+- `backend/src/main/java/.../service`: Business logic
+- `frontend/static`: Static assets (CSS, JS, images, SVG)
+- `frontend/templates`: Thymeleaf views for admin/customer
+- `backend/src/test`: Unit tests and application configuration tests
+- `scripts`: Auxiliary scripts outside the core application
+- `.data`: Local H2 database files for development
 
-Ứng dụng mặc định chạy profile `dev`, dùng H2 file database local nên không cần cài MySQL để chạy thử.
+## Quick Start (Default Dev Profile)
 
-### 1) Run app
+By default, the app runs with profile `dev` and uses a local file-based H2 database, so MySQL setup is not required for local testing.
+
+### 1) Run the app
 
 ```bash
 ./mvnw spring-boot:run
@@ -77,30 +107,30 @@ Windows:
 mvnw.cmd spring-boot:run
 ```
 
-### 2) Truy cập
+### 2) Access URLs
 
 - Home: `http://localhost:8080/`
 - H2 Console: `http://localhost:8080/h2-console`
 - Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 - Health: `http://localhost:8080/actuator/health`
 
-## Tài khoản admin bootstrap
+## Bootstrap Admin Account
 
-App tự bootstrap tài khoản admin bằng biến môi trường:
+The app bootstraps an admin account via environment variables:
 
 - `ADMIN_EMAIL`
 - `ADMIN_PASSWORD`
 
-Dev có giá trị mặc định trong `application-dev.properties`:
+Default dev values in `application-dev.properties`:
 
 - `admin@smartphone.local`
 - `Admin@123456`
 
-Bạn có thể override trước khi chạy.
+You can override them before running the app.
 
-## Chạy Production (MySQL/MariaDB)
+## Run in Production (MySQL/MariaDB)
 
-Dùng profile `prod` và cung cấp:
+Use profile `prod` and provide:
 
 - `DATASOURCE_URL`
 - `DATASOURCE_USER`
@@ -108,7 +138,7 @@ Dùng profile `prod` và cung cấp:
 - `ADMIN_EMAIL`
 - `ADMIN_PASSWORD`
 
-Ví dụ:
+Example:
 
 ```bash
 SPRING_PROFILES_ACTIVE=prod \
@@ -120,7 +150,7 @@ ADMIN_PASSWORD=your_strong_password \
 ./mvnw spring-boot:run
 ```
 
-## Chạy test
+## Run Tests
 
 ```bash
 ./mvnw test
@@ -132,10 +162,9 @@ Windows:
 mvnw.cmd test
 ```
 
-## Ghi chú bảo mật
+## Security Notes
 
-- Cookie session `HttpOnly`, `SameSite=Lax`
-- Session fixation protection + giới hạn concurrent session
+- Session cookie uses `HttpOnly`, `SameSite=Lax`
+- Session fixation protection and concurrent session limits
 - Security headers: CSP, frame deny, referrer policy, permissions policy
-- CSRF bật mặc định cho form actions
-
+- CSRF is enabled by default for form actions
