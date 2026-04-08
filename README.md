@@ -26,7 +26,7 @@ A smartphone e-commerce web application built with Spring Boot + Thymeleaf, incl
 - Maven
 - H2 (dev/test), MySQL/MariaDB (prod)
 
-## Project Structure
+## Detailed Project Structure
 
 ```text
 📂 smartphone-shop
@@ -40,42 +40,195 @@ A smartphone e-commerce web application built with Spring Boot + Thymeleaf, incl
 ├── 📂 .vscode/
 │   ├── 📄 launch.json
 │   └── 📄 settings.json
-├── 📂 backend
-│   └── 📂 src
-│       ├── 📂 main
-│       │   ├── 📂 java/io/github/ngtrphuc/smartphone_shop
-│       │   │   ├── 📂 config
-│       │   │   ├── 📂 controller
-│       │   │   │   ├── 📂 admin
-│       │   │   │   └── 📂 user
-│       │   │   ├── 📂 model
-│       │   │   ├── 📂 repository
-│       │   │   ├── 📂 service
+├── 📂 backend/
+│   └── 📂 src/
+│       ├── 📂 main/
+│       │   ├── 📂 java/io/github/ngtrphuc/smartphone_shop/
+│       │   │   ├── 📂 config/
+│       │   │   │   ├── 📄 AdminAccountInitializer.java
+│       │   │   │   ├── 📄 DataInitializer.java
+│       │   │   │   ├── 📄 GlobalModelAttributes.java
+│       │   │   │   ├── 📄 LoginSuccessHandler.java
+│       │   │   │   ├── 📄 SecurityConfig.java
+│       │   │   │   ├── 📄 ThymeleafConfig.java
+│       │   │   │   └── 📄 WebConfig.java
+│       │   │   ├── 📂 controller/
+│       │   │   │   ├── 📂 admin/
+│       │   │   │   │   ├── 📄 AdminController.java
+│       │   │   │   │   └── 📄 ChatAdminController.java
+│       │   │   │   └── 📂 user/
+│       │   │   │       ├── 📄 AuthController.java
+│       │   │   │       ├── 📄 CartController.java
+│       │   │   │       ├── 📄 ChatUserController.java
+│       │   │   │       ├── 📄 MainController.java
+│       │   │   │       ├── 📄 OrderController.java
+│       │   │   │       ├── 📄 PaymentMethodController.java
+│       │   │   │       ├── 📄 ProfileController.java
+│       │   │   │       └── 📄 WishlistController.java
+│       │   │   ├── 📂 model/
+│       │   │   │   ├── 📄 CartItem.java
+│       │   │   │   ├── 📄 CartItemEntity.java
+│       │   │   │   ├── 📄 ChatMessage.java
+│       │   │   │   ├── 📄 Order.java
+│       │   │   │   ├── 📄 OrderItem.java
+│       │   │   │   ├── 📄 PaymentMethod.java
+│       │   │   │   ├── 📄 Product.java
+│       │   │   │   ├── 📄 User.java
+│       │   │   │   ├── 📄 WishlistItem.java
+│       │   │   │   └── 📄 WishlistItemEntity.java
+│       │   │   ├── 📂 repository/
+│       │   │   │   ├── 📄 CartItemRepository.java
+│       │   │   │   ├── 📄 ChatMessageRepository.java
+│       │   │   │   ├── 📄 OrderRepository.java
+│       │   │   │   ├── 📄 PaymentMethodRepository.java
+│       │   │   │   ├── 📄 ProductRepository.java
+│       │   │   │   ├── 📄 UserRepository.java
+│       │   │   │   └── 📄 WishlistItemRepository.java
+│       │   │   ├── 📂 service/
+│       │   │   │   ├── 📄 AuthService.java
+│       │   │   │   ├── 📄 CartService.java
+│       │   │   │   ├── 📄 ChatService.java
+│       │   │   │   ├── 📄 CustomUserDetailsService.java
+│       │   │   │   ├── 📄 OrderService.java
+│       │   │   │   ├── 📄 OrderValidationException.java
+│       │   │   │   ├── 📄 PaymentMethodService.java
+│       │   │   │   └── 📄 WishlistService.java
 │       │   │   └── 📄 SmartphoneShopApplication.java
-│       │   └── 📂 resources
-│       │       ├── 📄 application.properties
+│       │   └── 📂 resources/
 │       │       ├── 📄 application-dev.properties
-│       │       └── 📄 application-prod.properties
-│       └── 📂 test
-│           ├── 📂 java/io/github/ngtrphuc/smartphone_shop
-│           │   ├── 📂 controller/user
-│           │   ├── 📂 service
+│       │       ├── 📄 application-prod.properties
+│       │       └── 📄 application.properties
+│       └── 📂 test/
+│           ├── 📂 java/io/github/ngtrphuc/smartphone_shop/
+│           │   ├── 📂 controller/user/
+│           │   │   └── 📄 MainControllerTest.java
+│           │   ├── 📂 service/
+│           │   │   ├── 📄 AuthServiceTest.java
+│           │   │   ├── 📄 CartServiceTest.java
+│           │   │   ├── 📄 OrderServiceTest.java
+│           │   │   ├── 📄 PaymentMethodServiceTest.java
+│           │   │   └── 📄 WishlistServiceTest.java
 │           │   └── 📄 SmartphoneShopApplicationTests.java
-│           └── 📂 resources
-├── 📂 frontend
-│   ├── 📂 static
-│   │   ├── 📂 admin/css
-│   │   ├── 📂 customer/css
-│   │   ├── 📂 customer/images
-│   │   ├── 📂 svg
-│   │   └── 📂 js
-│   └── 📂 templates
-│       ├── 📂 admin
-│       └── 📂 customer
-├── 📂 scripts
+│           └── 📂 resources/
+│               └── 📄 application-test.properties
+├── 📂 frontend/
+│   ├── 📂 static/
+│   │   ├── 📂 admin/
+│   │   │   └── 📂 css/
+│   │   │       └── 📄 style.css
+│   │   ├── 📂 customer/
+│   │   │   ├── 📂 css/
+│   │   │   │   └── 📄 style.css
+│   │   │   └── 📂 images/
+│   │   │       ├── 📄 findn5.png
+│   │   │       ├── 📄 findx9pro.png
+│   │   │       ├── 📄 galaxy_s25.png
+│   │   │       ├── 📄 galaxy-s26.png
+│   │   │       ├── 📄 galaxy-s26-plus.png
+│   │   │       ├── 📄 galaxy-s26-ultra.png
+│   │   │       ├── 📄 galaxy-z-fold7.png
+│   │   │       ├── 📄 honor400pro.png
+│   │   │       ├── 📄 honor-magic-v5.png
+│   │   │       ├── 📄 huawei-mate-x7.png
+│   │   │       ├── 📄 iphone16.png
+│   │   │       ├── 📄 iphone16plus.png
+│   │   │       ├── 📄 iphone16pro.png
+│   │   │       ├── 📄 iphone16promax.png
+│   │   │       ├── 📄 iphone17.png
+│   │   │       ├── 📄 iphone17e.png
+│   │   │       ├── 📄 iphone17pro.png
+│   │   │       ├── 📄 iphone17promax.png
+│   │   │       ├── 📄 iphoneair.png
+│   │   │       ├── 📄 oppo-find-n6.png
+│   │   │       ├── 📄 oppo-find-x8-ultra.png
+│   │   │       ├── 📄 paypay.png
+│   │   │       ├── 📄 paypay-icon.svg
+│   │   │       ├── 📄 pixel10proxl.png
+│   │   │       ├── 📄 pixel9.png
+│   │   │       ├── 📄 pura70ultra.png
+│   │   │       ├── 📄 redmagic_11_pro_xam_3eac852136.jpg
+│   │   │       ├── 📄 redmagic10.png
+│   │   │       ├── 📄 redmagic11pro.png
+│   │   │       ├── 📄 rog9.png
+│   │   │       ├── 📄 vivo-x200-ultra.png
+│   │   │       ├── 📄 xiaomi15ultra.png
+│   │   │       ├── 📄 xiaomi17ultra.png
+│   │   │       ├── 📄 xiaomi-mix-flip2.png
+│   │   │       ├── 📄 xperia1vi.png
+│   │   │       ├── 📄 xperia1vii.png
+│   │   │       ├── 📄 z70ultra.png
+│   │   │       └── 📄 zflip7.png
+│   │   ├── 📂 js/
+│   │   │   ├── 📄 admin-shell.js
+│   │   │   ├── 📄 auth-password-toggle.js
+│   │   │   └── 📄 order-success.js
+│   │   └── 📂 svg/
+│   │       └── 📂 griddy/
+│   │           ├── 📄 README.md
+│   │           ├── 📄 admin.svg
+│   │           ├── 📄 alert.svg
+│   │           ├── 📄 arrow-left.svg
+│   │           ├── 📄 arrow-right.svg
+│   │           ├── 📄 ban.svg
+│   │           ├── 📄 box.svg
+│   │           ├── 📄 cart.svg
+│   │           ├── 📄 chat.svg
+│   │           ├── 📄 check.svg
+│   │           ├── 📄 clipboard.svg
+│   │           ├── 📄 close-circle.svg
+│   │           ├── 📄 credit-card.svg
+│   │           ├── 📄 dashboard.svg
+│   │           ├── 📄 eye.svg
+│   │           ├── 📄 eye-off.svg
+│   │           ├── 📄 heart-filled.svg
+│   │           ├── 📄 heart-outline.svg
+│   │           ├── 📄 home.svg
+│   │           ├── 📄 location-pin.svg
+│   │           ├── 📄 login.svg
+│   │           ├── 📄 logout.svg
+│   │           ├── 📄 orders.svg
+│   │           ├── 📄 package.svg
+│   │           ├── 📄 phone.svg
+│   │           ├── 📄 profile.svg
+│   │           ├── 📄 spark.svg
+│   │           ├── 📄 trash.svg
+│   │           ├── 📄 user.svg
+│   │           └── 📄 wishlist.svg
+│   └── 📂 templates/
+│       ├── 📂 admin/
+│       │   ├── 📂 error/
+│       │   │   └── 📄 access-denied-admin.html
+│       │   ├── 📄 chat.html
+│       │   ├── 📄 dashboard.html
+│       │   ├── 📄 orders.html
+│       │   ├── 📄 product-form.html
+│       │   └── 📄 products.html
+│       └── 📂 customer/
+│           ├── 📂 auth/
+│           │   ├── 📄 login.html
+│           │   └── 📄 register.html
+│           ├── 📂 fragments/
+│           │   └── 📄 chat-widget.html
+│           ├── 📄 cart.html
+│           ├── 📄 checkout.html
+│           ├── 📄 detail.html
+│           ├── 📄 index.html
+│           ├── 📄 my-orders.html
+│           ├── 📄 payment-select.html
+│           ├── 📄 profile.html
+│           ├── 📄 shipping.html
+│           ├── 📄 success.html
+│           └── 📄 wishlist.html
+├── 📂 scripts/
 │   └── 📄 remove_product_backgrounds.py
-├── 📂 tmp
+├── 📂 target/
+├── 📂 tmp/
+├── 📄 .editorconfig
+├── 📄 .gitattributes
+├── 📄 .gitignore
+├── 📄 HELP.md
 ├── 📄 pom.xml
+├── 📄 README.md
 ├── 📄 mvnw
 └── 📄 mvnw.cmd
 ```
