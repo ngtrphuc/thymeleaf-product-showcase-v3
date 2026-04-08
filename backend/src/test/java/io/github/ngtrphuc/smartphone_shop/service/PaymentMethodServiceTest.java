@@ -2,7 +2,6 @@ package io.github.ngtrphuc.smartphone_shop.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -34,7 +33,7 @@ class PaymentMethodServiceTest {
     @Test
     void addPaymentMethod_shouldSetFirstMethodAsDefault() {
         when(paymentMethodRepository.countActiveByUser("user@example.com")).thenReturn(0L);
-        when(paymentMethodRepository.save(any(PaymentMethod.class)))
+        when(paymentMethodRepository.save(MockitoNullSafety.anyNonNull(PaymentMethod.class)))
                 .thenAnswer(MockitoNullSafety.returnsFirstArgument(PaymentMethod.class));
 
         PaymentMethod created = paymentMethodService.addPaymentMethod(
@@ -63,7 +62,7 @@ class PaymentMethodServiceTest {
     @Test
     void addPaymentMethod_shouldAllowMasterCardWithoutDetail() {
         when(paymentMethodRepository.countActiveByUser("user@example.com")).thenReturn(1L);
-        when(paymentMethodRepository.save(any(PaymentMethod.class)))
+        when(paymentMethodRepository.save(MockitoNullSafety.anyNonNull(PaymentMethod.class)))
                 .thenAnswer(MockitoNullSafety.returnsFirstArgument(PaymentMethod.class));
 
         PaymentMethod created = paymentMethodService.addPaymentMethod(

@@ -2,7 +2,6 @@ package io.github.ngtrphuc.smartphone_shop.service;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -85,7 +84,8 @@ class OrderServiceTest {
 
         CartItem staleCartItem = new CartItem(1L, "Phone A", 100.0, 2);
         when(productRepository.findAllByIdInForUpdate(anyCollection())).thenReturn(List.of(product));
-        when(orderRepository.save(any(Order.class))).thenAnswer(MockitoNullSafety.returnsFirstArgument(Order.class));
+        when(orderRepository.save(MockitoNullSafety.anyNonNull(Order.class)))
+                .thenAnswer(MockitoNullSafety.returnsFirstArgument(Order.class));
 
         Order created = orderService.createOrder(
                 "user@example.com", "John Doe", "0901234567", "Tokyo", List.of(staleCartItem));
@@ -121,7 +121,8 @@ class OrderServiceTest {
 
         CartItem item = new CartItem(1L, "Phone A", 100.0, 1);
         when(productRepository.findAllByIdInForUpdate(anyCollection())).thenReturn(List.of(product));
-        when(orderRepository.save(any(Order.class))).thenAnswer(MockitoNullSafety.returnsFirstArgument(Order.class));
+        when(orderRepository.save(MockitoNullSafety.anyNonNull(Order.class)))
+                .thenAnswer(MockitoNullSafety.returnsFirstArgument(Order.class));
 
         Order created = orderService.createOrder(
                 "user@example.com",
