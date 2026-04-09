@@ -48,7 +48,7 @@ class MainControllerTest {
 
         Object productsAttribute = model.getAttribute("products");
         List<?> rawProducts = assertInstanceOf(List.class, productsAttribute);
-        Product filteredProduct = assertInstanceOf(Product.class, rawProducts.getFirst());
+        Product filteredProduct = assertInstanceOf(Product.class, rawProducts.get(0));
 
         assertEquals("index", view);
         assertEquals(1, rawProducts.size());

@@ -554,6 +554,10 @@
                     <span class="header-action__icon icon-svg icon-wishlist" aria-hidden="true"></span>
                     <span class="header-action__label">Wishlist</span>
                 </a>
+                <a sec:authorize="hasRole('USER')" href="/compare" class="btn-header header-action header-action--neutral">
+                    <span class="header-action__icon icon-svg icon-clipboard" aria-hidden="true"></span>
+                    <span class="header-action__label">Compare</span>
+                </a>
                 <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header header-action header-action--neutral">
                     <span class="header-action__icon icon-svg icon-cart" aria-hidden="true"></span>
                     <span class="header-action__label">Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)</span>
@@ -788,7 +792,7 @@
                         <span th:if="${p.stock != null and p.stock <= 0}" class="badge-out-of-stock">Out of Stock</span>
                         <form sec:authorize="hasRole('USER')" method="post"
                             th:action="${isWishlisted} ? @{/wishlist/remove} : @{/wishlist/add}"
-                            class="wishlist-inline-form">
+                            class="wishlist-inline-form" style="right:52px;">
                             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                             <input type="hidden" name="id" th:value="${p.id}">
                             <input type="hidden" name="redirect"
@@ -797,6 +801,15 @@
                                 th:classappend="${isWishlisted} ? ' active' : ''"
                                 th:attr="aria-label=${isWishlisted} ? 'Remove from wishlist' : 'Add to wishlist'">
                                 <span class="icon-svg wishlist-heart-icon" aria-hidden="true"></span>
+                            </button>
+                        </form>
+                        <form action="/compare/add" method="post" class="wishlist-inline-form" style="right:10px;">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <input type="hidden" name="id" th:value="${p.id}">
+                            <input type="hidden" name="redirect"
+                                th:value="@{/(page=${currentPage}, pageSize=${pageSize}, keyword=${keyword}, sort=${sort}, brand=${brand}, priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax}, batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax}, screenSize=${screenSize})}">
+                            <button type="submit" class="wishlist-icon-btn" aria-label="Add to compare">
+                                <span class="icon-svg icon-clipboard" style="width:15px;height:15px;" aria-hidden="true"></span>
                             </button>
                         </form>
                         <a th:href="@{/product/{id}(id=${p.id}, page=${currentPage}, pageSize=${pageSize}, keyword=${keyword}, sort=${sort}, brand=${brand}, priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax}, batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax}, screenSize=${screenSize})}"
@@ -1127,6 +1140,7 @@
             setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 3200);
         });
     </script>
+    <div th:replace="~{fragments/compare-bar :: compareBar}"></div>
     <div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
 </body>
 

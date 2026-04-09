@@ -40,7 +40,7 @@ public class SecurityConfig {
                 .userDetailsService(userDetailsService)
                 .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/css/**", "/images/**", "/js/**", "/fonts/**", "/svg/**", "/actuator/health", "/favicon.ico").permitAll()
-                .requestMatchers("/", "/product/**", "/register", "/login", "/error", "/admin/access-denied-admin", "/cart/**").permitAll()
+                .requestMatchers("/", "/product/**", "/register", "/login", "/error", "/admin/access-denied-admin", "/cart/**", "/compare/**").permitAll()
                 .requestMatchers("/profile/**", "/my-orders/**", "/chat/**", "/wishlist/**").hasRole("USER")
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()

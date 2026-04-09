@@ -22,6 +22,10 @@
                     <span class="header-action__icon icon-svg icon-wishlist" aria-hidden="true"></span>
                     <span class="header-action__label">Wishlist</span>
                 </a>
+                <a sec:authorize="hasRole('USER')" href="/compare" class="btn-header header-action header-action--neutral">
+                    <span class="header-action__icon icon-svg icon-clipboard" aria-hidden="true"></span>
+                    <span class="header-action__label">Compare</span>
+                </a>
                 <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header header-action header-action--neutral">
                     <span class="header-action__icon icon-svg icon-cart" aria-hidden="true"></span>
                     <span class="header-action__label">Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)</span>
@@ -228,8 +232,7 @@
         <div th:text="${shopname}" style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;letter-spacing:2px;"></div>
         <div class="footer-address" th:text="${address}"></div>
     </footer>
+    <div th:replace="~{fragments/compare-bar :: compareBar}"></div>
     <div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
 </body>
 </html>
-
-
