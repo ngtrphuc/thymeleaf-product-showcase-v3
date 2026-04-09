@@ -6,6 +6,7 @@ A smartphone e-commerce web application built with Spring Boot + Thymeleaf, incl
 
 - Sign up/sign in with `ROLE_USER` and `ROLE_ADMIN` authorization
 - Product listing with filtering/search and product detail pages
+- Product compare flow (customer)
 - Shopping cart and multi-step checkout
 - Payment method management:
   - `Cash on Delivery`
@@ -30,6 +31,17 @@ A smartphone e-commerce web application built with Spring Boot + Thymeleaf, incl
 
 ```text
 📂 smartphone-shop
+├── 📂 .codex/
+│   └── 📂 skills/
+│       └── 📂 smartphone-shop-technical-audit/
+│           ├── 📂 agents/
+│           │   └── 📄 openai.yaml
+│           ├── 📂 references/
+│           │   ├── 📄 feature-roadmap.md
+│           │   ├── 📄 fix-plan.md
+│           │   ├── 📄 review-playbook.md
+│           │   └── 📄 skill-boundaries.md
+│           └── 📄 SKILL.md
 ├── 📂 .data/
 │   ├── 📄 smartphone_shop_dev.lock.db
 │   ├── 📄 smartphone_shop_dev.mv.db
@@ -37,6 +49,11 @@ A smartphone e-commerce web application built with Spring Boot + Thymeleaf, incl
 ├── 📂 .mvn/
 │   └── 📂 wrapper/
 │       └── 📄 maven-wrapper.properties
+├── 📂 .settings/
+│   ├── 📄 org.eclipse.core.resources.prefs
+│   ├── 📄 org.eclipse.jdt.apt.core.prefs
+│   ├── 📄 org.eclipse.jdt.core.prefs
+│   └── 📄 org.eclipse.m2e.core.prefs
 ├── 📂 .vscode/
 │   ├── 📄 launch.json
 │   └── 📄 settings.json
@@ -60,6 +77,7 @@ A smartphone e-commerce web application built with Spring Boot + Thymeleaf, incl
 │       │   │   │       ├── 📄 AuthController.java
 │       │   │   │       ├── 📄 CartController.java
 │       │   │   │       ├── 📄 ChatUserController.java
+│       │   │   │       ├── 📄 CompareController.java
 │       │   │   │       ├── 📄 MainController.java
 │       │   │   │       ├── 📄 OrderController.java
 │       │   │   │       ├── 📄 PaymentMethodController.java
@@ -95,16 +113,18 @@ A smartphone e-commerce web application built with Spring Boot + Thymeleaf, incl
 │       │   │   │   └── 📄 WishlistService.java
 │       │   │   └── 📄 SmartphoneShopApplication.java
 │       │   └── 📂 resources/
+│       │       ├── 📄 application.properties
 │       │       ├── 📄 application-dev.properties
-│       │       ├── 📄 application-prod.properties
-│       │       └── 📄 application.properties
+│       │       └── 📄 application-prod.properties
 │       └── 📂 test/
 │           ├── 📂 java/io/github/ngtrphuc/smartphone_shop/
 │           │   ├── 📂 controller/user/
+│           │   │   ├── 📄 CompareControllerTest.java
 │           │   │   └── 📄 MainControllerTest.java
 │           │   ├── 📂 service/
 │           │   │   ├── 📄 AuthServiceTest.java
 │           │   │   ├── 📄 CartServiceTest.java
+│           │   │   ├── 📄 MockitoNullSafety.java
 │           │   │   ├── 📄 OrderServiceTest.java
 │           │   │   ├── 📄 PaymentMethodServiceTest.java
 │           │   │   └── 📄 WishlistServiceTest.java
@@ -120,80 +140,12 @@ A smartphone e-commerce web application built with Spring Boot + Thymeleaf, incl
 │   │   │   ├── 📂 css/
 │   │   │   │   └── 📄 style.css
 │   │   │   └── 📂 images/
-│   │   │       ├── 📄 findn5.png
-│   │   │       ├── 📄 findx9pro.png
-│   │   │       ├── 📄 galaxy_s25.png
-│   │   │       ├── 📄 galaxy-s26.png
-│   │   │       ├── 📄 galaxy-s26-plus.png
-│   │   │       ├── 📄 galaxy-s26-ultra.png
-│   │   │       ├── 📄 galaxy-z-fold7.png
-│   │   │       ├── 📄 honor400pro.png
-│   │   │       ├── 📄 honor-magic-v5.png
-│   │   │       ├── 📄 huawei-mate-x7.png
-│   │   │       ├── 📄 iphone16.png
-│   │   │       ├── 📄 iphone16plus.png
-│   │   │       ├── 📄 iphone16pro.png
-│   │   │       ├── 📄 iphone16promax.png
-│   │   │       ├── 📄 iphone17.png
-│   │   │       ├── 📄 iphone17e.png
-│   │   │       ├── 📄 iphone17pro.png
-│   │   │       ├── 📄 iphone17promax.png
-│   │   │       ├── 📄 iphoneair.png
-│   │   │       ├── 📄 oppo-find-n6.png
-│   │   │       ├── 📄 oppo-find-x8-ultra.png
-│   │   │       ├── 📄 paypay.png
-│   │   │       ├── 📄 paypay-icon.svg
-│   │   │       ├── 📄 pixel10proxl.png
-│   │   │       ├── 📄 pixel9.png
-│   │   │       ├── 📄 pura70ultra.png
-│   │   │       ├── 📄 redmagic_11_pro_xam_3eac852136.jpg
-│   │   │       ├── 📄 redmagic10.png
-│   │   │       ├── 📄 redmagic11pro.png
-│   │   │       ├── 📄 rog9.png
-│   │   │       ├── 📄 vivo-x200-ultra.png
-│   │   │       ├── 📄 xiaomi15ultra.png
-│   │   │       ├── 📄 xiaomi17ultra.png
-│   │   │       ├── 📄 xiaomi-mix-flip2.png
-│   │   │       ├── 📄 xperia1vi.png
-│   │   │       ├── 📄 xperia1vii.png
-│   │   │       ├── 📄 z70ultra.png
-│   │   │       └── 📄 zflip7.png
 │   │   ├── 📂 js/
 │   │   │   ├── 📄 admin-shell.js
 │   │   │   ├── 📄 auth-password-toggle.js
 │   │   │   └── 📄 order-success.js
 │   │   └── 📂 svg/
 │   │       └── 📂 griddy/
-│   │           ├── 📄 README.md
-│   │           ├── 📄 admin.svg
-│   │           ├── 📄 alert.svg
-│   │           ├── 📄 arrow-left.svg
-│   │           ├── 📄 arrow-right.svg
-│   │           ├── 📄 ban.svg
-│   │           ├── 📄 box.svg
-│   │           ├── 📄 cart.svg
-│   │           ├── 📄 chat.svg
-│   │           ├── 📄 check.svg
-│   │           ├── 📄 clipboard.svg
-│   │           ├── 📄 close-circle.svg
-│   │           ├── 📄 credit-card.svg
-│   │           ├── 📄 dashboard.svg
-│   │           ├── 📄 eye.svg
-│   │           ├── 📄 eye-off.svg
-│   │           ├── 📄 heart-filled.svg
-│   │           ├── 📄 heart-outline.svg
-│   │           ├── 📄 home.svg
-│   │           ├── 📄 location-pin.svg
-│   │           ├── 📄 login.svg
-│   │           ├── 📄 logout.svg
-│   │           ├── 📄 orders.svg
-│   │           ├── 📄 package.svg
-│   │           ├── 📄 phone.svg
-│   │           ├── 📄 profile.svg
-│   │           ├── 📄 spark.svg
-│   │           ├── 📄 trash.svg
-│   │           ├── 📄 user.svg
-│   │           └── 📄 wishlist.svg
 │   └── 📂 templates/
 │       ├── 📂 admin/
 │       │   ├── 📂 error/
@@ -208,9 +160,11 @@ A smartphone e-commerce web application built with Spring Boot + Thymeleaf, incl
 │           │   ├── 📄 login.html
 │           │   └── 📄 register.html
 │           ├── 📂 fragments/
-│           │   └── 📄 chat-widget.html
+│           │   ├── 📄 chat-widget.html
+│           │   └── 📄 compare-bar.html
 │           ├── 📄 cart.html
 │           ├── 📄 checkout.html
+│           ├── 📄 compare.html
 │           ├── 📄 detail.html
 │           ├── 📄 index.html
 │           ├── 📄 my-orders.html
@@ -221,16 +175,14 @@ A smartphone e-commerce web application built with Spring Boot + Thymeleaf, incl
 │           └── 📄 wishlist.html
 ├── 📂 scripts/
 │   └── 📄 remove_product_backgrounds.py
-├── 📂 target/
-├── 📂 tmp/
 ├── 📄 .editorconfig
 ├── 📄 .gitattributes
 ├── 📄 .gitignore
 ├── 📄 HELP.md
-├── 📄 pom.xml
-├── 📄 README.md
 ├── 📄 mvnw
-└── 📄 mvnw.cmd
+├── 📄 mvnw.cmd
+├── 📄 pom.xml
+└── 📄 README.md
 ```
 
 - `backend/src/main/java/.../config`: System configuration, security, Thymeleaf, web setup, and bootstrap data
