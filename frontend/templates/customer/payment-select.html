@@ -227,6 +227,7 @@
         setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 3200);
     </script>
 
+    <footer th:replace="~{fragments/footer :: customerFooter}"></footer>
     <div th:replace="~{fragments/compare-bar :: compareBar}"></div>
     <div th:replace="~{fragments/chat-widget :: chatWidget}"></div>
 </body>

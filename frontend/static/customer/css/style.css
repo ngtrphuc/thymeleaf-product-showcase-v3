@@ -610,6 +610,104 @@ footer {
   margin-top: 6px;
 }
 
+.footer-brand {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: #ffffff;
+}
+
+.footer-sns-title {
+  margin-top: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.footer-sns {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.footer-sns__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #d8dee8;
+  color: #111827;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.18);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  text-decoration: none;
+}
+
+.footer-sns__link svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.footer-sns__link:hover {
+  transform: translateY(-2px);
+  border-color: #ffffff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.24);
+}
+
+.footer-sns__link:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.footer-sns__link--youtube {
+  color: #ff0000;
+}
+
+.footer-sns__link--x {
+  color: #000000;
+}
+
+.footer-sns__link--instagram {
+  color: #c13584;
+}
+
+.footer-sns__link--line {
+  color: #06c755;
+}
+
+.footer-sns__link--tiktok {
+  color: #111111;
+}
+
+.footer-sns__link--facebook {
+  color: #1877f2;
+}
+
+@media (max-width: 640px) {
+  .footer-sns {
+    gap: 8px;
+  }
+
+  .footer-sns__link {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+  }
+
+  .footer-sns__link svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
 .container {
   max-width: 1200px;
   margin: 32px auto;
@@ -3482,6 +3580,20 @@ body.auth-neo-page > * {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  border-radius: 999px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.auth-neo-brand:hover,
+.auth-neo-brand:focus-visible {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.16);
+}
+
+.auth-neo-brand:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
 }
 
 .auth-neo-nav-links {
@@ -3687,6 +3799,22 @@ body.auth-neo-page .alert-success {
   font-weight: 700;
   text-decoration: underline;
   text-underline-offset: 2px;
+  display: inline-block;
+  border-radius: 8px;
+  padding: 1px 3px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.auth-neo-note a:hover,
+.auth-neo-note a:focus-visible {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+}
+
+.auth-neo-note a:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
 }
 
 @media (max-width: 900px) {
@@ -3745,6 +3873,18 @@ body.auth-neo-page::before {
 .auth-neo-switch a {
   color: #000 !important;
   text-shadow: none !important;
+}
+
+body.auth-neo-page .auth-neo-brand:hover,
+body.auth-neo-page .auth-neo-brand:focus-visible {
+  background: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.14);
+}
+
+body.auth-neo-page .auth-neo-note a:hover,
+body.auth-neo-page .auth-neo-note a:focus-visible {
+  background: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.16);
 }
 
 .auth-neo-subtitle {
@@ -4766,7 +4906,7 @@ body.auth-neo-page .auth-neo-switch {
   gap: 0 !important;
   width: clamp(190px, 30vw, 240px);
   border-radius: 999px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 body.auth-neo-page .auth-neo-switch .auth-neo-switch__btn {
@@ -4785,7 +4925,8 @@ body.auth-neo-page .auth-neo-switch .auth-neo-switch__btn {
   font-size: 14px;
   font-weight: 700;
   line-height: 1;
-  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease,
+    transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 body.auth-neo-page .auth-neo-switch .auth-neo-switch__btn--left {
@@ -4816,6 +4957,18 @@ body.auth-neo-page .auth-neo-switch .auth-neo-switch__btn:not(.is-active):focus-
   background: #111111 !important;
   border-color: #000000 !important;
   color: #ffffff !important;
+}
+
+body.auth-neo-page .auth-neo-switch .auth-neo-switch__btn:hover,
+body.auth-neo-page .auth-neo-switch .auth-neo-switch__btn:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2) !important;
+  z-index: 3;
+}
+
+body.auth-neo-page .auth-neo-switch .auth-neo-switch__btn:active {
+  transform: translateY(0);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18) !important;
 }
 
 body.auth-neo-page .auth-neo-switch .auth-neo-switch__label {
