@@ -4,6 +4,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class SmartphoneShopApplication {
     public static void main(String[] args) {
+        Port8080Guard.releaseForDevIfNeeded(args);
         SpringApplication.run(SmartphoneShopApplication.class, args);
     }
 }
