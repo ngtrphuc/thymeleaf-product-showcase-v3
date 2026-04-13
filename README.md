@@ -190,9 +190,12 @@ A smartphone e-commerce web application built with Spring Boot + Thymeleaf, incl
 - `backend/src/main/java/.../model`: Main entities/models
 - `backend/src/main/java/.../repository`: Data access layer (Spring Data JPA)
 - `backend/src/main/java/.../service`: Business logic
+- `backend/src/main/java/.../Port8080Guard.java`: Startup guard to ensure port `8080` is available before app boot
 - `frontend/static`: Static assets (CSS, JS, images, SVG)
 - `frontend/templates`: Thymeleaf views for admin/customer
+- `frontend/templates/customer/fragments/footer.html`: Shared customer footer fragment
 - `backend/src/test`: Unit tests and application configuration tests
+- `backend/src/test/java/.../Port8080GuardTest.java`: Regression tests for port guard behavior
 - `scripts`: Auxiliary scripts outside the core application
 - `.data`: Local H2 database files for development
 
