@@ -47,7 +47,7 @@
                                     class="payment-method-icon-inline">
                                 <span th:text="${pm.displayName}"></span>
                             </div>
-                            <div th:if="${pm.detail != null}" style="font-size:12px;color:var(--text-muted);margin-top:2px;" th:text="${pm.detail}"></div>
+                            <div th:if="${pm.maskedDetail != null}" style="font-size:12px;color:var(--text-muted);margin-top:2px;" th:text="${pm.maskedDetail}"></div>
                         </div>
                         <span th:if="${pm.default}" style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid var(--glass-border);background:rgba(0,0,0,0.08);">
                             Default

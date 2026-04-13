@@ -64,7 +64,7 @@ public class WishlistService {
         return true;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<WishlistItem> getWishlist(String email) {
         String normalizedEmail = normalizeEmail(email);
         List<WishlistItemEntity> entities = wishlistItemRepository.findByUserEmailOrderByCreatedAtDesc(normalizedEmail);

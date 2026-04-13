@@ -1,20 +1,19 @@
 package io.github.ngtrphuc.smartphone_shop.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.jupiter.api.BeforeEach;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import io.github.ngtrphuc.smartphone_shop.model.Product;
@@ -32,12 +31,8 @@ class WishlistServiceTest {
     @Mock
     private ProductRepository productRepository;
 
+    @InjectMocks
     private WishlistService wishlistService;
-
-    @BeforeEach
-    void setUp() {
-        wishlistService = new WishlistService(wishlistItemRepository, productRepository);
-    }
 
     @Test
     void addItem_shouldReturnAlreadyExistsWhenDuplicate() {
@@ -86,6 +81,7 @@ class WishlistServiceTest {
         assertEquals(1L, result.get(1).getProductId());
         verify(wishlistItemRepository).findByUserEmailOrderByCreatedAtDesc("user@example.com");
         verify(productRepository).findAllByIdIn(List.of(2L, 1L, 3L));
+        verify(wishlistItemRepository).deleteAll(List.of(orphan));
     }
 
     @Test

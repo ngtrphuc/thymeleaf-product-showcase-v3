@@ -117,4 +117,15 @@ public class PaymentMethod {
             case VISA, MASTERCARD -> "MasterCard";
         };
     }
+
+    public String getMaskedDetail() {
+        if (detail == null || detail.isBlank()) {
+            return null;
+        }
+        String normalized = detail.replaceAll("\\s+", "");
+        if (normalized.length() <= 4) {
+            return "****";
+        }
+        return "****" + normalized.substring(normalized.length() - 4);
+    }
 }

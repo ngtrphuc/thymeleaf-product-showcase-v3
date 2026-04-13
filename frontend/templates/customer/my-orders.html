@@ -92,7 +92,9 @@
 
             <div class="order-items">
                 <div th:each="item : ${order.items}" class="order-item-row">
-                    <span th:text="${item.productName} + ' Ã— ' + ${item.quantity}"></span>
+                    <span>
+                        <span th:text="${item.productName}"></span> &times; <span th:text="${item.quantity}"></span>
+                    </span>
                     <span th:text="${#numbers.formatDecimal(item.price * item.quantity, 0, 'COMMA', 0, 'POINT')} + ' JPY'" style="color:var(--accent);font-weight:700;"></span>
                 </div>
             </div>

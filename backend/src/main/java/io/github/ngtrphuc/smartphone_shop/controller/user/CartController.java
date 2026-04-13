@@ -320,11 +320,19 @@ public class CartController {
         return switch (method) {
             case "BANK_TRANSFER" -> (detail == null || detail.isBlank())
                     ? "Bank Transfer"
-                    : "Bank Transfer - " + detail;
+                    : "Bank Transfer - " + maskPaymentDetail(detail);
             case "PAYPAY" -> "PayPay";
             case "KOMBINI" -> "Kombini";
             case "VISA", "MASTERCARD" -> "MasterCard";
             default -> "Cash on Delivery";
         };
+    }
+
+    private String maskPaymentDetail(String detail) {
+        String normalized = detail.replaceAll("\\s+", "");
+        if (normalized.length() <= 4) {
+            return "****";
+        }
+        return "****" + normalized.substring(normalized.length() - 4);
     }
 }
