@@ -66,6 +66,7 @@ A smartphone e-commerce web application built with Spring Boot + Thymeleaf, incl
 │       │   │   │   ├── 📄 DataInitializer.java
 │       │   │   │   ├── 📄 GlobalModelAttributes.java
 │       │   │   │   ├── 📄 LoginSuccessHandler.java
+│       │   │   │   ├── 📄 PaymentMethodSchemaInitializer.java
 │       │   │   │   ├── 📄 SecurityConfig.java
 │       │   │   │   ├── 📄 ThymeleafConfig.java
 │       │   │   │   └── 📄 WebConfig.java
@@ -94,6 +95,7 @@ A smartphone e-commerce web application built with Spring Boot + Thymeleaf, incl
 │       │   │   │   ├── 📄 User.java
 │       │   │   │   ├── 📄 WishlistItem.java
 │       │   │   │   └── 📄 WishlistItemEntity.java
+│       │   │   ├── 📄 Port8080Guard.java
 │       │   │   ├── 📂 repository/
 │       │   │   │   ├── 📄 CartItemRepository.java
 │       │   │   │   ├── 📄 ChatMessageRepository.java
@@ -111,6 +113,8 @@ A smartphone e-commerce web application built with Spring Boot + Thymeleaf, incl
 │       │   │   │   ├── 📄 OrderValidationException.java
 │       │   │   │   ├── 📄 PaymentMethodService.java
 │       │   │   │   └── 📄 WishlistService.java
+│       │   │   ├── 📂 support/
+│       │   │   │   └── 📄 StorefrontSupport.java
 │       │   │   └── 📄 SmartphoneShopApplication.java
 │       │   └── 📂 resources/
 │       │       ├── 📄 application.properties
@@ -118,9 +122,14 @@ A smartphone e-commerce web application built with Spring Boot + Thymeleaf, incl
 │       │       └── 📄 application-prod.properties
 │       └── 📂 test/
 │           ├── 📂 java/io/github/ngtrphuc/smartphone_shop/
+│           │   ├── 📂 config/
+│           │   │   └── 📄 PaymentMethodSchemaInitializerTest.java
 │           │   ├── 📂 controller/user/
 │           │   │   ├── 📄 CompareControllerTest.java
 │           │   │   └── 📄 MainControllerTest.java
+│           │   ├── 📂 model/
+│           │   │   └── 📄 PaymentMethodTest.java
+│           │   ├── 📄 Port8080GuardTest.java
 │           │   ├── 📂 service/
 │           │   │   ├── 📄 AuthServiceTest.java
 │           │   │   ├── 📄 CartServiceTest.java
@@ -161,7 +170,8 @@ A smartphone e-commerce web application built with Spring Boot + Thymeleaf, incl
 │           │   └── 📄 register.html
 │           ├── 📂 fragments/
 │           │   ├── 📄 chat-widget.html
-│           │   └── 📄 compare-bar.html
+│           │   ├── 📄 compare-bar.html
+│           │   └── 📄 footer.html
 │           ├── 📄 cart.html
 │           ├── 📄 checkout.html
 │           ├── 📄 compare.html
@@ -185,16 +195,18 @@ A smartphone e-commerce web application built with Spring Boot + Thymeleaf, incl
 └── 📄 README.md
 ```
 
-- `backend/src/main/java/.../config`: System configuration, security, Thymeleaf, web setup, and bootstrap data
+- `backend/src/main/java/.../config`: System configuration, security, Thymeleaf, web setup, and bootstrap/schema initialization
 - `backend/src/main/java/.../controller`: Request handlers for user/admin
 - `backend/src/main/java/.../model`: Main entities/models
 - `backend/src/main/java/.../repository`: Data access layer (Spring Data JPA)
 - `backend/src/main/java/.../service`: Business logic
+- `backend/src/main/java/.../support`: Shared support utilities for storefront use cases
 - `backend/src/main/java/.../Port8080Guard.java`: Startup guard to ensure port `8080` is available before app boot
 - `frontend/static`: Static assets (CSS, JS, images, SVG)
 - `frontend/templates`: Thymeleaf views for admin/customer
-- `frontend/templates/customer/fragments/footer.html`: Shared customer footer fragment
+- `frontend/templates/customer/fragments`: Reusable customer fragments (`chat-widget`, `compare-bar`, `footer`)
 - `backend/src/test`: Unit tests and application configuration tests
+- `backend/src/test/java/.../config/PaymentMethodSchemaInitializerTest.java`: Schema initializer regression tests
 - `backend/src/test/java/.../Port8080GuardTest.java`: Regression tests for port guard behavior
 - `scripts`: Auxiliary scripts outside the core application
 - `.data`: Local H2 database files for development
