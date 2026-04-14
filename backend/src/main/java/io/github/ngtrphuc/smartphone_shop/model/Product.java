@@ -62,4 +62,29 @@ public class Product {
     public void setCharging(String charging) { this.charging = charging; }
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
+
+    public boolean isAvailable() {
+        return stock != null && stock > 0;
+    }
+
+    public boolean isLowStock() {
+        return stock != null && stock > 0 && stock <= 3;
+    }
+
+    public String getAvailabilityLabel() {
+        if (!isAvailable()) {
+            return "Out of stock";
+        }
+        if (isLowStock()) {
+            return "Only " + stock + " left";
+        }
+        return "In stock";
+    }
+
+    public long getMonthlyInstallmentAmount() {
+        if (price == null || price <= 0) {
+            return 0L;
+        }
+        return Math.round(price / 24.0);
+    }
 }

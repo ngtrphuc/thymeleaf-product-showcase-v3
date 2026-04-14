@@ -41,6 +41,7 @@ class MainControllerTest {
         galaxy.setPrice(1200.0);
 
         when(productRepository.findAllWithFilters(null, null, null)).thenReturn(List.of(iphone, galaxy));
+        when(productRepository.findAllNamesOrdered()).thenReturn(List.of("Apple iPhone 17 Pro", "Samsung Galaxy S26 Ultra"));
 
         Model model = new ExtendedModelMap();
         String view = mainController.index(null, null, "Apple",
@@ -53,5 +54,6 @@ class MainControllerTest {
         assertEquals("index", view);
         assertEquals(1, rawProducts.size());
         assertEquals("Apple iPhone 17 Pro", filteredProduct.getName());
+        assertEquals(List.of("Apple", "Samsung"), model.getAttribute("brands"));
     }
 }

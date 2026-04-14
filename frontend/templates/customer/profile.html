@@ -83,7 +83,7 @@
             <div th:if="${#lists.isEmpty(pendingOrders)}" class="empty-msg">No pending orders.</div>
             <div th:each="order : ${pendingOrders}" class="order-row-profile">
                 <div>
-                    <strong style="font-family:'Syne',sans-serif;" th:text="'#' + ${order.id}"></strong>
+                    <strong style="font-family:'Syne',sans-serif;" th:text="${order.orderCode}"></strong>
                     <span style="color:var(--text-muted);font-size:12px;margin-left:8px;" th:text="${#temporals.format(order.createdAt,'dd/MM/yyyy')}"></span>
                 </div>
                 <span class="badge" th:classappend="'badge-' + ${order.status}" th:text="${order.status}"></span>
@@ -96,7 +96,7 @@
             <div th:if="${#lists.isEmpty(deliveredOrders)}" class="empty-msg">No delivered orders yet.</div>
             <div th:each="order : ${deliveredOrders}" class="order-row-profile">
                 <div>
-                    <strong style="font-family:'Syne',sans-serif;" th:text="'#' + ${order.id}"></strong>
+                    <strong style="font-family:'Syne',sans-serif;" th:text="${order.orderCode}"></strong>
                     <span style="color:var(--text-muted);font-size:12px;margin-left:8px;" th:text="${#temporals.format(order.createdAt,'dd/MM/yyyy')}"></span>
                 </div>
                 <span class="badge badge-delivered">delivered</span>
@@ -128,9 +128,9 @@
                             class="payment-method-icon-inline">
                         <img th:if="${pm.type.name() == 'BANK_TRANSFER'}" th:src="@{/images/bank-transfer-icon.svg}" alt="Bank Transfer"
                             class="payment-method-icon-inline">
-                        <img th:if="${pm.type.name() == 'PAYPAY'}" th:src="@{/images/paypay.png}" alt="PayPay"
+                        <img th:if="${pm.type.name() == 'PAYPAY'}" th:src="@{/images/paypay-icon.svg}" alt="PayPay"
                             class="paypay-icon-inline">
-                        <img th:if="${pm.type.name() == 'VISA' or pm.type.name() == 'MASTERCARD'}" th:src="@{/images/mastercard-icon.svg}" alt="MasterCard"
+                        <img th:if="${pm.type.name() == 'MASTERCARD'}" th:src="@{/images/mastercard-icon.svg}" alt="MasterCard"
                             class="payment-method-icon-inline">
                         <span th:text="${pm.displayName}"></span>
                     </span>
@@ -177,7 +177,7 @@
                         <label class="option-card" style="padding:8px 10px;">
                             <input type="radio" name="type" value="PAYPAY" onchange="toggleProfileBankDetail(this)">
                             <span style="display:inline-flex;align-items:center;gap:6px;">
-                                <img th:src="@{/images/paypay.png}" alt="PayPay" class="paypay-icon-inline">
+                                <img th:src="@{/images/paypay-icon.svg}" alt="PayPay" class="paypay-icon-inline">
                                 <span>PayPay</span>
                             </span>
                         </label>

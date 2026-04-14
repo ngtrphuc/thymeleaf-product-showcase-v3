@@ -105,7 +105,7 @@
 
         .catalog-panel {
             --catalog-gap: 22px;
-            --catalog-card-height: 316px;
+            --catalog-card-height: 350px;
             --catalog-rows: 3;
             flex: 1 1 0;
             width: 100%;
@@ -154,7 +154,7 @@
         @media (max-width: 1100px) {
             .catalog-panel {
                 --catalog-gap: 18px;
-                --catalog-card-height: 308px;
+                --catalog-card-height: 340px;
                 --catalog-rows: 4;
                 max-width: none;
             }
@@ -386,7 +386,7 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            padding: 22px 20px 18px;
+            padding: 18px 18px 16px;
             box-sizing: border-box;
             background: var(--surface) !important;
             border: 1px solid var(--glass-border) !important;
@@ -450,10 +450,10 @@
 
         .catalog-grid>.card-wrapper img {
             flex-shrink: 0;
-            height: 160px;
+            height: 150px;
             width: 100%;
             object-fit: contain;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
         .catalog-grid>.card-wrapper h3 {
@@ -495,6 +495,134 @@
         .catalog-grid>.card-wrapper:hover {
             border-color: rgba(111, 90, 69, 0.36) !important;
             box-shadow: 0 18px 34px rgba(111, 90, 69, 0.18) !important;
+        }
+
+        .shop-intro {
+            max-width: 900px;
+            margin: 12px auto 0;
+            padding: 0 20px 8px;
+            text-align: center;
+        }
+
+        .shop-intro__eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .shop-intro__lead {
+            margin: 14px auto 0;
+            max-width: 720px;
+            color: var(--text-muted);
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        .shop-intro__metrics {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .shop-intro__metric {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: rgba(255, 255, 255, 0.82);
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .shop-intro__metric strong {
+            color: #111111;
+        }
+
+        .catalog-card-topline {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            margin-bottom: 8px;
+            min-height: 28px;
+            padding-right: 84px;
+        }
+
+        .catalog-card-brand,
+        .catalog-card-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .catalog-card-brand {
+            background: rgba(0, 0, 0, 0.05);
+            color: #111111;
+        }
+
+        .catalog-card-status {
+            background: rgba(34, 197, 94, 0.14);
+            color: #166534;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .catalog-card-status--low {
+            background: rgba(245, 158, 11, 0.16);
+            color: #b45309;
+        }
+
+        .catalog-card-status--out {
+            background: rgba(239, 68, 68, 0.14);
+            color: #b91c1c;
+        }
+
+        .catalog-card-finance {
+            width: 100%;
+            margin: 4px 0 0;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .catalog-card-meta {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .catalog-card-meta span {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.04);
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 700;
         }
 
         .catalog-pagination.pagination-wrapper {
@@ -545,6 +673,14 @@
                 <span class="header-action__icon header-action__icon--login icon-svg icon-login" aria-hidden="true"></span>
                 <span class="header-action__label">Log In</span>
             </a>
+            <a sec:authorize="!hasRole('ADMIN')" href="/compare" class="btn-header header-action header-action--neutral">
+                <span class="header-action__icon icon-svg icon-clipboard" aria-hidden="true"></span>
+                <span class="header-action__label">Compare</span>
+            </a>
+            <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header header-action header-action--neutral">
+                <span class="header-action__icon icon-svg icon-cart" aria-hidden="true"></span>
+                <span class="header-action__label">Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)</span>
+            </a>
             <th:block sec:authorize="isAuthenticated()">
                 <a sec:authorize="hasRole('USER')" href="/my-orders" class="btn-header header-action header-action--neutral">
                     <span class="header-action__icon icon-svg icon-orders" aria-hidden="true"></span>
@@ -553,14 +689,6 @@
                 <a sec:authorize="hasRole('USER')" href="/wishlist" class="btn-header header-action header-action--neutral">
                     <span class="header-action__icon icon-svg icon-wishlist" aria-hidden="true"></span>
                     <span class="header-action__label">Wishlist</span>
-                </a>
-                <a sec:authorize="hasRole('USER')" href="/compare" class="btn-header header-action header-action--neutral">
-                    <span class="header-action__icon icon-svg icon-clipboard" aria-hidden="true"></span>
-                    <span class="header-action__label">Compare</span>
-                </a>
-                <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header header-action header-action--neutral">
-                    <span class="header-action__icon icon-svg icon-cart" aria-hidden="true"></span>
-                    <span class="header-action__label">Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)</span>
                 </a>
                 <a sec:authorize="hasRole('USER')" th:href="@{/profile}" class="btn-header header-action header-action--profile">
                     <span class="header-action__icon icon-svg icon-user" aria-hidden="true"></span>
@@ -583,6 +711,18 @@
 
     <div class="shop-title-container">
         <h1 class="shop-name" th:text="${shopname}">SHOP NAME</h1>
+        <div class="shop-intro">
+            <span class="shop-intro__eyebrow">Curated flagship storefront for Japan</span>
+            <p class="shop-intro__lead">
+                Discover premium smartphones with compare mode, live support, saved payment methods, and a checkout flow that behaves more like a real commerce site.
+            </p>
+            <div class="shop-intro__metrics">
+                <span class="shop-intro__metric"><strong th:text="${totalElements}">0</strong> models matched</span>
+                <span class="shop-intro__metric"><strong th:text="${brandCount}">0</strong> brands available</span>
+                <span class="shop-intro__metric" th:if="${hasActiveFilters}"><strong th:text="${activeFilterCount}">0</strong> filters active</span>
+                <span class="shop-intro__metric" th:unless="${hasActiveFilters}">Free shipping and secure checkout included</span>
+            </div>
+        </div>
     </div>
 
     <div class="search-container">
@@ -814,13 +954,27 @@
                         </form>
                         <a th:href="@{/product/{id}(id=${p.id}, page=${currentPage}, pageSize=${pageSize}, keyword=${keyword}, sort=${sort}, brand=${brand}, priceRange=${priceRange}, priceMin=${priceMin}, priceMax=${priceMax}, batteryRange=${batteryRange}, batteryMin=${batteryMin}, batteryMax=${batteryMax}, screenSize=${screenSize})}"
                             style="text-decoration:none;color:inherit;">
+                            <div class="catalog-card-topline">
+                                <span class="catalog-card-status"
+                                    th:classappend="${!p.available} ? ' catalog-card-status--out' : (${p.lowStock} ? ' catalog-card-status--low' : '')"
+                                    th:text="${p.availabilityLabel}">
+                                    In stock
+                                </span>
+                            </div>
                             <img th:src="@{${p.imageUrl}}" alt="phone">
                             <h3 th:text="${p.name}"></h3>
                             <p class="price"
                                 th:text="${p.price != null ? #numbers.formatDecimal(p.price, 0, 'COMMA', 0, 'POINT') : '0'} + ' JPY'">
                             </p>
-                            <span class="view-details"
-                                th:text="${p.stock != null and p.stock <= 0} ? 'Out of Stock' : 'View Details'"></span>
+                            <p class="catalog-card-finance"
+                                th:text="${'From ' + #numbers.formatDecimal(p.monthlyInstallmentAmount, 0, 'COMMA', 0, 'POINT') + ' JPY / month'}">
+                                Financing hint
+                            </p>
+                            <div class="catalog-card-meta">
+                                <span th:text="${p.storage}">512 GB</span>
+                                <span th:text="${p.ram}">12 GB</span>
+                                <span th:text="${p.size}">6.7 inch</span>
+                            </div>
                         </a>
                     </div>
                 </div>

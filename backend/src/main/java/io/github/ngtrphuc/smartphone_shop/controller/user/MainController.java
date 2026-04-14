@@ -1,6 +1,5 @@
 package io.github.ngtrphuc.smartphone_shop.controller.user;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -22,6 +21,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import io.github.ngtrphuc.smartphone_shop.model.Product;
 import io.github.ngtrphuc.smartphone_shop.repository.ProductRepository;
+import io.github.ngtrphuc.smartphone_shop.support.StorefrontSupport;
 import io.github.ngtrphuc.smartphone_shop.service.WishlistService;
 
 @Controller
@@ -29,9 +29,6 @@ public class MainController {
 
     private static final int DESKTOP_PAGE_SIZE = 9;
     private static final int COMPACT_PAGE_SIZE = 8;
-    private static final List<String> BRANDS = Arrays.asList(
-            "Apple", "Samsung", "Google", "Oppo", "Vivo", "Xiaomi", "Sony", "ASUS", "ZTE"
-    );
 
     private final ProductRepository productRepository;
     private final WishlistService wishlistService;
@@ -83,15 +80,17 @@ public class MainController {
         long totalElements;
         int totalPages;
         int safePage;
+        int activeFilterCount = countActiveFilters(
+                keyword, brand, priceRange, priceMin, priceMax, batteryRange, batteryMin, batteryMax, screenSize);
 
         if (requiresInMemoryFiltering(brand, batteryRange, batteryMin, batteryMax, screenSize)) {
             List<Product> all = productRepository.findAllWithFilters(
                     blankToNull(keyword), resolvedPriceMin, resolvedPriceMax);
 
             if (brand != null && !brand.isBlank()) {
-                final String normalizedBrand = brand.toLowerCase(Locale.ROOT);
                 all = all.stream()
-                        .filter(p -> inferBrand(p).equals(normalizedBrand))
+                        .filter(p -> StorefrontSupport.extractBrand(p != null ? p.getName() : null)
+                                .equalsIgnoreCase(brand))
                         .toList();
             }
 
@@ -124,6 +123,7 @@ public class MainController {
             safePage = Math.max(0, Math.min(productPage.getNumber(), totalPages - 1));
         }
 
+        List<String> brands = resolveAvailableBrands();
         model.addAttribute("products", products);
         model.addAttribute("currentPage", safePage);
         model.addAttribute("totalPages", totalPages);
@@ -132,7 +132,8 @@ public class MainController {
         model.addAttribute("keyword", keyword);
         model.addAttribute("sort", normalizedSort);
         model.addAttribute("brand", brand);
-        model.addAttribute("brands", BRANDS);
+        model.addAttribute("brands", brands);
+        model.addAttribute("brandCount", brands.size());
         model.addAttribute("priceRange", priceRange);
         model.addAttribute("priceMin", priceMin);
         model.addAttribute("priceMax", priceMax);
@@ -140,6 +141,8 @@ public class MainController {
         model.addAttribute("batteryMin", batteryMin);
         model.addAttribute("batteryMax", batteryMax);
         model.addAttribute("screenSize", screenSize);
+        model.addAttribute("activeFilterCount", activeFilterCount);
+        model.addAttribute("hasActiveFilters", activeFilterCount > 0);
         model.addAttribute("wishlistedProductIds", resolveWishlistedProductIds(authentication));
         return "index";
     }
@@ -152,6 +155,8 @@ public class MainController {
         Product product = productRepository.findById(id).orElse(null);
         if (product == null) return "redirect:/";
         model.addAttribute("product", product);
+        model.addAttribute("productBrand", StorefrontSupport.extractBrand(product.getName()));
+        model.addAttribute("recommendedProducts", resolveRecommendedProducts(product));
         model.addAttribute("backUrl", buildBackUrl(requestParams));
         model.addAttribute("wishlisted", isAuthenticatedUser(authentication)
                 && wishlistService.isWishlisted(authentication.getName(), id));
@@ -251,22 +256,37 @@ public class MainController {
         };
     }
 
-    private String inferBrand(Product product) {
-        String name = product != null ? product.getName() : null;
-        if (name == null || name.isBlank()) {
-            return "";
+    private List<String> resolveAvailableBrands() {
+        return productRepository.findAllNamesOrdered().stream()
+                .map(StorefrontSupport::extractBrand)
+                .distinct()
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .toList();
+    }
+
+    private int countActiveFilters(String keyword, String brand, String priceRange,
+            Double priceMin, Double priceMax, String batteryRange, Integer batteryMin,
+            Integer batteryMax, String screenSize) {
+        int count = 0;
+        if (keyword != null && !keyword.isBlank()) count++;
+        if (brand != null && !brand.isBlank()) count++;
+        if (priceRange != null && !priceRange.isBlank()) count++;
+        if (priceMin != null || priceMax != null) count++;
+        if (batteryRange != null && !batteryRange.isBlank()) count++;
+        if (batteryMin != null || batteryMax != null) count++;
+        if (screenSize != null && !screenSize.isBlank()) count++;
+        return count;
+    }
+
+    private List<Product> resolveRecommendedProducts(Product currentProduct) {
+        if (currentProduct == null || currentProduct.getId() == null) {
+            return List.of();
         }
-        String normalized = name.trim().toLowerCase(Locale.ROOT);
-        if (normalized.startsWith("iphone")) return "apple";
-        if (normalized.startsWith("galaxy")) return "samsung";
-        if (normalized.startsWith("pixel")) return "google";
-        if (normalized.startsWith("oppo") || normalized.startsWith("find")) return "oppo";
-        if (normalized.startsWith("vivo")) return "vivo";
-        if (normalized.startsWith("xiaomi")) return "xiaomi";
-        if (normalized.startsWith("xperia") || normalized.startsWith("sony")) return "sony";
-        if (normalized.startsWith("rog") || normalized.startsWith("asus")) return "asus";
-        if (normalized.startsWith("redmagic") || normalized.startsWith("zte") || normalized.startsWith("nubia")) return "zte";
-        return normalized.split("\\s+")[0];
+        double targetPrice = Objects.requireNonNullElse(currentProduct.getPrice(), 0.0);
+        return productRepository.findRecommendedProducts(
+                currentProduct.getId(),
+                targetPrice,
+                PageRequest.of(0, 4));
     }
 
     private String buildBackUrl(MultiValueMap<String, String> requestParams) {

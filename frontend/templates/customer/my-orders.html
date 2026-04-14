@@ -61,18 +61,19 @@
         <div th:each="order : ${orders}" class="order-card">
             <div class="order-header">
                 <div>
-                    <strong style="font-family:'Syne',sans-serif;" th:text="'Order #' + ${order.id}"></strong>
+                    <strong style="font-family:'Syne',sans-serif;" th:text="${order.orderCode}"></strong>
                     <span style="color:var(--text-muted);font-size:12px;margin-left:10px;" th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}"></span>
                 </div>
                 <div style="display:flex;align-items:center;gap:10px;">
                     <span class="badge" th:classappend="'badge-' + ${order.status}" th:text="${order.status}"></span>
-                    <button th:if="${order.status == 'pending' or order.status == 'processing'}" type="button"
+                    <button th:if="${order.cancelable}" type="button"
                         class="btn-cancel" th:attr="onclick='openCancelModal(' + ${order.id} + ')'">
                         Cancel
                     </button>
                 </div>
             </div>
 
+            <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;" th:text="${order.statusSummary}"></div>
             <div style="font-size:13px;color:var(--text-muted);margin-bottom:12px;">
                 <span class="icon-svg icon-home" aria-hidden="true"></span> <span th:text="${order.shippingAddress}"></span>
             </div>
@@ -81,13 +82,19 @@
                     class="payment-method-icon-inline">
                 <img th:if="${order.paymentMethod == 'BANK_TRANSFER'}" th:src="@{/images/bank-transfer-icon.svg}" alt="Bank Transfer"
                     class="payment-method-icon-inline">
-                <img th:if="${order.paymentMethod == 'PAYPAY'}" th:src="@{/images/paypay.png}" alt="PayPay"
+                <img th:if="${order.paymentMethod == 'PAYPAY'}" th:src="@{/images/paypay-icon.svg}" alt="PayPay"
                     class="paypay-icon-inline">
                 <img th:if="${order.paymentMethod == 'KOMBINI'}" th:src="@{/images/kombini-icon.svg}" alt="Kombini"
                     class="payment-method-icon-inline">
-                <img th:if="${order.paymentMethod == 'VISA' or order.paymentMethod == 'MASTERCARD'}" th:src="@{/images/mastercard-icon.svg}" alt="MasterCard"
+                <img th:if="${order.paymentMethod == 'MASTERCARD'}" th:src="@{/images/mastercard-icon.svg}" alt="MasterCard"
                     class="payment-method-icon-inline">
                 <span th:text="${order.paymentMethodDisplayName}"></span>
+                <span style="margin-left:10px;font-weight:700;" th:text="${order.paymentPlanDisplayName}">Full payment</span>
+                <span th:if="${order.installment and order.installmentMonths != null and order.installmentMonthlyAmount != null}"
+                    style="margin-left:6px;"
+                    th:text="${'(' + order.installmentMonths + ' x ' + #numbers.formatDecimal(order.installmentMonthlyAmount, 0, 'COMMA', 0, 'POINT') + ' JPY / month)'}">
+                    Installment detail
+                </span>
             </div>
 
             <div class="order-items">
@@ -100,6 +107,8 @@
             </div>
 
             <div style="text-align:right;margin-top:12px;font-size:15px;font-weight:700;font-family:'Syne',sans-serif;">
+                <span style="display:block;color:var(--text-muted);font-size:12px;font-family:'DM Sans',sans-serif;font-weight:600;margin-bottom:4px;"
+                    th:text="${order.itemCount} + ' item(s)'">0 item(s)</span>
                 Total: <span style="color:var(--accent);" th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' JPY'"></span>
             </div>
         </div>

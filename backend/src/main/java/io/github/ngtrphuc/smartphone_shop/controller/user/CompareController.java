@@ -63,7 +63,7 @@ public class CompareController {
 
         model.addAttribute("products", ordered);
         Set<Long> selectedIds = new java.util.HashSet<>(ids);
-        List<Product> availableProducts = productRepository.findAll().stream()
+        List<Product> availableProducts = productRepository.findByIdNotInOrderByNameAsc(ids).stream()
                 .filter(product -> product.getId() != null && !selectedIds.contains(product.getId()))
                 .toList();
         model.addAttribute("availableProducts", availableProducts);

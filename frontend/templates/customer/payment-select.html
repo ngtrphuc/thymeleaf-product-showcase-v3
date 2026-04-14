@@ -27,12 +27,44 @@
             <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
             <input type="hidden" name="savedPaymentMethodId" id="savedPaymentMethodId">
             <input type="hidden" name="paymentType" id="paymentType">
+            <input type="hidden" name="paymentPlan" id="paymentPlan"
+                th:value="${selectedPaymentPlan != null ? selectedPaymentPlan : 'FULL_PAYMENT'}">
+            <input type="hidden" name="installmentMonths" id="installmentMonths"
+                th:value="${selectedInstallmentMonths != null ? selectedInstallmentMonths : 24}">
+
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">
+                Payment Plan
+            </div>
+
+            <label class="payment-option-card payment-plan-card" data-plan="FULL_PAYMENT">
+                <input type="radio" name="paymentPlanChoice" value="FULL_PAYMENT"
+                    th:checked="${selectedPaymentPlan == null or selectedPaymentPlan != 'INSTALLMENT'}">
+                <div>
+                    <div style="font-weight:700;font-size:14px;">Full Payment</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Pay the full total at checkout.</div>
+                </div>
+            </label>
+
+            <label class="payment-option-card payment-plan-card" data-plan="INSTALLMENT">
+                <input type="radio" name="paymentPlanChoice" value="INSTALLMENT:24"
+                    th:checked="${selectedPaymentPlan == 'INSTALLMENT'}">
+                <div>
+                    <div style="font-weight:700;font-size:14px;">Installment (24 months)</div>
+                    <div th:if="${totalAmount != null}" style="font-size:12px;color:var(--text-muted);margin-top:2px;"
+                        th:text="${'Approx. ' + #numbers.formatDecimal(totalAmount / 24.0, 0, 'COMMA', 0, 'POINT') + ' JPY / month'}">
+                        Approx. monthly amount
+                    </div>
+                    <div th:unless="${totalAmount != null}" style="font-size:12px;color:var(--text-muted);margin-top:2px;">
+                        Split your order total into 24 monthly payments.
+                    </div>
+                </div>
+            </label>
 
             <div th:if="${!#lists.isEmpty(savedPaymentMethods)}" style="margin-bottom:16px;">
                 <div style="font-size:11px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text-muted);margin-bottom:10px;">
                     Saved Methods
                 </div>
-                <label th:each="pm : ${savedPaymentMethods}" class="payment-option-card" th:attr="data-mode='saved',data-id=${pm.id}">
+                <label th:each="pm : ${savedPaymentMethods}" class="payment-option-card payment-method-card" th:attr="data-mode='saved',data-id=${pm.id}">
                     <input type="radio" name="paymentChoice" th:value="'saved:' + ${pm.id}">
                     <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;width:100%;">
                         <div>
@@ -41,9 +73,9 @@
                                     class="payment-method-icon-inline">
                                 <img th:if="${pm.type.name() == 'BANK_TRANSFER'}" th:src="@{/images/bank-transfer-icon.svg}" alt="Bank Transfer"
                                     class="payment-method-icon-inline">
-                                <img th:if="${pm.type.name() == 'PAYPAY'}" th:src="@{/images/paypay.png}" alt="PayPay"
+                                <img th:if="${pm.type.name() == 'PAYPAY'}" th:src="@{/images/paypay-icon.svg}" alt="PayPay"
                                     class="paypay-icon-inline">
-                                <img th:if="${pm.type.name() == 'VISA' or pm.type.name() == 'MASTERCARD'}" th:src="@{/images/mastercard-icon.svg}" alt="MasterCard"
+                                <img th:if="${pm.type.name() == 'MASTERCARD'}" th:src="@{/images/mastercard-icon.svg}" alt="MasterCard"
                                     class="payment-method-icon-inline">
                                 <span th:text="${pm.displayName}"></span>
                             </div>
@@ -65,7 +97,7 @@
                 Other Methods
             </div>
 
-            <label class="payment-option-card" data-mode="new" data-type="CASH_ON_DELIVERY"
+            <label class="payment-option-card payment-method-card" data-mode="new" data-type="CASH_ON_DELIVERY"
                 th:if="${selectedDefaultPaymentType == null or selectedDefaultPaymentType != 'CASH_ON_DELIVERY'}">
                 <input type="radio" name="paymentChoice" value="new:CASH_ON_DELIVERY">
                 <div>
@@ -77,7 +109,7 @@
                 </div>
             </label>
 
-            <label class="payment-option-card" data-mode="new" data-type="BANK_TRANSFER"
+            <label class="payment-option-card payment-method-card" data-mode="new" data-type="BANK_TRANSFER"
                 th:if="${selectedDefaultPaymentType == null or selectedDefaultPaymentType != 'BANK_TRANSFER'}">
                 <input type="radio" name="paymentChoice" value="new:BANK_TRANSFER">
                 <div>
@@ -98,19 +130,19 @@
                     style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--glass-border);background:var(--surface-soft);color:var(--text);">
             </div>
 
-            <label class="payment-option-card" data-mode="new" data-type="PAYPAY"
+            <label class="payment-option-card payment-method-card" data-mode="new" data-type="PAYPAY"
                 th:if="${selectedDefaultPaymentType == null or selectedDefaultPaymentType != 'PAYPAY'}">
                 <input type="radio" name="paymentChoice" value="new:PAYPAY">
                 <div>
                     <div style="font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px;">
-                        <img th:src="@{/images/paypay.png}" alt="PayPay" class="paypay-icon-inline">
+                        <img th:src="@{/images/paypay-icon.svg}" alt="PayPay" class="paypay-icon-inline">
                         <span>PayPay</span>
                     </div>
                     <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Complete payment via PayPay after placing order.</div>
                 </div>
             </label>
 
-            <label class="payment-option-card" data-mode="new" data-type="MASTERCARD"
+            <label class="payment-option-card payment-method-card" data-mode="new" data-type="MASTERCARD"
                 th:if="${selectedDefaultPaymentType == null or selectedDefaultPaymentType != 'MASTERCARD'}">
                 <input type="radio" name="paymentChoice" value="new:MASTERCARD">
                 <div>
@@ -121,6 +153,10 @@
                     <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Use your MasterCard for checkout.</div>
                 </div>
             </label>
+
+            <div style="margin-top:14px;padding:12px 14px;border-radius:14px;background:rgba(0,0,0,0.04);border:1px solid rgba(0,0,0,0.06);font-size:12px;line-height:1.7;color:var(--text-muted);">
+                Saved payment details are masked in the storefront and only the minimum data required for checkout is reused.
+            </div>
 
             <button type="submit" id="payment-submit" class="btn-submit" style="width:100%;margin-top:14px;" disabled>
                 Continue to Shipping
@@ -159,19 +195,35 @@
         const submitButton = document.getElementById('payment-submit');
         const savedInput = document.getElementById('savedPaymentMethodId');
         const paymentTypeInput = document.getElementById('paymentType');
+        const paymentPlanInput = document.getElementById('paymentPlan');
+        const installmentMonthsInput = document.getElementById('installmentMonths');
         const bankWrap = document.getElementById('bank-detail-wrap');
         const bankInput = document.getElementById('bank-detail');
 
-        function setActiveCard(radio) {
-            document.querySelectorAll('.payment-option-card').forEach(card => card.classList.remove('active'));
+        function setActiveMethodCard(radio) {
+            document.querySelectorAll('.payment-method-card').forEach(card => card.classList.remove('active'));
             const card = radio.closest('.payment-option-card');
             if (card) {
                 card.classList.add('active');
             }
         }
 
+        function setActivePlanCard(radio) {
+            document.querySelectorAll('.payment-plan-card').forEach(card => card.classList.remove('active'));
+            const card = radio.closest('.payment-option-card');
+            if (card) {
+                card.classList.add('active');
+            }
+        }
+
+        function refreshSubmitState() {
+            const selectedPayment = document.querySelector('input[name="paymentChoice"]:checked');
+            const hasPaymentPlan = paymentPlanInput && paymentPlanInput.value;
+            submitButton.disabled = !selectedPayment || !hasPaymentPlan;
+        }
+
         function updateSelection(radio) {
-            setActiveCard(radio);
+            setActiveMethodCard(radio);
             const value = radio.value;
             bankWrap.style.display = 'none';
             bankInput.required = false;
@@ -188,14 +240,28 @@
                     bankInput.required = true;
                 }
             }
-            submitButton.disabled = false;
+            refreshSubmitState();
+        }
+
+        function updatePlanSelection(radio) {
+            setActivePlanCard(radio);
+            const value = radio.value || 'FULL_PAYMENT';
+
+            if (value.startsWith('INSTALLMENT:')) {
+                paymentPlanInput.value = 'INSTALLMENT';
+                installmentMonthsInput.value = value.slice('INSTALLMENT:'.length) || '24';
+            } else {
+                paymentPlanInput.value = 'FULL_PAYMENT';
+                installmentMonthsInput.value = '';
+            }
+            refreshSubmitState();
         }
 
         document.querySelectorAll('input[name="paymentChoice"]').forEach(radio => {
             radio.addEventListener('change', () => updateSelection(radio));
         });
 
-        document.querySelectorAll('.payment-option-card').forEach(card => {
+        document.querySelectorAll('.payment-method-card').forEach(card => {
             card.addEventListener('click', event => {
                 if (event.target instanceof HTMLInputElement && event.target.type === 'radio') {
                     return;
@@ -204,6 +270,23 @@
                 if (radio) {
                     radio.checked = true;
                     updateSelection(radio);
+                }
+            });
+        });
+
+        document.querySelectorAll('input[name="paymentPlanChoice"]').forEach(radio => {
+            radio.addEventListener('change', () => updatePlanSelection(radio));
+        });
+
+        document.querySelectorAll('.payment-plan-card').forEach(card => {
+            card.addEventListener('click', event => {
+                if (event.target instanceof HTMLInputElement && event.target.type === 'radio') {
+                    return;
+                }
+                const radio = card.querySelector('input[name="paymentPlanChoice"]');
+                if (radio) {
+                    radio.checked = true;
+                    updatePlanSelection(radio);
                 }
             });
         });
@@ -218,11 +301,20 @@
             }
         }
 
+        const selectedPlan = document.querySelector('input[name="paymentPlanChoice"]:checked')
+            || document.querySelector('input[name="paymentPlanChoice"]');
+        if (selectedPlan) {
+            selectedPlan.checked = true;
+            updatePlanSelection(selectedPlan);
+        }
+
         form.addEventListener('submit', event => {
             if (submitButton.disabled) {
                 event.preventDefault();
             }
         });
+
+        refreshSubmitState();
 
         setTimeout(() => document.querySelectorAll('.toast').forEach(t => t.remove()), 3200);
     </script>

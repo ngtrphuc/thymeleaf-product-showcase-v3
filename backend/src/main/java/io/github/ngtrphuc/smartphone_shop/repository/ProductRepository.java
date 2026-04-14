@@ -83,6 +83,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p.name FROM Product p ORDER BY LOWER(p.name), p.id")
     List<String> findAllNamesOrdered();
 
+    List<Product> findAllByOrderByNameAsc();
+
+    List<Product> findByIdNotInOrderByNameAsc(List<Long> ids);
+
     List<Product> findByNameContainingIgnoreCase(String keyword);
     Optional<Product> findFirstByNameIgnoreCase(String name);
 
@@ -92,4 +96,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Product p WHERE p.id IN :ids")
     List<Product> findAllByIdInForUpdate(@Param("ids") Collection<Long> ids);
+
+    @Query("""
+        SELECT p FROM Product p
+        WHERE p.id <> :excludeId
+        ORDER BY ABS(COALESCE(p.price, 0) - :targetPrice), LOWER(COALESCE(p.name, '')), p.id
+        """)
+    List<Product> findRecommendedProducts(
+            @Param("excludeId") Long excludeId,
+            @Param("targetPrice") Double targetPrice,
+            Pageable pageable);
 }

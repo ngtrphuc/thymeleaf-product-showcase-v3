@@ -11,6 +11,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import io.github.ngtrphuc.smartphone_shop.support.StorefrontSupport;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "payment_methods", indexes = {
@@ -37,6 +40,7 @@ public class PaymentMethod {
     private String userEmail;
 
     @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.VARCHAR)
     @Column(nullable = false, length = 40)
     private Type type;
 
@@ -109,23 +113,10 @@ public class PaymentMethod {
     }
 
     public String getDisplayName() {
-        return switch (type) {
-            case CASH_ON_DELIVERY -> "Cash on Delivery";
-            case BANK_TRANSFER -> "Bank Transfer";
-            case PAYPAY -> "PayPay";
-            case KOMBINI -> "Kombini";
-            case VISA, MASTERCARD -> "MasterCard";
-        };
+        return StorefrontSupport.paymentDisplayName(type);
     }
 
     public String getMaskedDetail() {
-        if (detail == null || detail.isBlank()) {
-            return null;
-        }
-        String normalized = detail.replaceAll("\\s+", "");
-        if (normalized.length() <= 4) {
-            return "****";
-        }
-        return "****" + normalized.substring(normalized.length() - 4);
+        return StorefrontSupport.maskPaymentDetail(detail);
     }
 }

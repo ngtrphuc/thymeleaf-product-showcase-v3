@@ -2,6 +2,7 @@ package io.github.ngtrphuc.smartphone_shop.service;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +15,9 @@ public class PaymentMethodService {
 
     private static final int MAX_PAYMENT_METHODS_PER_USER = 5;
     private static final int MAX_DETAIL_LENGTH = 200;
+    private static final Set<PaymentMethod.Type> UNSUPPORTED_TYPES = Set.of(
+            PaymentMethod.Type.KOMBINI,
+            PaymentMethod.Type.VISA);
 
     private final PaymentMethodRepository paymentMethodRepository;
 
@@ -25,7 +29,7 @@ public class PaymentMethodService {
     public List<PaymentMethod> getUserPaymentMethods(String email) {
         return paymentMethodRepository.findByUserEmailAndActiveTrueOrderByIsDefaultDescCreatedAtDesc(normalize(email))
                 .stream()
-                .filter(paymentMethod -> paymentMethod.getType() != PaymentMethod.Type.KOMBINI)
+                .filter(paymentMethod -> !UNSUPPORTED_TYPES.contains(paymentMethod.getType()))
                 .toList();
     }
 
@@ -41,6 +45,9 @@ public class PaymentMethodService {
         String normalizedEmail = normalize(email);
         if (type == null) {
             throw new IllegalArgumentException("Payment method type is required.");
+        }
+        if (UNSUPPORTED_TYPES.contains(type)) {
+            throw new IllegalArgumentException("This payment method is no longer supported.");
         }
 
         long count = paymentMethodRepository.countActiveByUser(normalizedEmail);

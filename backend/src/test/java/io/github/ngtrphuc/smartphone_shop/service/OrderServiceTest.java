@@ -136,4 +136,49 @@ class OrderServiceTest {
         assertEquals("MASTERCARD", created.getPaymentMethod());
         assertEquals(null, created.getPaymentDetail());
     }
+
+    @Test
+    void createOrder_shouldStoreInstallmentPlanAndMonthlyAmount() {
+        Product product = new Product();
+        product.setId(1L);
+        product.setName("Phone A");
+        product.setPrice(240000.0);
+        product.setStock(5);
+
+        CartItem item = new CartItem(1L, "Phone A", 240000.0, 1);
+        when(productRepository.findAllByIdInForUpdate(anyCollection())).thenReturn(List.of(product));
+        when(orderRepository.save(MockitoNullSafety.anyNonNull(Order.class)))
+                .thenAnswer(MockitoNullSafety.returnsFirstArgument(Order.class));
+
+        Order created = orderService.createOrder(
+                "user@example.com",
+                "John Doe",
+                "0901234567",
+                "Tokyo",
+                List.of(item),
+                "MASTERCARD",
+                null,
+                "INSTALLMENT",
+                24);
+
+        assertEquals("INSTALLMENT", created.getPaymentPlan());
+        assertEquals(24, created.getInstallmentMonths());
+        assertEquals(10000L, created.getInstallmentMonthlyAmount());
+    }
+
+    @Test
+    void createOrder_shouldRejectUnsupportedInstallmentPeriod() {
+        CartItem item = new CartItem(1L, "Phone A", 100.0, 1);
+
+        assertThrows(OrderValidationException.class, () -> orderService.createOrder(
+                "user@example.com",
+                "John Doe",
+                "0901234567",
+                "Tokyo",
+                List.of(item),
+                "MASTERCARD",
+                null,
+                "INSTALLMENT",
+                12));
+    }
 }

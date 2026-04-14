@@ -62,7 +62,7 @@ public class CartService {
     public void syncCartCount(HttpSession session, String email) {
         int count;
         if (isLoggedIn(email)) {
-            count = getDbCart(email)
+            count = getDbCartSnapshot(email)
                     .stream().mapToInt(CartItem::getQuantity).sum();
         } else {
             count = getSessionCart(session)
@@ -179,18 +179,29 @@ public class CartService {
             cartItemRepository.saveAll(adjustedItems);
         }
 
-        List<CartItem> result = entities.stream()
-                .map(e -> {
-                    Product p = productMap.get(e.getProductId());
-                    int stock = stockOf(p);
-                    if (stock <= 0 || removableItems.contains(e)) {
-                        return null;
-                    }
-                    return new CartItem(e.getProductId(), p.getName(), p.getPrice(), e.getQuantity());
-                })
+        return entities.stream()
+                .map(e -> toCartItem(e, productMap.get(e.getProductId())))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-        return result;
+    }
+
+    @Transactional(readOnly = true)
+    public List<CartItem> getDbCartSnapshot(String email) {
+        List<CartItemEntity> entities = cartItemRepository.findByUserEmail(email);
+        if (entities.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> productIds = entities.stream().map(CartItemEntity::getProductId).toList();
+        Map<Long, Product> productMap = productRepository.findAllByIdIn(productIds)
+                .stream()
+                .filter(p -> p.getId() != null)
+                .collect(Collectors.toMap(Product::getId, p -> p));
+
+        return entities.stream()
+                .map(e -> toCartItem(e, productMap.get(e.getProductId())))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -243,7 +254,13 @@ public class CartService {
                 return AddItemResult.ADDED;
             } else {
                 int initialQuantity = Math.min(maxStock, quantityToAdd);
-                cart.add(new CartItem(productId, p.getName(), p.getPrice(), initialQuantity));
+                cart.add(new CartItem(
+                        productId,
+                        p.getName(),
+                        p.getPrice(),
+                        initialQuantity,
+                        p.getImageUrl(),
+                        maxStock));
                 return AddItemResult.ADDED;
             }
         }
@@ -328,6 +345,21 @@ public class CartService {
         return cart.stream()
                 .mapToDouble(i -> Optional.ofNullable(i.getPrice()).orElse(0.0) * i.getQuantity())
                 .sum();
+    }
+
+    private CartItem toCartItem(CartItemEntity entity, Product product) {
+        int stock = stockOf(product);
+        if (entity == null || product == null || stock <= 0) {
+            return null;
+        }
+        int quantity = Math.max(1, Math.min(entity.getQuantity(), stock));
+        return new CartItem(
+                entity.getProductId(),
+                product.getName(),
+                product.getPrice(),
+                quantity,
+                product.getImageUrl(),
+                stock);
     }
 
     private int stockOf(Product product) {

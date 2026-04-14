@@ -17,6 +17,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import io.github.ngtrphuc.smartphone_shop.model.CartItem;
 import io.github.ngtrphuc.smartphone_shop.model.PaymentMethod;
 import io.github.ngtrphuc.smartphone_shop.repository.UserRepository;
+import io.github.ngtrphuc.smartphone_shop.support.StorefrontSupport;
 import io.github.ngtrphuc.smartphone_shop.service.CartService;
 import io.github.ngtrphuc.smartphone_shop.service.OrderService;
 import io.github.ngtrphuc.smartphone_shop.service.OrderValidationException;
@@ -32,6 +33,12 @@ public class CartController {
     private static final int MAX_PHONE_LENGTH = 30;
     private static final int MAX_ADDRESS_LENGTH = 255;
     private static final int MAX_BANK_DETAIL_LENGTH = 200;
+    private static final List<String> SUPPORTED_PAYMENT_METHODS = List.of(
+            "CASH_ON_DELIVERY", "BANK_TRANSFER", "PAYPAY", "MASTERCARD");
+    private static final List<String> SUPPORTED_PAYMENT_PLANS = List.of(
+            "FULL_PAYMENT", "INSTALLMENT");
+    private static final int DEFAULT_INSTALLMENT_MONTHS = 24;
+    private static final List<Integer> SUPPORTED_INSTALLMENT_MONTHS = List.of(DEFAULT_INSTALLMENT_MONTHS);
 
     private final CartService cartService;
     private final OrderService orderService;
@@ -109,9 +116,16 @@ public class CartController {
     @GetMapping("/payment")
     public String paymentPage(Authentication auth, HttpSession session, Model model) {
         String email = getEmail(auth);
-        if (cartService.getCart(email, session).isEmpty()) {
+        List<CartItem> cart = cartService.getCart(email, session);
+        if (cart.isEmpty()) {
             return "redirect:/cart";
         }
+        String selectedPaymentPlan = resolvePaymentPlan(session.getAttribute("paymentPlan"));
+        model.addAttribute("totalAmount", cartService.calculateTotal(cart));
+        model.addAttribute("selectedPaymentPlan", selectedPaymentPlan);
+        model.addAttribute("selectedInstallmentMonths", resolveInstallmentMonths(
+                selectedPaymentPlan,
+                session.getAttribute("installmentMonths")));
 
         if (isAuthenticatedUser(email)) {
             List<PaymentMethod> savedPaymentMethods = paymentMethodService.getUserPaymentMethods(email);
@@ -119,9 +133,7 @@ public class CartController {
             model.addAttribute("selectedDefaultPaymentType", savedPaymentMethods.stream()
                     .filter(PaymentMethod::isDefault)
                     .map(PaymentMethod::getType)
-                    .map(type -> type == PaymentMethod.Type.VISA || type == PaymentMethod.Type.MASTERCARD
-                            ? "MASTERCARD"
-                            : type.name())
+                    .map(Enum::name)
                     .findFirst()
                     .orElse(null));
         } else {
@@ -135,6 +147,8 @@ public class CartController {
     public String selectPayment(@RequestParam(required = false) String paymentType,
             @RequestParam(required = false) Long savedPaymentMethodId,
             @RequestParam(required = false) String bankDetail,
+            @RequestParam(required = false) String paymentPlan,
+            @RequestParam(required = false) String installmentMonths,
             Authentication auth,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
@@ -145,6 +159,8 @@ public class CartController {
 
         String finalMethod;
         String finalDetail = null;
+        String finalPaymentPlan = resolvePaymentPlan(paymentPlan);
+        Integer finalInstallmentMonths = resolveInstallmentMonths(finalPaymentPlan, installmentMonths);
 
         if (savedPaymentMethodId != null) {
             if (!isAuthenticatedUser(email)) {
@@ -160,13 +176,17 @@ public class CartController {
                 return "redirect:/cart/payment";
             }
             finalMethod = savedMethod.getType().name();
+            if (!SUPPORTED_PAYMENT_METHODS.contains(finalMethod)) {
+                redirectAttributes.addFlashAttribute("toast", "This payment method is no longer supported.");
+                return "redirect:/cart/payment";
+            }
             finalDetail = savedMethod.getDetail();
         } else {
             finalMethod = (paymentType == null || paymentType.isBlank())
                     ? "CASH_ON_DELIVERY"
                     : paymentType.trim().toUpperCase(Locale.ROOT);
 
-            if (!List.of("CASH_ON_DELIVERY", "BANK_TRANSFER", "PAYPAY", "VISA", "MASTERCARD").contains(finalMethod)) {
+            if (!SUPPORTED_PAYMENT_METHODS.contains(finalMethod)) {
                 redirectAttributes.addFlashAttribute("toast", "Invalid payment method selected.");
                 return "redirect:/cart/payment";
             }
@@ -186,6 +206,12 @@ public class CartController {
 
         session.setAttribute("paymentMethod", finalMethod);
         session.setAttribute("paymentDetail", finalDetail);
+        session.setAttribute("paymentPlan", finalPaymentPlan);
+        if (finalInstallmentMonths != null) {
+            session.setAttribute("installmentMonths", finalInstallmentMonths);
+        } else {
+            session.removeAttribute("installmentMonths");
+        }
         return "redirect:/cart/shipping";
     }
 
@@ -261,11 +287,24 @@ public class CartController {
         }
 
         model.addAttribute("cart", cart);
-        model.addAttribute("totalAmount", cartService.calculateTotal(cart));
+        double totalAmount = cartService.calculateTotal(cart);
+        String paymentPlan = resolvePaymentPlan(session.getAttribute("paymentPlan"));
+        Integer resolvedInstallmentMonths = resolveInstallmentMonths(paymentPlan, session.getAttribute("installmentMonths"));
+        Long installmentMonthlyAmount = "INSTALLMENT".equals(paymentPlan)
+                ? Math.round(totalAmount / resolvedInstallmentMonths)
+                : null;
+
+        model.addAttribute("totalAmount", totalAmount);
         model.addAttribute("count", cart.stream().mapToInt(CartItem::getQuantity).sum());
         model.addAttribute("paymentMethodDisplay", resolvePaymentDisplay(
                 paymentMethod,
                 (String) session.getAttribute("paymentDetail")));
+        model.addAttribute("paymentPlan", paymentPlan);
+        model.addAttribute("paymentPlanDisplay",
+                "INSTALLMENT".equals(paymentPlan) ? "Installment plan" : "Full payment");
+        model.addAttribute("isInstallment", "INSTALLMENT".equals(paymentPlan));
+        model.addAttribute("installmentMonths", resolvedInstallmentMonths);
+        model.addAttribute("installmentMonthlyAmount", installmentMonthlyAmount);
         return "checkout";
     }
 
@@ -276,6 +315,8 @@ public class CartController {
         String address = (String) session.getAttribute("address");
         String paymentMethod = (String) session.getAttribute("paymentMethod");
         String paymentDetail = (String) session.getAttribute("paymentDetail");
+        String paymentPlan = resolvePaymentPlan(session.getAttribute("paymentPlan"));
+        Integer installmentMonths = resolveInstallmentMonths(paymentPlan, session.getAttribute("installmentMonths"));
         String email = getEmail(auth);
         List<CartItem> cart = cartService.getCart(email, session);
 
@@ -291,13 +332,17 @@ public class CartController {
         }
 
         try {
-            orderService.createOrder(email, name, phone, address, cart, paymentMethod, paymentDetail);
+            orderService.createOrder(
+                    email, name, phone, address, cart,
+                    paymentMethod, paymentDetail, paymentPlan, installmentMonths);
             cartService.clearCart(email, session);
             session.removeAttribute("name");
             session.removeAttribute("phone");
             session.removeAttribute("address");
             session.removeAttribute("paymentMethod");
             session.removeAttribute("paymentDetail");
+            session.removeAttribute("paymentPlan");
+            session.removeAttribute("installmentMonths");
 
             redirectAttributes.addFlashAttribute("orderSuccess", true);
             return "redirect:/cart/success";
@@ -317,22 +362,39 @@ public class CartController {
     }
 
     private String resolvePaymentDisplay(String method, String detail) {
-        return switch (method) {
-            case "BANK_TRANSFER" -> (detail == null || detail.isBlank())
-                    ? "Bank Transfer"
-                    : "Bank Transfer - " + maskPaymentDetail(detail);
-            case "PAYPAY" -> "PayPay";
-            case "KOMBINI" -> "Kombini";
-            case "VISA", "MASTERCARD" -> "MasterCard";
-            default -> "Cash on Delivery";
-        };
+        return StorefrontSupport.paymentDisplayName(method, detail);
     }
 
-    private String maskPaymentDetail(String detail) {
-        String normalized = detail.replaceAll("\\s+", "");
-        if (normalized.length() <= 4) {
-            return "****";
+    private String resolvePaymentPlan(Object rawPlan) {
+        String normalized = rawPlan == null ? "" : rawPlan.toString().trim().toUpperCase(Locale.ROOT);
+        if (SUPPORTED_PAYMENT_PLANS.contains(normalized)) {
+            return normalized;
         }
-        return "****" + normalized.substring(normalized.length() - 4);
+        return "FULL_PAYMENT";
+    }
+
+    private Integer resolveInstallmentMonths(String paymentPlan, Object rawMonths) {
+        if (!"INSTALLMENT".equals(paymentPlan)) {
+            return null;
+        }
+        Integer parsed = parseInstallmentMonths(rawMonths);
+        if (parsed == null || !SUPPORTED_INSTALLMENT_MONTHS.contains(parsed)) {
+            return DEFAULT_INSTALLMENT_MONTHS;
+        }
+        return parsed;
+    }
+
+    private Integer parseInstallmentMonths(Object rawMonths) {
+        if (rawMonths == null) {
+            return null;
+        }
+        if (rawMonths instanceof Integer value) {
+            return value;
+        }
+        try {
+            return Integer.valueOf(rawMonths.toString().trim());
+        } catch (NumberFormatException ex) {
+            return null;
+        }
     }
 }

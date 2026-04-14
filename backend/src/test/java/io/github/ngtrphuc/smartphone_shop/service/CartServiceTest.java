@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyIterable;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -109,6 +110,26 @@ class CartServiceTest {
         assertEquals(1, cart.size());
         assertEquals(2, cart.getFirst().getQuantity());
         verify(cartItemRepository).saveAll(MockitoNullSafety.nonNullIterable(List.of(entity)));
+    }
+
+    @Test
+    void syncCartCount_shouldUseSnapshotWithoutRepairWrites() {
+        MockHttpSession session = new MockHttpSession();
+        CartItemEntity entity = new CartItemEntity("user@example.com", 7L, 5);
+        Product product = new Product();
+        product.setId(7L);
+        product.setName("Phone Snapshot");
+        product.setPrice(300.0);
+        product.setStock(2);
+
+        when(cartItemRepository.findByUserEmail("user@example.com")).thenReturn(List.of(entity));
+        when(productRepository.findAllByIdIn(List.of(7L))).thenReturn(List.of(product));
+
+        cartService.syncCartCount(session, "user@example.com");
+
+        assertEquals(2, session.getAttribute("cartCount"));
+        verify(cartItemRepository, never()).saveAll(anyIterable());
+        verify(cartItemRepository, never()).deleteAll(anyIterable());
     }
 
     @Test

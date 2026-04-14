@@ -29,7 +29,11 @@ public class OrderService {
     private static final Set<String> ALLOWED_STATUSES = Set.of(
             "pending", "processing", "shipped", "delivered", "cancelled");
     private static final Set<String> ALLOWED_PAYMENT_METHODS = Set.of(
-            "CASH_ON_DELIVERY", "BANK_TRANSFER", "PAYPAY", "VISA", "MASTERCARD");
+            "CASH_ON_DELIVERY", "BANK_TRANSFER", "PAYPAY", "MASTERCARD");
+    private static final Set<String> ALLOWED_PAYMENT_PLANS = Set.of(
+            "FULL_PAYMENT", "INSTALLMENT");
+    private static final int DEFAULT_INSTALLMENT_MONTHS = 24;
+    private static final Set<Integer> ALLOWED_INSTALLMENT_MONTHS = Set.of(DEFAULT_INSTALLMENT_MONTHS);
     private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+()\\-\\s]{6,30}$");
 
     private final OrderRepository orderRepository;
@@ -44,6 +48,16 @@ public class OrderService {
     public Order createOrder(String userEmail, String name, String phone,
             String address, List<CartItem> cartItems,
             String paymentMethod, String paymentDetail) {
+        return createOrder(
+                userEmail, name, phone, address, cartItems,
+                paymentMethod, paymentDetail, "FULL_PAYMENT", null);
+    }
+
+    @Transactional
+    public Order createOrder(String userEmail, String name, String phone,
+            String address, List<CartItem> cartItems,
+            String paymentMethod, String paymentDetail,
+            String paymentPlan, Integer installmentMonths) {
         if (userEmail == null || userEmail.isBlank()) {
             throw new OrderValidationException("Please log in before placing an order.");
         }
@@ -53,6 +67,8 @@ public class OrderService {
 
         String normalizedPaymentMethod = normalizePaymentMethod(paymentMethod);
         String normalizedPaymentDetail = normalizePaymentDetail(normalizedPaymentMethod, paymentDetail);
+        String normalizedPaymentPlan = normalizePaymentPlan(paymentPlan);
+        Integer normalizedInstallmentMonths = normalizeInstallmentMonths(normalizedPaymentPlan, installmentMonths);
 
         Map<Long, Integer> requestedQuantities = extractCartQuantities(cartItems);
         Map<Long, Product> lockedProducts = loadProductsForUpdate(requestedQuantities.keySet());
@@ -73,7 +89,16 @@ public class OrderService {
         order.setShippingAddress(normalizedAddress);
         order.setPaymentMethod(normalizedPaymentMethod);
         order.setPaymentDetail(normalizedPaymentDetail);
-        order.setTotalAmount(calculateOrderTotal(cartItems, lockedProducts));
+        double totalAmount = calculateOrderTotal(cartItems, lockedProducts);
+        order.setTotalAmount(totalAmount);
+        order.setPaymentPlan(normalizedPaymentPlan);
+        if ("INSTALLMENT".equals(normalizedPaymentPlan)) {
+            order.setInstallmentMonths(normalizedInstallmentMonths);
+            order.setInstallmentMonthlyAmount(Math.round(totalAmount / normalizedInstallmentMonths));
+        } else {
+            order.setInstallmentMonths(null);
+            order.setInstallmentMonthlyAmount(null);
+        }
         order.setStatus("pending");
 
         for (CartItem item : cartItems) {
@@ -226,6 +251,28 @@ public class OrderService {
             throw new OrderValidationException("Bank account details are too long.");
         }
         return normalized;
+    }
+
+    private String normalizePaymentPlan(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return "FULL_PAYMENT";
+        }
+        String upper = raw.trim().toUpperCase(Locale.ROOT);
+        if (!ALLOWED_PAYMENT_PLANS.contains(upper)) {
+            throw new OrderValidationException("Invalid payment plan.");
+        }
+        return upper;
+    }
+
+    private Integer normalizeInstallmentMonths(String paymentPlan, Integer rawMonths) {
+        if (!"INSTALLMENT".equals(paymentPlan)) {
+            return null;
+        }
+        int resolvedMonths = rawMonths == null ? DEFAULT_INSTALLMENT_MONTHS : rawMonths;
+        if (!ALLOWED_INSTALLMENT_MONTHS.contains(resolvedMonths)) {
+            throw new OrderValidationException("Unsupported installment period.");
+        }
+        return resolvedMonths;
     }
 
     private Map<Long, Integer> extractCartQuantities(List<CartItem> items) {

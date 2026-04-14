@@ -30,4 +30,12 @@ class PaymentMethodTest {
 
         assertEquals("****5678", method.getMaskedDetail());
     }
+
+    @Test
+    void getDisplayName_shouldKeepVisaSeparateFromMasterCard() {
+        PaymentMethod method = new PaymentMethod();
+        method.setType(PaymentMethod.Type.VISA);
+
+        assertEquals("Visa", method.getDisplayName());
+    }
 }

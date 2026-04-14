@@ -1,16 +1,20 @@
 package io.github.ngtrphuc.smartphone_shop.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -23,12 +27,8 @@ class PaymentMethodServiceTest {
     @Mock
     private PaymentMethodRepository paymentMethodRepository;
 
+    @InjectMocks
     private PaymentMethodService paymentMethodService;
-
-    @BeforeEach
-    void setUp() {
-        paymentMethodService = new PaymentMethodService(paymentMethodRepository);
-    }
 
     @Test
     void addPaymentMethod_shouldSetFirstMethodAsDefault() {
@@ -44,7 +44,7 @@ class PaymentMethodServiceTest {
 
         assertEquals("user@example.com", created.getUserEmail());
         assertEquals(PaymentMethod.Type.CASH_ON_DELIVERY, created.getType());
-        assertEquals(true, created.isDefault());
+        assertTrue(created.isDefault());
         verify(paymentMethodRepository).clearDefaultForUser("user@example.com");
     }
 
@@ -52,11 +52,12 @@ class PaymentMethodServiceTest {
     void addPaymentMethod_shouldRejectBankTransferWithoutDetail() {
         when(paymentMethodRepository.countActiveByUser("user@example.com")).thenReturn(1L);
 
-        assertThrows(IllegalArgumentException.class, () -> paymentMethodService.addPaymentMethod(
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> paymentMethodService.addPaymentMethod(
                 "user@example.com",
                 PaymentMethod.Type.BANK_TRANSFER,
                 "   ",
                 false));
+        assertNotNull(exception.getMessage());
     }
 
     @Test
@@ -72,7 +73,7 @@ class PaymentMethodServiceTest {
                 false);
 
         assertEquals(PaymentMethod.Type.MASTERCARD, created.getType());
-        assertEquals(null, created.getDetail());
+        assertNull(created.getDetail());
     }
 
     @Test
@@ -97,9 +98,9 @@ class PaymentMethodServiceTest {
 
         paymentMethodService.remove("user@example.com", 1L);
 
-        assertEquals(false, defaultMethod.isDefault());
-        assertEquals(false, defaultMethod.isActive());
-        assertEquals(true, nextMethod.isDefault());
+        assertFalse(defaultMethod.isDefault());
+        assertFalse(defaultMethod.isActive());
+        assertTrue(nextMethod.isDefault());
         verify(paymentMethodRepository).save(defaultMethod);
         verify(paymentMethodRepository).save(nextMethod);
     }

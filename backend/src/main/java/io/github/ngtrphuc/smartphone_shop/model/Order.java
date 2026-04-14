@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.github.ngtrphuc.smartphone_shop.support.StorefrontSupport;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -48,6 +49,15 @@ public class Order {
 
     @Column(name = "payment_detail", length = 200)
     private String paymentDetail;
+
+    @Column(name = "payment_plan", length = 20)
+    private String paymentPlan = "FULL_PAYMENT";
+
+    @Column(name = "installment_months")
+    private Integer installmentMonths;
+
+    @Column(name = "installment_monthly_amount")
+    private Long installmentMonthlyAmount;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -127,6 +137,30 @@ public class Order {
         this.paymentDetail = paymentDetail;
     }
 
+    public String getPaymentPlan() {
+        return paymentPlan;
+    }
+
+    public void setPaymentPlan(String paymentPlan) {
+        this.paymentPlan = paymentPlan;
+    }
+
+    public Integer getInstallmentMonths() {
+        return installmentMonths;
+    }
+
+    public void setInstallmentMonths(Integer installmentMonths) {
+        this.installmentMonths = installmentMonths;
+    }
+
+    public Long getInstallmentMonthlyAmount() {
+        return installmentMonthlyAmount;
+    }
+
+    public void setInstallmentMonthlyAmount(Long installmentMonthlyAmount) {
+        this.installmentMonthlyAmount = installmentMonthlyAmount;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -144,26 +178,41 @@ public class Order {
     }
 
     public String getPaymentMethodDisplayName() {
-        if (paymentMethod == null || paymentMethod.isBlank()) {
-            return "Cash on Delivery";
-        }
-        return switch (paymentMethod) {
-            case "CASH_ON_DELIVERY" -> "Cash on Delivery";
-            case "BANK_TRANSFER" -> paymentDetail == null || paymentDetail.isBlank()
-                    ? "Bank Transfer"
-                    : "Bank Transfer - " + maskDetail(paymentDetail);
-            case "PAYPAY" -> "PayPay";
-            case "KOMBINI" -> "Kombini";
-            case "VISA", "MASTERCARD" -> "MasterCard";
-            default -> paymentMethod;
-        };
+        return StorefrontSupport.paymentDisplayName(paymentMethod, paymentDetail);
     }
 
-    private String maskDetail(String detail) {
-        String normalized = detail.replaceAll("\\s+", "");
-        if (normalized.length() <= 4) {
-            return "****";
-        }
-        return "****" + normalized.substring(normalized.length() - 4);
+    public boolean isInstallment() {
+        return "INSTALLMENT".equalsIgnoreCase(paymentPlan);
+    }
+
+    public String getPaymentPlanDisplayName() {
+        return isInstallment() ? "Installment" : "Full payment";
+    }
+
+    public String getOrderCode() {
+        return StorefrontSupport.orderCode(id);
+    }
+
+    public int getItemCount() {
+        return items.stream()
+                .mapToInt(item -> item != null ? item.getQuantity() : 0)
+                .sum();
+    }
+
+    public boolean isCancelable() {
+        String normalizedStatus = status == null ? "" : status.trim().toLowerCase();
+        return "pending".equals(normalizedStatus) || "processing".equals(normalizedStatus);
+    }
+
+    public String getStatusSummary() {
+        String normalizedStatus = status == null ? "" : status.trim().toLowerCase();
+        return switch (normalizedStatus) {
+            case "pending" -> "Awaiting store confirmation.";
+            case "processing" -> "Your order is being prepared for shipment.";
+            case "shipped" -> "Your package is on the way.";
+            case "delivered" -> "Delivered successfully.";
+            case "cancelled" -> "This order was cancelled.";
+            default -> "Order update pending.";
+        };
     }
 }
