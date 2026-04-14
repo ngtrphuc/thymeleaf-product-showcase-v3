@@ -179,6 +179,22 @@ class OrderServiceTest {
                 "MASTERCARD",
                 null,
                 "INSTALLMENT",
+                18));
+    }
+
+    @Test
+    void createOrder_shouldRejectInstallmentForCashOnDelivery() {
+        CartItem item = new CartItem(1L, "Phone A", 100.0, 1);
+
+        assertThrows(OrderValidationException.class, () -> orderService.createOrder(
+                "user@example.com",
+                "John Doe",
+                "0901234567",
+                "Tokyo",
+                List.of(item),
+                "CASH_ON_DELIVERY",
+                null,
+                "INSTALLMENT",
                 12));
     }
 }

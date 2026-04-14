@@ -38,7 +38,7 @@ public class CartController {
     private static final List<String> SUPPORTED_PAYMENT_PLANS = List.of(
             "FULL_PAYMENT", "INSTALLMENT");
     private static final int DEFAULT_INSTALLMENT_MONTHS = 24;
-    private static final List<Integer> SUPPORTED_INSTALLMENT_MONTHS = List.of(DEFAULT_INSTALLMENT_MONTHS);
+    private static final List<Integer> SUPPORTED_INSTALLMENT_MONTHS = List.of(6, 12, DEFAULT_INSTALLMENT_MONTHS);
 
     private final CartService cartService;
     private final OrderService orderService;
@@ -126,6 +126,7 @@ public class CartController {
         model.addAttribute("selectedInstallmentMonths", resolveInstallmentMonths(
                 selectedPaymentPlan,
                 session.getAttribute("installmentMonths")));
+        model.addAttribute("installmentOptions", SUPPORTED_INSTALLMENT_MONTHS);
 
         if (isAuthenticatedUser(email)) {
             List<PaymentMethod> savedPaymentMethods = paymentMethodService.getUserPaymentMethods(email);
@@ -149,6 +150,10 @@ public class CartController {
             @RequestParam(required = false) String bankDetail,
             @RequestParam(required = false) String paymentPlan,
             @RequestParam(required = false) String installmentMonths,
+            @RequestParam(required = false) String paymentChoice,
+            @RequestParam(required = false) String paymentMethodRadio,
+            @RequestParam(required = false) String paymentPlanChoice,
+            @RequestParam(required = false) String paymentPlanRadio,
             Authentication auth,
             HttpSession session,
             RedirectAttributes redirectAttributes) {
@@ -157,18 +162,36 @@ public class CartController {
             return "redirect:/cart";
         }
 
+        String submittedPaymentChoice = firstNonBlank(paymentChoice, paymentMethodRadio);
+        Long resolvedSavedPaymentMethodId = savedPaymentMethodId != null
+                ? savedPaymentMethodId
+                : parseSavedPaymentMethodId(submittedPaymentChoice);
+        String resolvedPaymentType = firstNonBlank(
+                paymentType,
+                parseSubmittedPaymentType(submittedPaymentChoice));
+
+        if (resolvedSavedPaymentMethodId == null
+                && (resolvedPaymentType == null || resolvedPaymentType.isBlank())) {
+            redirectAttributes.addFlashAttribute("toast", "Please select a payment method.");
+            return "redirect:/cart/payment";
+        }
+
+        String submittedPaymentPlan = firstNonBlank(paymentPlan, paymentPlanChoice, paymentPlanRadio);
         String finalMethod;
         String finalDetail = null;
-        String finalPaymentPlan = resolvePaymentPlan(paymentPlan);
-        Integer finalInstallmentMonths = resolveInstallmentMonths(finalPaymentPlan, installmentMonths);
+        String finalPaymentPlan = resolvePaymentPlan(normalizeSubmittedPaymentPlan(submittedPaymentPlan));
+        String resolvedInstallmentMonths = firstNonBlank(
+                installmentMonths,
+                extractInstallmentMonths(submittedPaymentPlan));
+        Integer finalInstallmentMonths = resolveInstallmentMonths(finalPaymentPlan, resolvedInstallmentMonths);
 
-        if (savedPaymentMethodId != null) {
+        if (resolvedSavedPaymentMethodId != null) {
             if (!isAuthenticatedUser(email)) {
                 redirectAttributes.addFlashAttribute("toast", "Please log in to use saved payment methods.");
                 return "redirect:/login";
             }
             PaymentMethod savedMethod = paymentMethodService.getUserPaymentMethods(email).stream()
-                    .filter(pm -> savedPaymentMethodId.equals(pm.getId()))
+                    .filter(pm -> resolvedSavedPaymentMethodId.equals(pm.getId()))
                     .findFirst()
                     .orElse(null);
             if (savedMethod == null) {
@@ -182,9 +205,7 @@ public class CartController {
             }
             finalDetail = savedMethod.getDetail();
         } else {
-            finalMethod = (paymentType == null || paymentType.isBlank())
-                    ? "CASH_ON_DELIVERY"
-                    : paymentType.trim().toUpperCase(Locale.ROOT);
+            finalMethod = resolvedPaymentType.trim().toUpperCase(Locale.ROOT);
 
             if (!SUPPORTED_PAYMENT_METHODS.contains(finalMethod)) {
                 redirectAttributes.addFlashAttribute("toast", "Invalid payment method selected.");
@@ -202,6 +223,12 @@ public class CartController {
                 }
                 finalDetail = normalizedDetail;
             }
+        }
+
+        if ("INSTALLMENT".equals(finalPaymentPlan) && "CASH_ON_DELIVERY".equals(finalMethod)) {
+            redirectAttributes.addFlashAttribute("toast",
+                    "Installment is not available for Cash on Delivery. Please choose another payment method.");
+            return "redirect:/cart/payment";
         }
 
         session.setAttribute("paymentMethod", finalMethod);
@@ -396,5 +423,63 @@ public class CartController {
         } catch (NumberFormatException ex) {
             return null;
         }
+    }
+
+    private String firstNonBlank(String... values) {
+        if (values == null) {
+            return null;
+        }
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    private String normalizeSubmittedPaymentPlan(String rawPlan) {
+        if (rawPlan == null || rawPlan.isBlank()) {
+            return null;
+        }
+        String normalized = rawPlan.trim().toUpperCase(Locale.ROOT);
+        if (normalized.startsWith("INSTALLMENT:")) {
+            return "INSTALLMENT";
+        }
+        return normalized;
+    }
+
+    private String extractInstallmentMonths(String rawPlan) {
+        if (rawPlan == null || rawPlan.isBlank()) {
+            return null;
+        }
+        String normalized = rawPlan.trim().toUpperCase(Locale.ROOT);
+        if (!normalized.startsWith("INSTALLMENT:")) {
+            return null;
+        }
+        return normalized.substring("INSTALLMENT:".length()).trim();
+    }
+
+    private Long parseSavedPaymentMethodId(String rawChoice) {
+        if (rawChoice == null || rawChoice.isBlank()) {
+            return null;
+        }
+        if (!rawChoice.startsWith("saved:")) {
+            return null;
+        }
+        try {
+            return Long.valueOf(rawChoice.substring("saved:".length()).trim());
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private String parseSubmittedPaymentType(String rawChoice) {
+        if (rawChoice == null || rawChoice.isBlank()) {
+            return null;
+        }
+        if (!rawChoice.startsWith("new:")) {
+            return null;
+        }
+        return rawChoice.substring("new:".length()).trim();
     }
 }

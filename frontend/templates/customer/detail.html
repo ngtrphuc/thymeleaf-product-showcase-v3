@@ -363,7 +363,7 @@
                 <span class="header-action__icon icon-svg icon-clipboard" aria-hidden="true"></span>
                 <span class="header-action__label">Compare</span>
             </a>
-            <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header header-action header-action--neutral">
+            <a sec:authorize="hasRole('USER')" href="/cart" class="btn-header header-action header-action--neutral">
                 <span class="header-action__icon icon-svg icon-cart" aria-hidden="true"></span>
                 <span class="header-action__label">Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)</span>
             </a>

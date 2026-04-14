@@ -14,16 +14,19 @@
 
         .cart-shell__header {
             display: flex;
-            justify-content: space-between;
-            align-items: end;
+            justify-content: center;
+            align-items: center;
             gap: 18px;
             margin-bottom: 24px;
+            text-align: center;
         }
 
         .cart-shell__copy {
             color: var(--text-muted);
             max-width: 620px;
             line-height: 1.65;
+            margin: 0 auto;
+            text-align: center;
         }
 
         .cart-layout {
@@ -311,7 +314,7 @@
                     <span class="header-action__icon icon-svg icon-clipboard" aria-hidden="true"></span>
                     <span class="header-action__label">Compare</span>
                 </a>
-                <a sec:authorize="!hasRole('ADMIN')" href="/cart" class="btn-header header-action header-action--neutral">
+                <a sec:authorize="hasRole('USER')" href="/cart" class="btn-header header-action header-action--neutral">
                     <span class="header-action__icon icon-svg icon-cart" aria-hidden="true"></span>
                     <span class="header-action__label">Cart (<span th:text="${session.cartCount != null ? session.cartCount : 0}">0</span>)</span>
                 </a>
@@ -342,7 +345,6 @@
                     Review quantities, keep an eye on fast-moving stock, and move straight into the secure 3-step checkout flow when you are ready.
                 </p>
             </div>
-            <a href="/" class="btn-back">Continue Shopping</a>
         </div>
 
         <div th:if="${#lists.isEmpty(cart)}" class="cart-empty">

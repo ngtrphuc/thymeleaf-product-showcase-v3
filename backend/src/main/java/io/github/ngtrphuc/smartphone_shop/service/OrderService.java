@@ -33,7 +33,7 @@ public class OrderService {
     private static final Set<String> ALLOWED_PAYMENT_PLANS = Set.of(
             "FULL_PAYMENT", "INSTALLMENT");
     private static final int DEFAULT_INSTALLMENT_MONTHS = 24;
-    private static final Set<Integer> ALLOWED_INSTALLMENT_MONTHS = Set.of(DEFAULT_INSTALLMENT_MONTHS);
+    private static final Set<Integer> ALLOWED_INSTALLMENT_MONTHS = Set.of(6, 12, DEFAULT_INSTALLMENT_MONTHS);
     private static final Pattern PHONE_PATTERN = Pattern.compile("^[0-9+()\\-\\s]{6,30}$");
 
     private final OrderRepository orderRepository;
@@ -68,7 +68,10 @@ public class OrderService {
         String normalizedPaymentMethod = normalizePaymentMethod(paymentMethod);
         String normalizedPaymentDetail = normalizePaymentDetail(normalizedPaymentMethod, paymentDetail);
         String normalizedPaymentPlan = normalizePaymentPlan(paymentPlan);
-        Integer normalizedInstallmentMonths = normalizeInstallmentMonths(normalizedPaymentPlan, installmentMonths);
+        Integer normalizedInstallmentMonths = normalizeInstallmentMonths(
+                normalizedPaymentPlan,
+                installmentMonths,
+                normalizedPaymentMethod);
 
         Map<Long, Integer> requestedQuantities = extractCartQuantities(cartItems);
         Map<Long, Product> lockedProducts = loadProductsForUpdate(requestedQuantities.keySet());
@@ -264,9 +267,12 @@ public class OrderService {
         return upper;
     }
 
-    private Integer normalizeInstallmentMonths(String paymentPlan, Integer rawMonths) {
+    private Integer normalizeInstallmentMonths(String paymentPlan, Integer rawMonths, String paymentMethod) {
         if (!"INSTALLMENT".equals(paymentPlan)) {
             return null;
+        }
+        if ("CASH_ON_DELIVERY".equals(paymentMethod)) {
+            throw new OrderValidationException("Installment is not available for Cash on Delivery.");
         }
         int resolvedMonths = rawMonths == null ? DEFAULT_INSTALLMENT_MONTHS : rawMonths;
         if (!ALLOWED_INSTALLMENT_MONTHS.contains(resolvedMonths)) {
