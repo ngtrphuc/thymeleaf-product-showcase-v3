@@ -475,7 +475,7 @@
                     </div>
 
                     <div class="action-buttons">
-                        <div sec:authorize="!hasRole('ADMIN')" class="detail-primary-actions">
+                        <div sec:authorize="hasRole('USER')" class="detail-primary-actions">
                             <form action="/cart/add" method="post" class="detail-cart-form">
                                 <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
                                 <input type="hidden" name="id" th:value="${product.id}">
