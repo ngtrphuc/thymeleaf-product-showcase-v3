@@ -2,6 +2,8 @@ package io.github.ngtrphuc.smartphone_shop.controller.user;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -10,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 
@@ -40,7 +44,8 @@ class MainControllerTest {
         galaxy.setName("Galaxy S26 Ultra");
         galaxy.setPrice(1200.0);
 
-        when(productRepository.findAllWithFilters(null, null, null)).thenReturn(List.of(iphone, galaxy));
+        when(productRepository.findWithFilters(isNull(), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(iphone, galaxy)));
         when(productRepository.findAllNamesOrdered()).thenReturn(List.of("Apple iPhone 17 Pro", "Samsung Galaxy S26 Ultra"));
 
         Model model = new ExtendedModelMap();

@@ -1,8 +1,7 @@
 package io.github.ngtrphuc.smartphone_shop.controller.user;
 
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.regex.PatternSyntaxException;
 
@@ -29,6 +28,7 @@ public class MainController {
 
     private static final int DESKTOP_PAGE_SIZE = 9;
     private static final int COMPACT_PAGE_SIZE = 8;
+    private static final int FILTER_SCAN_PAGE_SIZE = 200;
 
     private final ProductRepository productRepository;
     private final WishlistService wishlistService;
@@ -84,26 +84,38 @@ public class MainController {
                 keyword, brand, priceRange, priceMin, priceMax, batteryRange, batteryMin, batteryMax, screenSize);
 
         if (requiresInMemoryFiltering(brand, batteryRange, batteryMin, batteryMax, screenSize)) {
-            List<Product> all = productRepository.findAllWithFilters(
-                    blankToNull(keyword), resolvedPriceMin, resolvedPriceMax);
+            FilteredScanResult scanResult = scanFilteredProducts(
+                    blankToNull(keyword),
+                    resolvedPriceMin,
+                    resolvedPriceMax,
+                    brand,
+                    batteryRange,
+                    batteryMin,
+                    batteryMax,
+                    screenSize,
+                    requestedSort,
+                    effectivePageSize,
+                    safeRequestedPage);
 
-            if (brand != null && !brand.isBlank()) {
-                all = all.stream()
-                        .filter(p -> StorefrontSupport.extractBrand(p != null ? p.getName() : null)
-                                .equalsIgnoreCase(brand))
-                        .toList();
-            }
-
-            all = applySortInMemory(all, normalizedSort);
-            all = applyStringFilters(all, batteryRange, batteryMin, batteryMax, screenSize);
-
-            totalElements = all.size();
+            totalElements = scanResult.totalMatched();
             totalPages = totalElements == 0 ? 1 : (int) Math.ceil((double) totalElements / effectivePageSize);
             safePage = Math.max(0, Math.min(safeRequestedPage, totalPages - 1));
-            products = all.stream()
-                    .skip((long) safePage * effectivePageSize)
-                    .limit(effectivePageSize)
-                    .toList();
+
+            if (safePage != safeRequestedPage) {
+                scanResult = scanFilteredProducts(
+                        blankToNull(keyword),
+                        resolvedPriceMin,
+                        resolvedPriceMax,
+                        brand,
+                        batteryRange,
+                        batteryMin,
+                        batteryMax,
+                        screenSize,
+                        requestedSort,
+                        effectivePageSize,
+                        safePage);
+            }
+            products = scanResult.pageItems();
         } else {
             Page<Product> productPage = productRepository.findWithFilters(
                     blankToNull(keyword),
@@ -163,66 +175,91 @@ public class MainController {
         return "detail";
     }
 
-    private List<Product> applySortInMemory(List<Product> products, String sort) {
-        if (sort == null) return products;
-        return switch (sort) {
-            case "name_asc" -> products.stream()
-                    .sorted(Comparator.comparing(p -> normalizeNameForSort(p.getName())))
-                    .toList();
-            case "name_desc" -> products.stream()
-                    .sorted(Comparator.comparing((Product p) -> normalizeNameForSort(p.getName())).reversed())
-                    .toList();
-            case "price_asc" -> products.stream()
-                    .sorted(Comparator.comparingDouble(this::safePrice))
-                    .toList();
-            case "price_desc" -> products.stream()
-                    .sorted(Comparator.comparingDouble(this::safePrice).reversed())
-                    .toList();
-            default -> products;
-        };
+    private FilteredScanResult scanFilteredProducts(String keyword,
+            Double priceMin,
+            Double priceMax,
+            String brand,
+            String batteryRange,
+            Integer batteryMin,
+            Integer batteryMax,
+            String screenSize,
+            Sort sort,
+            int pageSize,
+            int requestedPage) {
+        long targetStart = (long) requestedPage * pageSize;
+        long targetEnd = targetStart + pageSize;
+        long matched = 0;
+        List<Product> pageItems = new ArrayList<>();
+
+        int dbPage = 0;
+        while (true) {
+            Page<Product> chunk = productRepository.findWithFilters(
+                    keyword,
+                    priceMin,
+                    priceMax,
+                    PageRequest.of(dbPage, FILTER_SCAN_PAGE_SIZE, sort));
+
+            for (Product product : chunk.getContent()) {
+                if (!matchesAdvancedFilters(product, brand, batteryRange, batteryMin, batteryMax, screenSize)) {
+                    continue;
+                }
+
+                if (matched >= targetStart && matched < targetEnd) {
+                    pageItems.add(product);
+                }
+                matched++;
+            }
+
+            if (!chunk.hasNext()) {
+                break;
+            }
+            dbPage++;
+        }
+
+        return new FilteredScanResult(pageItems, matched);
     }
 
-    private List<Product> applyStringFilters(List<Product> products,
-            String batteryRange, Integer batteryMin, Integer batteryMax, String screenSize) {
+    private boolean matchesAdvancedFilters(Product product,
+            String brand, String batteryRange, Integer batteryMin, Integer batteryMax, String screenSize) {
+        if (brand != null && !brand.isBlank()
+                && !StorefrontSupport.extractBrand(product != null ? product.getName() : null).equalsIgnoreCase(brand)) {
+            return false;
+        }
+
+        int battery = parseBattery(product != null ? product.getBattery() : null);
         if (batteryRange != null && !batteryRange.isBlank()) {
-            products = switch (batteryRange) {
-                case "under5000" -> products.stream()
-                        .filter(p -> parseBattery(p.getBattery()) < 5000).toList();
-                case "over5000" -> products.stream()
-                        .filter(p -> parseBattery(p.getBattery()) >= 5000).toList();
-                default -> products;
-            };
+            if ("under5000".equals(batteryRange) && battery >= 5000) {
+                return false;
+            }
+            if ("over5000".equals(batteryRange) && battery < 5000) {
+                return false;
+            }
         }
-        if (batteryMin != null) {
-            products = products.stream()
-                    .filter(p -> parseBattery(p.getBattery()) >= batteryMin).toList();
+        if (batteryMin != null && battery < batteryMin) {
+            return false;
         }
-        if (batteryMax != null) {
-            products = products.stream()
-                    .filter(p -> parseBattery(p.getBattery()) <= batteryMax).toList();
+        if (batteryMax != null && battery > batteryMax) {
+            return false;
         }
+
         if (screenSize != null && !screenSize.isBlank()) {
-            products = switch (screenSize) {
-                case "under6.5" -> products.stream()
-                        .filter(p -> parseScreen(p.getSize()) < 6.5).toList();
-                case "6.5to6.8" -> products.stream()
-                        .filter(p -> {
-                            double s = parseScreen(p.getSize());
-                            return s >= 6.5 && s <= 6.8;
-                        }).toList();
-                case "over6.8" -> products.stream()
-                        .filter(p -> parseScreen(p.getSize()) > 6.8).toList();
-                default -> products;
-            };
+            double screen = parseScreen(product != null ? product.getSize() : null);
+            if ("under6.5".equals(screenSize) && screen >= 6.5) {
+                return false;
+            }
+            if ("6.5to6.8".equals(screenSize) && (screen < 6.5 || screen > 6.8)) {
+                return false;
+            }
+            if ("over6.8".equals(screenSize) && screen <= 6.8) {
+                return false;
+            }
         }
-        return products;
+        return true;
     }
 
     private Double resolveMin(Double existing, Double fallback) { return existing != null ? existing : fallback; }
     private Double resolveMax(Double existing, Double fallback) { return existing != null ? existing : fallback; }
     private String blankToNull(String s) { return (s == null || s.isBlank()) ? null : s; }
-    private String normalizeNameForSort(String name) { return name == null ? "" : name.trim().toLowerCase(Locale.ROOT); }
-    private double safePrice(Product product) { return Objects.requireNonNullElse(product.getPrice(), 0.0); }
 
     private boolean requiresInMemoryFiltering(String brand,
             String batteryRange, Integer batteryMin, Integer batteryMax, String screenSize) {
@@ -347,5 +384,8 @@ public class MainController {
             return java.util.Set.of();
         }
         return wishlistService.getWishlistedProductIds(authentication.getName());
+    }
+
+    private record FilteredScanResult(List<Product> pageItems, long totalMatched) {
     }
 }

@@ -2,6 +2,8 @@ package io.github.ngtrphuc.smartphone_shop.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -17,6 +19,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     }
 
     List<ChatMessage> findByUserEmailOrderByCreatedAtAsc(String userEmail);
+    Page<ChatMessage> findByUserEmailOrderByCreatedAtDesc(String userEmail, Pageable pageable);
 
     @Query(value = """
             SELECT user_email FROM chat_messages

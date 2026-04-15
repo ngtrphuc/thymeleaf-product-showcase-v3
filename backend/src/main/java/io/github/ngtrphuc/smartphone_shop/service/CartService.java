@@ -73,6 +73,9 @@ public class CartService {
 
     @Transactional
     public void mergeSessionCartToDb(HttpSession session, String email) {
+        if (isLoggedIn(email)) {
+            cleanupDbCart(email);
+        }
         List<CartItem> sessionCart = getSessionCart(session);
         if (sessionCart.isEmpty()) {
             return;
@@ -137,7 +140,7 @@ public class CartService {
         syncCartCount(session, email);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<CartItem> getDbCart(String email) {
         List<CartItemEntity> entities = cartItemRepository.findByUserEmail(email);
         if (entities.isEmpty()) {
@@ -149,35 +152,6 @@ public class CartService {
                 .stream()
                 .filter(p -> p.getId() != null)
                 .collect(Collectors.toMap(Product::getId, p -> p));
-
-        List<CartItemEntity> removableItems = new ArrayList<>();
-        List<CartItemEntity> adjustedItems = new ArrayList<>();
-        for (CartItemEntity entity : entities) {
-            Product product = productMap.get(entity.getProductId());
-            if (product == null) {
-                removableItems.add(entity);
-                continue;
-            }
-
-            int maxStock = stockOf(product);
-            if (maxStock <= 0) {
-                removableItems.add(entity);
-                continue;
-            }
-
-            int safeQuantity = Math.max(1, Math.min(entity.getQuantity(), maxStock));
-            if (safeQuantity != entity.getQuantity()) {
-                entity.setQuantity(safeQuantity);
-                adjustedItems.add(entity);
-            }
-        }
-
-        if (!removableItems.isEmpty()) {
-            cartItemRepository.deleteAll(removableItems);
-        }
-        if (!adjustedItems.isEmpty()) {
-            cartItemRepository.saveAll(adjustedItems);
-        }
 
         return entities.stream()
                 .map(e -> toCartItem(e, productMap.get(e.getProductId())))
@@ -205,6 +179,43 @@ public class CartService {
     }
 
     @Transactional
+    public void cleanupDbCart(String email) {
+        List<CartItemEntity> entities = cartItemRepository.findByUserEmail(email);
+        if (entities.isEmpty()) {
+            return;
+        }
+
+        List<Long> productIds = entities.stream().map(CartItemEntity::getProductId).toList();
+        Map<Long, Product> productMap = productRepository.findAllByIdIn(productIds)
+                .stream()
+                .filter(p -> p.getId() != null)
+                .collect(Collectors.toMap(Product::getId, p -> p));
+
+        List<CartItemEntity> removableItems = new ArrayList<>();
+        List<CartItemEntity> adjustedItems = new ArrayList<>();
+        for (CartItemEntity entity : entities) {
+            Product product = productMap.get(entity.getProductId());
+            if (product == null || stockOf(product) <= 0) {
+                removableItems.add(entity);
+                continue;
+            }
+
+            int safeQuantity = Math.max(1, Math.min(entity.getQuantity(), stockOf(product)));
+            if (safeQuantity != entity.getQuantity()) {
+                entity.setQuantity(safeQuantity);
+                adjustedItems.add(entity);
+            }
+        }
+
+        if (!removableItems.isEmpty()) {
+            cartItemRepository.deleteAll(removableItems);
+        }
+        if (!adjustedItems.isEmpty()) {
+            cartItemRepository.saveAll(adjustedItems);
+        }
+    }
+
+    @Transactional
     public AddItemResult addItem(String email, HttpSession session, long productId) {
         return addItem(email, session, productId, 1);
     }
@@ -222,6 +233,7 @@ public class CartService {
         int quantityToAdd = Math.max(1, requestedQuantity);
 
         if (isLoggedIn(email)) {
+            cleanupDbCart(email);
             Optional<CartItemEntity> existing
                     = cartItemRepository.findByUserEmailAndProductId(email, productId);
             if (existing.isPresent()) {
@@ -274,6 +286,7 @@ public class CartService {
             return;
         }
         if (isLoggedIn(email)) {
+            cleanupDbCart(email);
             cartItemRepository.findByUserEmailAndProductId(email, productId).ifPresent(e -> {
                 if (e.getQuantity() < maxStock) {
                     e.setQuantity(e.getQuantity() + 1);
@@ -295,6 +308,7 @@ public class CartService {
     @Transactional
     public void decreaseItem(String email, HttpSession session, long productId) {
         if (isLoggedIn(email)) {
+            cleanupDbCart(email);
             cartItemRepository.findByUserEmailAndProductId(email, productId).ifPresent(e -> {
                 if (e.getQuantity() > 1) {
                     e.setQuantity(e.getQuantity() - 1);
@@ -321,6 +335,7 @@ public class CartService {
     @Transactional
     public void removeItem(String email, HttpSession session, long productId) {
         if (isLoggedIn(email)) {
+            cleanupDbCart(email);
             cartItemRepository.deleteByUserEmailAndProductId(email, productId);
         } else {
             getSessionCart(session).removeIf(i -> i.getId() != null && i.getId() == productId);
@@ -338,7 +353,7 @@ public class CartService {
     }
 
     public List<CartItem> getCart(String email, HttpSession session) {
-        return isLoggedIn(email) ? getDbCart(email) : getSessionCart(session);
+        return isLoggedIn(email) ? getDbCartSnapshot(email) : getSessionCart(session);
     }
 
     public double calculateTotal(List<CartItem> cart) {

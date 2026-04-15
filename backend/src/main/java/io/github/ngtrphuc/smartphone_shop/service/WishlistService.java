@@ -42,6 +42,7 @@ public class WishlistService {
     @Transactional
     public AddResult addItem(String email, long productId) {
         String normalizedEmail = normalizeEmail(email);
+        cleanupOrphanedItems(normalizedEmail);
         if (!productRepository.existsById(productId)) {
             return AddResult.UNAVAILABLE;
         }
@@ -55,6 +56,7 @@ public class WishlistService {
     @Transactional
     public boolean removeItem(String email, long productId) {
         String normalizedEmail = normalizeEmail(email);
+        cleanupOrphanedItems(normalizedEmail);
         WishlistItemEntity existing =
                 wishlistItemRepository.findByUserEmailAndProductId(normalizedEmail, productId).orElse(null);
         if (existing == null) {
@@ -64,7 +66,7 @@ public class WishlistService {
         return true;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<WishlistItem> getWishlist(String email) {
         String normalizedEmail = normalizeEmail(email);
         List<WishlistItemEntity> entities = wishlistItemRepository.findByUserEmailOrderByCreatedAtDesc(normalizedEmail);
@@ -82,11 +84,9 @@ public class WishlistService {
                 .collect(Collectors.toMap(Product::getId, product -> product));
 
         List<WishlistItem> result = new ArrayList<>();
-        List<WishlistItemEntity> orphaned = new ArrayList<>();
         for (WishlistItemEntity entity : entities) {
             Product product = productsById.get(entity.getProductId());
             if (product == null) {
-                orphaned.add(entity);
                 continue;
             }
             result.add(new WishlistItem(
@@ -97,11 +97,33 @@ public class WishlistService {
                     product.getStock(),
                     entity.getCreatedAt()));
         }
+        return result;
+    }
 
+    @Transactional
+    public void cleanupOrphanedItems(String email) {
+        String normalizedEmail = normalizeEmail(email);
+        List<WishlistItemEntity> entities = wishlistItemRepository.findByUserEmailOrderByCreatedAtDesc(normalizedEmail);
+        if (entities.isEmpty()) {
+            return;
+        }
+
+        List<Long> productIds = entities.stream()
+                .map(WishlistItemEntity::getProductId)
+                .filter(id -> id != null)
+                .distinct()
+                .toList();
+        Set<Long> existingProductIds = productRepository.findAllByIdIn(productIds).stream()
+                .map(Product::getId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+
+        List<WishlistItemEntity> orphaned = entities.stream()
+                .filter(entity -> entity.getProductId() == null || !existingProductIds.contains(entity.getProductId()))
+                .toList();
         if (!orphaned.isEmpty()) {
             wishlistItemRepository.deleteAll(orphaned);
         }
-        return result;
     }
 
     @Transactional(readOnly = true)

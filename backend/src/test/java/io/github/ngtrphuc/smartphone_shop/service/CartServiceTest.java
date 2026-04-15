@@ -82,7 +82,7 @@ class CartServiceTest {
     }
 
     @Test
-    void getDbCart_shouldRemoveOrphanedItemsWhenProductNoLongerExists() {
+    void getDbCart_shouldSkipOrphanedItemsWithoutRepairWrites() {
         CartItemEntity orphan = new CartItemEntity("user@example.com", 99L, 2);
         when(cartItemRepository.findByUserEmail("user@example.com")).thenReturn(List.of(orphan));
         when(productRepository.findAllByIdIn(List.of(99L))).thenReturn(List.of());
@@ -90,11 +90,11 @@ class CartServiceTest {
         List<CartItem> cart = cartService.getDbCart("user@example.com");
 
         assertTrue(cart.isEmpty());
-        verify(cartItemRepository).deleteAll(MockitoNullSafety.nonNullIterable(List.of(orphan)));
+        verify(cartItemRepository, never()).deleteAll(anyIterable());
     }
 
     @Test
-    void getDbCart_shouldClampQuantityWhenStockDrops() {
+    void getDbCart_shouldClampQuantityInResponseWithoutPersisting() {
         CartItemEntity entity = new CartItemEntity("user@example.com", 7L, 5);
         Product product = new Product();
         product.setId(7L);
@@ -109,7 +109,25 @@ class CartServiceTest {
 
         assertEquals(1, cart.size());
         assertEquals(2, cart.getFirst().getQuantity());
-        verify(cartItemRepository).saveAll(MockitoNullSafety.nonNullIterable(List.of(entity)));
+        verify(cartItemRepository, never()).saveAll(anyIterable());
+    }
+
+    @Test
+    void cleanupDbCart_shouldRemoveOrphanedAndClampQuantities() {
+        CartItemEntity orphan = new CartItemEntity("user@example.com", 99L, 2);
+        CartItemEntity limited = new CartItemEntity("user@example.com", 7L, 5);
+        Product product = new Product();
+        product.setId(7L);
+        product.setStock(2);
+
+        when(cartItemRepository.findByUserEmail("user@example.com")).thenReturn(List.of(orphan, limited));
+        when(productRepository.findAllByIdIn(List.of(99L, 7L))).thenReturn(List.of(product));
+
+        cartService.cleanupDbCart("user@example.com");
+
+        assertEquals(2, limited.getQuantity());
+        verify(cartItemRepository).deleteAll(MockitoNullSafety.nonNullIterable(List.of(orphan)));
+        verify(cartItemRepository).saveAll(MockitoNullSafety.nonNullIterable(List.of(limited)));
     }
 
     @Test

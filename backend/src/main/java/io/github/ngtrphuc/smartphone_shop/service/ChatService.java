@@ -2,6 +2,8 @@ package io.github.ngtrphuc.smartphone_shop.service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -11,6 +13,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Pattern;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -21,6 +25,8 @@ import io.github.ngtrphuc.smartphone_shop.repository.ChatMessageRepository;
 @Service
 public class ChatService {
     private static final long SSE_TIMEOUT_MS = 300_000L;
+    private static final long SSE_HEARTBEAT_MS = 60_000L;
+    private static final int DEFAULT_HISTORY_LIMIT = 50;
     private static final int MAX_MESSAGE_LENGTH = 1000;
     private static final int MAX_EMAIL_LENGTH = 100;
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
@@ -84,7 +90,13 @@ public class ChatService {
 
     @Transactional(readOnly = true)
     public List<ChatMessage> getHistory(String email) {
-        return chatMessageRepository.findByUserEmailOrderByCreatedAtAsc(normalizeConversationEmail(email));
+        List<ChatMessage> latestFirst = new ArrayList<>(chatMessageRepository
+                .findByUserEmailOrderByCreatedAtDesc(
+                        normalizeConversationEmail(email),
+                        PageRequest.of(0, DEFAULT_HISTORY_LIMIT))
+                .getContent());
+        Collections.reverse(latestFirst);
+        return latestFirst;
     }
 
     @Transactional(readOnly = true)
@@ -124,6 +136,38 @@ public class ChatService {
     @Transactional
     public void markReadByUser(String email) {
         chatMessageRepository.markAllReadByUser(normalizeConversationEmail(email));
+    }
+
+    @Scheduled(fixedDelay = SSE_HEARTBEAT_MS)
+    public void pruneDeadEmitters() {
+        List<SseEmitter> deadAdmins = new CopyOnWriteArrayList<>();
+        for (SseEmitter emitter : adminEmitters) {
+            try {
+                emitter.send(SseEmitter.event().comment("heartbeat"));
+            } catch (IOException ex) {
+                emitter.complete();
+                deadAdmins.add(emitter);
+            }
+        }
+        adminEmitters.removeAll(deadAdmins);
+
+        for (Map.Entry<String, List<SseEmitter>> entry : userEmitters.entrySet()) {
+            String email = entry.getKey();
+            List<SseEmitter> emitters = entry.getValue();
+            List<SseEmitter> deadUsers = new CopyOnWriteArrayList<>();
+            for (SseEmitter emitter : emitters) {
+                try {
+                    emitter.send(SseEmitter.event().comment("heartbeat"));
+                } catch (IOException ex) {
+                    emitter.complete();
+                    deadUsers.add(emitter);
+                }
+            }
+            emitters.removeAll(deadUsers);
+            if (emitters.isEmpty()) {
+                userEmitters.remove(email, emitters);
+            }
+        }
     }
 
     private void pushToAdmins(String conversationEmail, ChatMessage msg) {

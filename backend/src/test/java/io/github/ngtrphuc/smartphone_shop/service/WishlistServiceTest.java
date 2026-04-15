@@ -12,7 +12,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -42,9 +41,9 @@ class WishlistServiceTest {
         WishlistService.AddResult result = wishlistService.addItem("USER@EXAMPLE.COM", 1L);
 
         assertEquals(WishlistService.AddResult.ALREADY_EXISTS, result);
+        verify(wishlistItemRepository).findByUserEmailOrderByCreatedAtDesc("user@example.com");
         verify(wishlistItemRepository).existsByUserEmailAndProductId("user@example.com", 1L);
         verify(wishlistItemRepository, never()).deleteByUserEmailAndProductId("user@example.com", 1L);
-        verifyNoMoreInteractions(wishlistItemRepository);
     }
 
     @Test
@@ -81,6 +80,22 @@ class WishlistServiceTest {
         assertEquals(1L, result.get(1).getProductId());
         verify(wishlistItemRepository).findByUserEmailOrderByCreatedAtDesc("user@example.com");
         verify(productRepository).findAllByIdIn(List.of(2L, 1L, 3L));
+        verify(wishlistItemRepository, never()).deleteAll(List.of(orphan));
+    }
+
+    @Test
+    void cleanupOrphanedItems_shouldDeleteOnlyMissingProducts() {
+        WishlistItemEntity keep = new WishlistItemEntity("user@example.com", 2L);
+        WishlistItemEntity orphan = new WishlistItemEntity("user@example.com", 3L);
+        Product p2 = new Product();
+        p2.setId(2L);
+
+        when(wishlistItemRepository.findByUserEmailOrderByCreatedAtDesc("user@example.com"))
+                .thenReturn(List.of(keep, orphan));
+        when(productRepository.findAllByIdIn(List.of(2L, 3L))).thenReturn(List.of(p2));
+
+        wishlistService.cleanupOrphanedItems("user@example.com");
+
         verify(wishlistItemRepository).deleteAll(List.of(orphan));
     }
 
