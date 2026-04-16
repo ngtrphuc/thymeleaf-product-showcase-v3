@@ -147,7 +147,7 @@
                 <table class="recent-table">
                     <thead>
                         <tr>
-                            <th>#</th>
+                            <th>STT</th>
                             <th>Customer</th>
                             <th>Payment</th>
                             <th>Total Amount</th>
@@ -159,9 +159,13 @@
                         <tr th:if="${recentOrders == null or #lists.isEmpty(recentOrders)}">
                             <td colspan="6" style="text-align:center;padding:20px;color:var(--text-muted);">No orders found.</td>
                         </tr>
-                        <tr th:each="o : ${recentOrders}">
-                            <td style="font-family:'Syne',sans-serif;font-weight:700;" th:text="${o.id}"></td>
-                            <td th:text="${o.customerName}"></td>
+                        <tr th:each="o, rowStat : ${recentOrders}">
+                            <td style="font-family:'Syne',sans-serif;font-weight:700;"
+                                th:text="${(currentPage * dashboardPageSize) + rowStat.index + 1}"></td>
+                            <td>
+                                <div th:text="${#strings.isEmpty(#strings.trim(o.customerName)) ? o.userEmail : o.customerName}"></div>
+                                <div style="color:var(--text-muted);font-size:12px;" th:text="${'#' + o.id + ' · ' + o.userEmail}"></div>
+                            </td>
                             <td style="font-size:12px;" th:text="${o.paymentMethodDisplayName}"></td>
                             <td style="color:var(--accent);font-weight:700;font-family:'Syne',sans-serif;" th:text="${#numbers.formatDecimal(o.totalAmount != null ? o.totalAmount : 0, 0, 'COMMA', 0, 'POINT')} + ' JPY'"></td>
                             <td><span class="badge" th:classappend="'badge-' + ${o.status}" th:text="${o.status}"></span></td>

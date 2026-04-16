@@ -60,6 +60,7 @@ public class AdminController {
         model.addAttribute("currentPage", safePage);
         model.addAttribute("totalPages", totalPages);
         model.addAttribute("dashboardOrderCount", totalOrders);
+        model.addAttribute("dashboardPageSize", DASHBOARD_ORDER_PAGE_SIZE);
         return "dashboard";
     }
 

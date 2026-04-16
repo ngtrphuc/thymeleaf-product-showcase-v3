@@ -15,17 +15,17 @@ import jakarta.persistence.LockModeType;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
 
-    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items WHERE o.userEmail = :email ORDER BY o.createdAt DESC")
+    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items WHERE o.userEmail = :email ORDER BY o.createdAt DESC, o.id DESC")
     List<Order> findByUserEmailOrderByCreatedAtDesc(@Param("email") String email);
 
-    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items ORDER BY o.createdAt DESC")
+    @Query("SELECT DISTINCT o FROM Order o LEFT JOIN FETCH o.items ORDER BY o.createdAt DESC, o.id DESC")
     List<Order> findAllByOrderByCreatedAtDesc();
 
-    @Query("SELECT o FROM Order o ORDER BY o.createdAt DESC")
+    @Query("SELECT o FROM Order o ORDER BY o.createdAt DESC, o.id DESC")
     List<Order> findRecentOrders(Pageable pageable);
 
     @Query(
-            value = "SELECT o.id FROM Order o ORDER BY o.createdAt DESC",
+            value = "SELECT o.id FROM Order o ORDER BY o.createdAt DESC, o.id DESC",
             countQuery = "SELECT COUNT(o) FROM Order o"
     )
     Page<Long> findOrderIdsByCreatedAtDesc(Pageable pageable);

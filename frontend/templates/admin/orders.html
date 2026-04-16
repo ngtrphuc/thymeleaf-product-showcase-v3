@@ -198,7 +198,9 @@
                     <div>
                         <span style="color:var(--accent);font-weight:700;font-family:'Syne',sans-serif;" th:text="'#' + ${order.id}"></span>
                         <span style="color:var(--text-muted);font-size:12px;margin-left:10px;" th:text="${#temporals.format(order.createdAt,'dd/MM/yyyy HH:mm')}"></span>
-                        <div style="margin-top:5px;font-weight:600;" th:text="${order.customerName}"></div>
+                        <div style="margin-top:5px;font-weight:600;"
+                            th:text="${#strings.isEmpty(#strings.trim(order.customerName)) ? order.userEmail : order.customerName}"></div>
+                        <div style="color:var(--text-muted);font-size:12px;" th:text="${order.userEmail}"></div>
                         <div style="color:var(--text-muted);font-size:13px;"><span class="icon-svg icon-phone" aria-hidden="true"></span> <span th:text="${order.phoneNumber}"></span></div>
                         <div style="color:var(--text-muted);font-size:12px;">
                             Payment:
